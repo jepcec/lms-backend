@@ -1,7 +1,7 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
+// =============================================================
+// Prisma Schema — Escuela Global
+// Version: V1
+// =============================================================
 
 generator client {
 	provider = "prisma-client"
@@ -13,8 +13,529 @@ datasource db {
 	provider = "postgresql"
 }
 
+// =============================================================
+// ENUMS
+// =============================================================
+
+enum UserRole {
+  estudiante
+  soporte
+  marketing
+  admin
+}
+
+enum UserStatus {
+  active
+  suspended
+  deleted
+}
+
+enum CourseLevel {
+  principiante
+  intermedio
+  avanzado
+}
+
+enum CourseCurrency {
+  USD
+  PEN
+}
+
+enum CourseAccessDuration {
+  one_year  // Mapea "1_year" (nombre reservado)
+  lifetime
+}
+
+enum CourseStatus {
+  draft
+  published
+  archived
+}
+
+enum MaterialType {
+  PDF
+  Excel
+  Word
+  Otro
+}
+
+enum EnrollmentType {
+  online
+  manual
+}
+
+enum OfflinePaymentMethod {
+  transferencia
+  efectivo
+  cortesia
+  otro
+}
+
+enum OrderCurrency {
+  USD
+  PEN
+}
+
+enum PaymentMethod {
+  stripe
+  niubiz
+}
+
+enum PaymentStatus {
+  pending
+  paid
+  failed
+  refunded
+}
+
+enum ReviewStatus {
+  approved
+  hidden
+}
+
+enum NotificationType {
+  nuevo_curso
+  completado
+  recordatorio
+  matriculacion
+  certificado
+}
+
+enum SliderType {
+  courses
+  banner
+}
+
+enum SliderPosition {
+  top
+  middle
+  bottom
+}
+
+enum ContentStatus {
+  active
+  inactive
+}
+
+enum PromotionStatus {
+  active
+  inactive
+}
+
+enum AuditAction {
+  create
+  update
+  delete
+}
+
+// =============================================================
+// CORE — Usuarios
+// =============================================================
+
 model User {
-	id    Int     @id @default(autoincrement())
-	email String  @unique
-	name  String?
+  id                         String    @id @default(uuid()) @db.Uuid
+  full_name                  String
+  email                      String    @unique
+  phone                      String
+  country                    String?
+  password_hash              String
+  role                       UserRole
+  profile_photo_url          String?
+  email_verified             Boolean   @default(false)
+  email_verification_token   String?
+  email_verified_at          DateTime?
+  password_reset_token       String?
+  password_reset_expires_at  DateTime?
+  failed_login_attempts      Int       @default(0)
+  locked_until               DateTime?
+  status                     UserStatus @default(active)
+  created_by                 String?   @db.Uuid
+  created_at                 DateTime  @default(now())
+  updated_at                 DateTime  @updatedAt
+  deleted_at                 DateTime?
+
+  // Relación autorreferencial
+  creator                    User?     @relation("UserCreatedBy", fields: [created_by], references: [id])
+  created_users              User[]    @relation("UserCreatedBy")
+
+  // Relaciones
+  courses_created            Course[]         @relation("CourseCreatedBy")
+  enrollments                Enrollment[]     @relation("StudentEnrollments")
+  enrollments_made           Enrollment[]     @relation("EnrolledBy")
+  orders                     Order[]
+  cart_items                 CartItem[]
+  reviews                    Review[]
+  notifications              Notification[]
+  audit_logs                 AuditLog[]
+
+  @@map("users")
+}
+
+// =============================================================
+// CORE — Catálogo
+// =============================================================
+
+model Category {
+  id            String   @id @default(uuid()) @db.Uuid
+  name          String
+  slug          String   @unique
+  icon          String
+  color         String
+  description   String?
+  display_order Int
+  created_at    DateTime @default(now())
+
+  courses       Course[]
+
+  @@map("categories")
+}
+
+model Course {
+  id                     String               @id @default(uuid()) @db.Uuid
+  category_id            String               @db.Uuid
+  title                  String
+  slug                   String               @unique
+  tagline                String               @db.VarChar(150)
+  description            String
+  thumbnail_url          String
+  level                  CourseLevel
+  software_tools         String[]
+  price                  Decimal              @db.Decimal(10, 2)
+  discount_price         Decimal?             @db.Decimal(10, 2)
+  currency               CourseCurrency
+  access_duration        CourseAccessDuration
+  prerequisites          String[]
+  outcomes               String[]
+  status                 CourseStatus         @default(draft)
+  published_at           DateTime?
+  avg_rating             Decimal              @default(0) @db.Decimal(3, 2)
+  review_count           Int                  @default(0)
+  enrolled_count         Int                  @default(0)
+  total_duration_minutes Int                  @default(0)
+  created_by             String               @db.Uuid
+  created_at             DateTime             @default(now())
+  updated_at             DateTime             @updatedAt
+  deleted_at             DateTime?
+
+  // Relaciones
+  category               Category             @relation(fields: [category_id], references: [id])
+  creator                User                 @relation("CourseCreatedBy", fields: [created_by], references: [id])
+  instructors            Instructor[]
+  modules                Module[]
+  enrollments            Enrollment[]
+  order_items            OrderItem[]
+  cart_items             CartItem[]
+  reviews                Review[]
+  slider_courses         SliderCourse[]
+  promotions             Promotion[]          @relation("PromotionCourse")
+
+  @@map("courses")
+}
+
+model Instructor {
+  id            String  @id @default(uuid()) @db.Uuid
+  course_id     String  @db.Uuid
+  full_name     String
+  title         String
+  description   String
+  photo_url     String?
+  display_order Int
+
+  course        Course  @relation(fields: [course_id], references: [id], onDelete: Cascade)
+
+  @@map("instructors")
+}
+
+// =============================================================
+// CONTENIDO — Estructura del curso
+// =============================================================
+
+model Module {
+  id            String    @id @default(uuid()) @db.Uuid
+  course_id     String    @db.Uuid
+  title         String
+  description   String?
+  display_order Int
+  created_at    DateTime  @default(now())
+
+  course        Course    @relation(fields: [course_id], references: [id], onDelete: Cascade)
+  sessions      Session[]
+
+  @@map("modules")
+}
+
+model Session {
+  id               String    @id @default(uuid()) @db.Uuid
+  module_id        String    @db.Uuid
+  title            String
+  description      String?
+  youtube_url      String
+  youtube_video_id String
+  duration_minutes Int
+  display_order    Int
+  created_at       DateTime  @default(now())
+
+  module           Module          @relation(fields: [module_id], references: [id], onDelete: Cascade)
+  materials        Material[]
+  lesson_progress  LessonProgress[]
+
+  @@map("sessions")
+}
+
+model Material {
+  id         String       @id @default(uuid()) @db.Uuid
+  session_id String       @db.Uuid
+  name       String
+  drive_url  String
+  type       MaterialType
+  created_at DateTime     @default(now())
+
+  session    Session      @relation(fields: [session_id], references: [id], onDelete: Cascade)
+
+  @@map("materials")
+}
+
+// =============================================================
+// TRANSACCIONAL — Carrito y órdenes
+// =============================================================
+
+model CartItem {
+  id            String    @id @default(uuid()) @db.Uuid
+  user_id       String?   @db.Uuid
+  course_id     String    @db.Uuid
+  session_token String?   // Para usuarios invitados
+  added_at      DateTime  @default(now())
+  expires_at    DateTime? // 7 días para invitados
+
+  user          User?     @relation(fields: [user_id], references: [id])
+  course        Course    @relation(fields: [course_id], references: [id])
+
+  @@map("cart_items")
+}
+
+model Order {
+  id                     String        @id @default(uuid()) @db.Uuid
+  user_id                String        @db.Uuid
+  order_number           String        @unique
+  subtotal               Decimal       @db.Decimal(10, 2)
+  total                  Decimal       @db.Decimal(10, 2)
+  currency               OrderCurrency
+  payment_method         PaymentMethod
+  payment_status         PaymentStatus @default(pending)
+  gateway_transaction_id String?
+  billing_name           String
+  billing_email          String
+  billing_country        String
+  billing_dni_ruc        String?
+  invoice_pdf_url        String?
+  created_at             DateTime      @default(now())
+
+  user                   User          @relation(fields: [user_id], references: [id])
+  order_items            OrderItem[]
+  enrollments            Enrollment[]
+
+  @@map("orders")
+}
+
+model OrderItem {
+  id             String   @id @default(uuid()) @db.Uuid
+  order_id       String   @db.Uuid
+  course_id      String   @db.Uuid
+  unit_price     Decimal  @db.Decimal(10, 2)
+  discount_price Decimal? @db.Decimal(10, 2)
+  final_price    Decimal  @db.Decimal(10, 2)
+
+  order          Order    @relation(fields: [order_id], references: [id])
+  course         Course   @relation(fields: [course_id], references: [id])
+
+  @@map("order_items")
+}
+
+// =============================================================
+// TRANSACCIONAL — Matrícula y progreso
+// =============================================================
+
+model Enrollment {
+  id                     String                @id @default(uuid()) @db.Uuid
+  user_id                String                @db.Uuid
+  course_id              String                @db.Uuid
+  order_id               String?               @db.Uuid
+  enrolled_at            DateTime              @default(now())
+  enrollment_type        EnrollmentType
+  offline_payment_method OfflinePaymentMethod?
+  offline_amount         Decimal?              @db.Decimal(10, 2)
+  enrolled_by            String?               @db.Uuid
+  internal_notes         String?
+  progress_percent       Decimal               @default(0) @db.Decimal(5, 2)
+  completed_at           DateTime?
+  last_accessed_at       DateTime?
+
+  student                User                  @relation("StudentEnrollments", fields: [user_id], references: [id])
+  course                 Course                @relation(fields: [course_id], references: [id])
+  order                  Order?                @relation(fields: [order_id], references: [id])
+  enrolled_by_user       User?                 @relation("EnrolledBy", fields: [enrolled_by], references: [id])
+  lesson_progress        LessonProgress[]
+  review                 Review?
+  certificate            Certificate?
+
+  @@unique([user_id, course_id])
+  @@map("enrollments")
+}
+
+model LessonProgress {
+  id              String    @id @default(uuid()) @db.Uuid
+  enrollment_id   String    @db.Uuid
+  session_id      String    @db.Uuid
+  watched_seconds Int       @default(0)
+  completed       Boolean   @default(false)
+  completed_at    DateTime?
+  last_watched_at DateTime  @updatedAt
+
+  enrollment      Enrollment @relation(fields: [enrollment_id], references: [id], onDelete: Cascade)
+  session         Session    @relation(fields: [session_id], references: [id])
+
+  @@unique([enrollment_id, session_id])
+  @@map("lesson_progress")
+}
+
+// =============================================================
+// TRANSACCIONAL — Reseñas y certificados
+// =============================================================
+
+model Review {
+  id            String       @id @default(uuid()) @db.Uuid
+  user_id       String       @db.Uuid
+  course_id     String       @db.Uuid
+  enrollment_id String       @unique @db.Uuid
+  rating        Int          // 1–5
+  comment       String       @db.VarChar(500)
+  status        ReviewStatus @default(approved)
+  created_at    DateTime     @default(now())
+
+  user          User         @relation(fields: [user_id], references: [id])
+  course        Course       @relation(fields: [course_id], references: [id])
+  enrollment    Enrollment   @relation(fields: [enrollment_id], references: [id])
+  certificate   Certificate?
+
+  @@map("reviews")
+}
+
+model CertificateTemplate {
+  id                          String   @id @default(uuid()) @db.Uuid
+  name                        String
+  background_image_url        String
+  student_name_position       Json     // { x: number, y: number }
+  course_name_position        Json
+  dates_position              Json
+  verification_code_position  Json
+  qr_position                 Json
+  font_family                 String
+  font_sizes                  Json     // { campo: size }
+  is_active                   Boolean  @default(false)
+  created_at                  DateTime @default(now())
+
+  certificates                Certificate[]
+
+  @@map("certificate_templates")
+}
+
+model Certificate {
+  id                String              @id @default(uuid()) @db.Uuid
+  enrollment_id     String              @unique @db.Uuid
+  template_id       String              @db.Uuid
+  verification_code String              @unique @db.Uuid @default(uuid())
+  pdf_url           String
+  issued_at         DateTime            @default(now())
+
+  // Un certificado puede tener o no review_id según si se quiere rastrear cuál reseña lo disparó
+  review_id         String?             @unique @db.Uuid
+
+  enrollment        Enrollment          @relation(fields: [enrollment_id], references: [id])
+  template          CertificateTemplate @relation(fields: [template_id], references: [id])
+  review            Review?             @relation(fields: [review_id], references: [id])
+
+  @@map("certificates")
+}
+
+// =============================================================
+// SISTEMA — Notificaciones y auditoría
+// =============================================================
+
+model Notification {
+  id           String           @id @default(uuid()) @db.Uuid
+  user_id      String           @db.Uuid
+  type         NotificationType
+  title        String
+  body         String
+  is_read      Boolean          @default(false)
+  redirect_url String?
+  created_at   DateTime         @default(now())
+
+  user         User             @relation(fields: [user_id], references: [id])
+
+  @@map("notifications")
+}
+
+model AuditLog {
+  id          String      @id @default(uuid()) @db.Uuid
+  user_id     String      @db.Uuid
+  entity_type String      // Ej: "Course", "Enrollment"
+  entity_id   String      @db.Uuid
+  action      AuditAction
+  changes     Json        // { before: {}, after: {} }
+  created_at  DateTime    @default(now())
+
+  user        User        @relation(fields: [user_id], references: [id])
+
+  @@map("audit_logs")
+}
+
+// =============================================================
+// MARKETING — Slider, SliderCourse y Promotion
+// =============================================================
+
+model Slider {
+  id               String         @id @default(uuid()) @db.Uuid
+  title            String
+  type             SliderType
+  image_url        String?        // Solo para tipo banner
+  destination_url  String?
+  position_on_page SliderPosition
+  display_order    Int
+  status           ContentStatus  @default(active)
+  created_at       DateTime       @default(now())
+
+  slider_courses   SliderCourse[]
+
+  @@map("sliders")
+}
+
+// Tabla intermedia N:M Slider ↔ Course
+model SliderCourse {
+  slider_id     String @db.Uuid
+  course_id     String @db.Uuid
+  display_order Int
+
+  slider        Slider @relation(fields: [slider_id], references: [id], onDelete: Cascade)
+  course        Course @relation(fields: [course_id], references: [id], onDelete: Cascade)
+
+  @@id([slider_id, course_id])
+  @@map("slider_courses")
+}
+
+model Promotion {
+  id                    String          @id @default(uuid()) @db.Uuid
+  title                 String
+  image_url             String
+  destination_url       String?
+  destination_course_id String?         @db.Uuid
+  display_order         Int
+  status                PromotionStatus @default(active)
+  starts_at             DateTime?
+  ends_at               DateTime?
+  created_at            DateTime        @default(now())
+
+  destination_course    Course?         @relation("PromotionCourse", fields: [destination_course_id], references: [id])
+
+  @@map("promotions")
 }
