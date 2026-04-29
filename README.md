@@ -44,6 +44,13 @@ $ npm run start:dev
 $ npm run start:prod
 ```
 
+## Init data base
+```bash
+# copear el archivo, sin la extension de .sample
+$ cp .env.sample .env
+$ remplazar valores de DATABASE_URL
+```
+
 ## Run tests
 
 ```bash
