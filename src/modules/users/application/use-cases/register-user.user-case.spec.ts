@@ -1,5 +1,4 @@
-// src/modules/users/application/use-cases/register-user.use-case.spec.ts
-
+// TEST: caso de uso register
 import { Test, TestingModule } from '@nestjs/testing';
 import { RegisterUserUseCase } from './register-user.use-case';
 import { I_USER_REPOSITORY } from '../../domain/users.repository';
