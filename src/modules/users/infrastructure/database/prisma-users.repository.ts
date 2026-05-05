@@ -14,7 +14,8 @@ export class PrismaUserRepository implements IUserRepository {
 
 		return new UserEntity({
 			id: dbUser.id,
-			fullName: dbUser.full_name,
+			first_name: dbUser.first_name,
+			last_name: dbUser.last_name,
 			email:dbUser.email,
 			phone:dbUser.phone,
 			passwordHash: dbUser.password_hash,
@@ -29,7 +30,8 @@ export class PrismaUserRepository implements IUserRepository {
 
 		return new UserEntity({
 			id: dbUser.id,
-			fullName: dbUser.full_name,
+			first_name: dbUser.first_name,
+			last_name: dbUser.last_name,
 			email:dbUser.email,
 			phone:dbUser.phone,
 			passwordHash: dbUser.password_hash,
@@ -42,13 +44,15 @@ export class PrismaUserRepository implements IUserRepository {
 		await this.prisma.user.upsert({
 			where: {id: user.id},
 			update: {
-				full_name: user.fullName,
+				first_name: user.fullName,
+				last_name: user.lastName,
 				email:user.email,
 				phone:user.fullName,
 				role: user.role
 			},
 			create: {
-				full_name: user.fullName,
+				first_name: user.fullName,
+				last_name: user.lastName,
 				email:user.email,
 				phone:user.fullName,
 				password_hash: user.passwordHash,

@@ -6,7 +6,8 @@
 export type UserRole = 'estudiante' | 'soporte' | 'marketing' | 'admin'
 export interface UserProps{
 	id: string;
-	fullName: string;
+	first_name: string;
+	last_name: string;
 	email: string;
 	phone: string;
 	passwordHash: string;
@@ -28,9 +29,10 @@ export class UserEntity{
 	get id() {return this.props.id}
 	get email() {return this.props.email}
 	get role() {return this.props.role}
-	get fullName() {return this.props.fullName}
+	get fullName() {return this.props.first_name}
+	get lastName() {return this.props.last_name}
 	get passwordHash() {return this.props.passwordHash}
-
+ 
 
 	// operaciones - logica - reglas de negocio
 

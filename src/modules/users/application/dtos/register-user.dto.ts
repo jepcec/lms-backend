@@ -1,9 +1,9 @@
 // Luego implementar 'class - validator'
 
 export class RegisterUserDto {
-	fullName: string;
+	first_name: string;
+	last_name: string
 	email: string;
 	phone: string;
-	passwordHash: string;
-	role: string;
+	password: string;
 }
