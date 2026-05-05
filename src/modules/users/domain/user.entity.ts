@@ -32,6 +32,7 @@ export class UserEntity{
 	get first_name() {return this.props.first_name}
 	get lastName() {return this.props.last_name}
 	get passwordHash() {return this.props.passwordHash}
+	get phone() {return this.props.phone}
  
 
 	// operaciones - logica - reglas de negocio

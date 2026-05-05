@@ -44,17 +44,17 @@ export class PrismaUserRepository implements IUserRepository {
 		await this.prisma.user.upsert({
 			where: {id: user.id},
 			update: {
-				first_name: user.fullName,
+				first_name: user.first_name,
 				last_name: user.lastName,
 				email:user.email,
-				phone:user.fullName,
+				phone:user.phone,
 				role: user.role
 			},
 			create: {
-				first_name: user.fullName,
+				first_name: user.first_name,
 				last_name: user.lastName,
 				email:user.email,
-				phone:user.fullName,
+				phone:user.phone,
 				password_hash: user.passwordHash,
 				role: user.role 
 			}
