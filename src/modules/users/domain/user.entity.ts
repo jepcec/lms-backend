@@ -29,7 +29,7 @@ export class UserEntity{
 	get id() {return this.props.id}
 	get email() {return this.props.email}
 	get role() {return this.props.role}
-	get fullName() {return this.props.first_name}
+	get first_name() {return this.props.first_name}
 	get lastName() {return this.props.last_name}
 	get passwordHash() {return this.props.passwordHash}
  

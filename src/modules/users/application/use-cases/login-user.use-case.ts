@@ -13,13 +13,29 @@ export class LoginUserUseCase{
 		@Inject(I_AUTH_TOKEN_SERVICE) private readonly tokenService: IAuthTokenService
 	){}
 	async execute(dto: LoginUserDto){
-		const user = await this.userRepository.findByEmail(dto.email)
-		if(!user) throw new UnauthorizedException('Credenciales invalidas')
+		const userDb= await this.userRepository.findByEmail(dto.email)
+		if(!userDb) throw new UnauthorizedException('Credenciales invalidas')
 
-		const isPasswordValid = await this.passwordService.compare(dto.password,user.passwordHash )
+		const isPasswordValid = await this.passwordService.compare(dto.password,userDb.passwordHash )
 		if(!isPasswordValid) throw new UnauthorizedException("Credenciales invalidas")
 
-		const token = this.tokenService.generate({userId: user.id, role: user.role})
-		return {accessToken: token}
+		// TOKENS  crear - refrescar - verificar
+		const token = this.tokenService.generate({userId: userDb.id, role: userDb.role})
+		const refreshToken = this.tokenService.generateRefresh({userId: userDb.id})
+		
+		// return {accessToken: token} // retorno inicial, para test
+		return {
+			accessToken: token,
+			refresh_token: refreshToken,
+			expires_in: 900, //15min
+			user: {
+				id: userDb.id,
+				first_name: userDb.first_name,
+				last_name: userDb.lastName,
+				email: userDb.email,
+				role: userDb.role
+			}
+			
+		}
 	}
 }

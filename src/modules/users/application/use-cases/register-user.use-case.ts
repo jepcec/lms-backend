@@ -34,7 +34,18 @@ export class RegisterUserUseCase{
 		})
 
 		await this.userRepository.save(nuevoUsuario)
-		return {mensaje: "Usuario registrado con exito"}
+		// return {mensaje: "Usuario registrado con exito"} // 
+		return {
+			success: true,
+			message: "Email de verificacion enviado",
+			user: {
+				id: nuevoUsuario.id,
+				first_name: nuevoUsuario.first_name,
+				last_name: nuevoUsuario.lastName,
+				email: nuevoUsuario.email,
+				role: nuevoUsuario.role
+			}
+		}
 
 	}
 }

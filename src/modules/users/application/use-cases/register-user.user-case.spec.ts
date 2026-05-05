@@ -37,17 +37,43 @@ describe('RegisterUserUseCase', () => {
       first_name: 'Jhon Doe',
       last_name: 'Body mars',
       email: 'jhon@test.com',
-      password: 'plain_password', // Lo que envía el usuario
+      password: 'plain_password',
       phone: '999',
-      role: 'estudiante' as any,
     };
 
-    const resultado = await useCase.execute(dto);
+    console.log('INPUT:', dto);
 
-    expect(resultado.mensaje).toBe('Usuario registrado con exito');
+    const resultado = await useCase.execute(dto);
+    console.log('OUTPUT:', resultado);
+
+    expect(resultado.success).toBe(true);
+    expect(resultado.message).toBe('Email de verificacion enviado');
+    expect(resultado.user).toMatchObject({
+      first_name: 'Jhon Doe',
+      last_name: 'Body mars',
+      email: 'jhon@test.com',
+      role: 'estudiante'
+    });
     // Verificamos que se llamó al servicio de hash
     expect(mockPasswordService.hash).toHaveBeenCalledWith('plain_password');
     // Verificamos que se guardó la entidad
     expect(mockUserRepository.save).toHaveBeenCalled();
+  });
+
+  it('debería lanzar error si el usuario ya existe', async () => {
+    const existingUser = { id: '1', email: 'jhon@test.com' };
+    mockUserRepository.findByEmail.mockResolvedValue(existingUser);
+
+    const dto = {
+      first_name: 'Jhon Doe',
+      last_name: 'Body mars',
+      email: 'jhon@test.com',
+      password: 'plain_password',
+      phone: '999',
+    };
+
+    console.log('INPUT:', dto);
+
+    await expect(useCase.execute(dto)).rejects.toThrow('El usuario ya existe');
   });
 });

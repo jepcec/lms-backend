@@ -7,6 +7,9 @@ export interface IPasswordService {
 
 export interface IAuthTokenService {
 	generate(payload: { userId: string; role: string }): string;
+
+	generateRefresh(payload: {userId: string}): string;
+	verifyRefresh(token: string): any;
 }
 
 export const I_PASSWORD_SERVICE = Symbol('IPasswordService');
