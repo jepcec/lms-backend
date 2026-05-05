@@ -21,7 +21,8 @@ import { ConfigModule, ConfigService } from "@nestjs/config";
 				secret: config.get<string>('JWT_SECRET'),
 				signOptions: {expiresIn: '1d'},
 			})
-		})
+		}),
+		ConfigModule
 	],
 	controllers:[UsersController],
 	providers:[
