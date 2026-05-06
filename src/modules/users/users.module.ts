@@ -10,6 +10,7 @@ import { TokenService } from "./infrastructure/services/auth-token.service";
 import { LoginUserUseCase } from "./application/use-cases/login-user.use-case";
 import { JwtModule } from "@nestjs/jwt";
 import { ConfigModule, ConfigService } from "@nestjs/config";
+import { AuthController } from "./infrastructure/routes/auth.controller";
 
 
 @Module({
@@ -24,7 +25,7 @@ import { ConfigModule, ConfigService } from "@nestjs/config";
 		}),
 		ConfigModule
 	],
-	controllers:[UsersController],
+	controllers:[UsersController, AuthController],
 	providers:[
 		PrismaService,
 		LoginUserUseCase,

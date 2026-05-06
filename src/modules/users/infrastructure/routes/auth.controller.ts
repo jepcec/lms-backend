@@ -1,4 +1,4 @@
-import { Controller, Post } from "@nestjs/common";
+import { Body, Controller, Post } from "@nestjs/common";
 import { RegisterUserUseCase } from "../../application/use-cases/register-user.use-case";
 import { RegisterUserDto } from "../../application/dtos/register-user.dto";
 import { LoginUserUseCase } from "../../application/use-cases/login-user.use-case";
@@ -12,12 +12,12 @@ export class AuthController{
 	){}
 
 	@Post('register')
-	register(dto: RegisterUserDto){
+	register(@Body() dto: RegisterUserDto){
 		return this.registerUseCase.execute(dto)
 	}
 
 	@Post('login')
-	login(dto: LoginUserDto){
+	login(@Body() dto: LoginUserDto){
 		return this.loginUserCase.execute(dto)
 	}
 }
