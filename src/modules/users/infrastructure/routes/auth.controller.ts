@@ -1,15 +1,21 @@
-import { Body, Controller, Post, Res } from "@nestjs/common";
+import { Body, Controller, Post, Query, Res, Get, BadRequestException } from "@nestjs/common";
 import { RegisterUserUseCase } from "../../application/use-cases/register-user.use-case";
 import { RegisterUserDto } from "../../application/dtos/register-user.dto";
 import { LoginUserUseCase } from "../../application/use-cases/login-user.use-case";
 import { LoginUserDto } from "../../application/dtos/login-user.dto";
 import type { Response } from "express";
+import { VerifyEmailUseCase } from "../../application/use-cases/verify-email.use-case";
+import { RequestPasswordResetUseCase } from "../../application/use-cases/request-password-reset.use-case";
+import { ResetPasswordUseCase } from "../../application/use-cases/reset-password.use-case";
 
 @Controller('auth')
 export class AuthController{
 	constructor(
 		private readonly registerUseCase: RegisterUserUseCase,
-		private readonly loginUserCase: LoginUserUseCase
+		private readonly loginUserCase: LoginUserUseCase,
+		private readonly verifyEmailUseCase: VerifyEmailUseCase,
+		private readonly requestPasswordReset: RequestPasswordResetUseCase,
+		private readonly passwordResetUseCase: ResetPasswordUseCase
 	){}
 
 	@Post('register')
@@ -40,6 +46,27 @@ export class AuthController{
 			user: result.user
 		} 
 	}
+
+	@Get('verify-email')
+	async verifyEmail(@Query('token') token: string){
+		if(!token) throw new BadRequestException("Token requerido")
+
+		await this.verifyEmailUseCase.execute(token)
+		return {mensaje: 'Correo verificado'}
+	}
+
+	@Get('forgot-password')
+	async forgotPassword(@Body('email') email: string){
+		await this.requestPasswordReset.execute(email)
+		return {mensaje: 'Se envio correo para recuperacion'}
+	}
+
+	@Post('reset-password')
+	async resetPassword(newPassword: string, token: string){
+		await this.passwordResetUseCase.execute(newPassword, token)
+		return {mensaje: 'Contrase;a actualizada correctamente'}
+	}
+
 }
 
 

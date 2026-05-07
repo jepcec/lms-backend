@@ -4,6 +4,8 @@ import type { IUserRepository } from "../../domain/users.repository";
 import { RegisterUserDto } from "../dtos/register-user.dto";
 import { UserEntity } from "../../domain/user.entity";
 import { I_PASSWORD_SERVICE, type IPasswordService } from "../../domain/services/auth.service";
+import { CryptoTokenService } from "../../infrastructure/services/crypto-token.service";
+import { I_EMAIL_SERVICE,type IEmailService } from "../../domain/services/email.service";
 
 @Injectable()
 export class RegisterUserUseCase{
@@ -11,7 +13,11 @@ export class RegisterUserUseCase{
 		@Inject(I_USER_REPOSITORY)
 		private readonly userRepository: IUserRepository,
 		@Inject(I_PASSWORD_SERVICE)
-		private readonly passwordService: IPasswordService
+		private readonly passwordService: IPasswordService,
+		private readonly criptoService: CryptoTokenService,	
+
+		@Inject(I_EMAIL_SERVICE)
+		private readonly emailService: IEmailService
 	){ }
 
 	async execute(dto: RegisterUserDto){
@@ -23,6 +29,8 @@ export class RegisterUserUseCase{
 		
 		const hashed = await this.passwordService.hash(password)
 
+		const verificationToken = this.criptoService.generateRamdomToken() 
+
 		const nuevoUsuario = new UserEntity({
 			id: crypto.randomUUID(),
 			first_name,
@@ -30,11 +38,18 @@ export class RegisterUserUseCase{
 			email, 
 			phone, 
 			passwordHash: hashed, 
-			role: 'estudiante' 
+			role: 'estudiante',
+
+			email_verified: false,
+			email_verification_token: verificationToken
 		})
 
 		await this.userRepository.save(nuevoUsuario)
 		// return {mensaje: "Usuario registrado con exito"} // 
+		//
+		//
+
+		await this.emailService.sendEmailVerification(nuevoUsuario.email, verificationToken)
 		return {
 			success: true,
 			message: "Email de verificacion enviado",
