@@ -26,4 +26,11 @@ export class TokenService implements IAuthTokenService {
 			return null	
 		}
 	}
+	generateActionToken(payload: { userId: string; action: 'verify' | 'recover'; }): string {
+	    const secret = this.configService.get<string>('JWT_ACTION_SECRET')
+	    return this.jwtService.sign(payload, {secret,expiresIn: '15m'})
+	}
+	verifyActionToken(token: string) {
+	    
+	}
 }

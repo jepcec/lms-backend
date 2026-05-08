@@ -6,10 +6,14 @@ export interface IPasswordService {
 }
 
 export interface IAuthTokenService {
+	// tokens en login
 	generate(payload: { userId: string; role: string }): string;
-
 	generateRefresh(payload: {userId: string}): string;
 	verifyRefresh(token: string): any;
+
+	// tokens de verificaion y password
+	generateActionToken(payload: {userId: string, action: 'verify'| 'recover'}): string
+	verifyActionToken(token: string): any
 }
 
 export const I_PASSWORD_SERVICE = Symbol('IPasswordService');

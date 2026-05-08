@@ -1,22 +1,29 @@
-import { Body, Controller, Post, Res } from "@nestjs/common";
+import { Body, Controller, Post, Query, Res, Get, BadRequestException } from "@nestjs/common";
 import { RegisterUserUseCase } from "../../application/use-cases/register-user.use-case";
 import { RegisterUserDto } from "../../application/dtos/register-user.dto";
 import { LoginUserUseCase } from "../../application/use-cases/login-user.use-case";
 import { LoginUserDto } from "../../application/dtos/login-user.dto";
 import type { Response } from "express";
+import { VerifyEmailUseCase } from "../../application/use-cases/verify-email.use-case";
+import { RequestPasswordResetUseCase } from "../../application/use-cases/request-password-reset.use-case";
+import { ResetPasswordUseCase } from "../../application/use-cases/reset-password.use-case";
 
 @Controller('auth')
 export class AuthController{
 	constructor(
 		private readonly registerUseCase: RegisterUserUseCase,
-		private readonly loginUserCase: LoginUserUseCase
+		private readonly loginUserCase: LoginUserUseCase,
+		private readonly verifyEmailUseCase: VerifyEmailUseCase,
+		private readonly requestPasswordReset: RequestPasswordResetUseCase,
+		private readonly passwordResetUseCase: ResetPasswordUseCase
 	){}
-
+	// registro de usuario
 	@Post('register')
 	register(@Body() dto: RegisterUserDto){
 		return this.registerUseCase.execute(dto)
 	}
 
+	// logeo de usuario + tokens
 	@Post('login')
 	async login(@Body() dto: LoginUserDto, @Res({passthrough: true}) response: Response){
 		const result = await this.loginUserCase.execute(dto)   
@@ -28,7 +35,8 @@ export class AuthController{
 			sameSite: 'lax',
 			maxAge: 15 * 60 * 1000,
 		});
-
+		
+		// implementacion en un caso de uso
 		response.cookie('refresh_token', result.refresh_token,{
 			httpOnly: true,
 			secure: process.env.NODE_ENV === 'production',
@@ -40,6 +48,31 @@ export class AuthController{
 			user: result.user
 		} 
 	}
+
+	// verificar un email cuando usuario se registra
+	@Get('verify-email')
+	async verifyEmail(@Query('token') token: string){
+		if(!token) throw new BadRequestException("Token requerido")
+		await this.verifyEmailUseCase.execute(token)
+		return {mensaje: 'Correo verificado'}
+	}
+
+	// recuperacion de password, cuando presiona me olvide
+	// Evitar el spam con Throtleguard
+	@Post('forgot-password')
+	async forgotPassword(@Body('email') email: string){
+		await this.requestPasswordReset.execute(email)
+		return {mensaje: 'Se envio correo para recuperacion'}
+	}
+
+	// resetear password 
+	// refactorizar parametros
+	@Post('reset-password')
+	async resetPassword(@Body() body :{newPassword: string, token: string} ){
+		await this.passwordResetUseCase.execute(body.newPassword,body.token)
+		return {mensaje: 'Contrase;a actualizada correctamente'}
+	}
+
 }
 
 
