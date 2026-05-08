@@ -93,6 +93,7 @@ export class PrismaUserRepository implements IUserRepository {
 				email:user.email,
 				phone:user.phone,
 				role: user.role,
+				password_hash: user.passwordHash,
 
 				email_verified: user.emailVerified,
 				email_verified_at: user.emailVerifiedAt,
@@ -106,7 +107,13 @@ export class PrismaUserRepository implements IUserRepository {
 				email:user.email,
 				phone:user.phone,
 				password_hash: user.passwordHash,
-				role: user.role 
+				role: user.role,
+				email_verified: user.emailVerified,
+				email_verified_at: user.emailVerifiedAt,
+				email_verification_token: user.emailVerificationToken,
+				password_reset_expires_at: user.passwordResetExpiresAt,
+				password_reset_token: user.passwordResetToken
+
 			}
 
 		})

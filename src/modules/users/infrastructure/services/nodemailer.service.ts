@@ -12,25 +12,30 @@ export class NodemailerEmailService implements IEmailService {
 		this.transporter = nodemailer.createTransport({
 			host: this.configService.get<string>("SMTP_HOST"),
 			port: this.configService.get<number>("SMTP_PORT"),
-			secure: true,
+			secure: false,
 			auth: {
 				user: this.configService.get<string>('SMTP_USER'),
 				pass: this.configService.get<string>('SMTP_PASS')
+			},
+			tls:{
+				rejectUnauthorized: false
 			}
-		})
 
+		})
 	}
 
 	async sendEmailVerification(email: string, token: string): Promise<void> {
+
 		const baseUrl = this.configService.get<string>('URL_FRONTEND')    
 		const verificationUrl = `${baseUrl}/auth/verify-email?token=${token}`
-
-		await this.send({
+		const res = await this.send({
 			to: email,
 			subject: 'verifica tu cuenta',
 			html: this.getVerificationTemplate(verificationUrl)
 		})
+		return res
 	}
+
 	async sendPasswordRecovery(email: string, token: string): Promise<void> {
 		const baseUrl = this.configService.get<string>('URL_FRONTEND')    
 		const recoveryUrl = `${baseUrl}/auth/reset-password?token=${token}`

@@ -13,6 +13,10 @@ import { ConfigModule, ConfigService } from "@nestjs/config";
 import { AuthController } from "./infrastructure/routes/auth.controller";
 import { I_EMAIL_SERVICE } from "./domain/services/email.service";
 import { NodemailerEmailService } from "./infrastructure/services/nodemailer.service";
+import { RequestPasswordResetUseCase } from "./application/use-cases/request-password-reset.use-case";
+import { ResetPasswordUseCase } from "./application/use-cases/reset-password.use-case";
+import { VerifyEmailUseCase } from "./application/use-cases/verify-email.use-case";
+import { CryptoTokenService } from "./infrastructure/services/crypto-token.service";
 
 
 @Module({
@@ -29,14 +33,18 @@ import { NodemailerEmailService } from "./infrastructure/services/nodemailer.ser
 	],
 	controllers:[UsersController, AuthController],
 	providers:[
-		
 		PrismaService,
 		LoginUserUseCase,
 		RegisterUserUseCase,
+		RequestPasswordResetUseCase,
+		ResetPasswordUseCase,
+		VerifyEmailUseCase,
+		CryptoTokenService,
 		{provide: I_USER_REPOSITORY, useClass: PrismaUserRepository},
 		{provide: I_PASSWORD_SERVICE, useClass: PasswordService },
 		{provide: I_AUTH_TOKEN_SERVICE, useClass: TokenService},
-		{provide: I_EMAIL_SERVICE, useClass: NodemailerEmailService}
+		{provide: I_EMAIL_SERVICE, useClass: NodemailerEmailService},
+		{provide: I_EMAIL_SERVICE, useClass: NodemailerEmailService},
 	]
 })
 export class UsersModule{}

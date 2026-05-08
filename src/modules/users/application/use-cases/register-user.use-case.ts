@@ -14,23 +14,21 @@ export class RegisterUserUseCase{
 		private readonly userRepository: IUserRepository,
 		@Inject(I_PASSWORD_SERVICE)
 		private readonly passwordService: IPasswordService,
-		private readonly criptoService: CryptoTokenService,	
-
 		@Inject(I_EMAIL_SERVICE)
-		private readonly emailService: IEmailService
+		private readonly emailService: IEmailService,
+
+		private readonly criptoService: CryptoTokenService,	
 	){ }
 
 	async execute(dto: RegisterUserDto){
 		const {first_name, last_name, email, phone, password} = dto	
 		const usuarioExiste = await this.userRepository.findByEmail(email)
 		if(usuarioExiste){
-			throw new Error("El usuario ya existe")
+			throw new Error("Correo ya registrado")
 		}
 		
 		const hashed = await this.passwordService.hash(password)
-
 		const verificationToken = this.criptoService.generateRamdomToken() 
-
 		const nuevoUsuario = new UserEntity({
 			id: crypto.randomUUID(),
 			first_name,
@@ -39,16 +37,13 @@ export class RegisterUserUseCase{
 			phone, 
 			passwordHash: hashed, 
 			role: 'estudiante',
-
 			email_verified: false,
 			email_verification_token: verificationToken
 		})
 
-		await this.userRepository.save(nuevoUsuario)
-		// return {mensaje: "Usuario registrado con exito"} // 
-		//
-		//
+		console.log("TOKEN: ",nuevoUsuario.emailVerificationToken)
 
+		await this.userRepository.save(nuevoUsuario)
 		await this.emailService.sendEmailVerification(nuevoUsuario.email, verificationToken)
 		return {
 			success: true,

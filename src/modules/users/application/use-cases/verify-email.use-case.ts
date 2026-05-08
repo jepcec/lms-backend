@@ -9,6 +9,7 @@ export class VerifyEmailUseCase {
 
 	async execute(token: string): Promise<void> {
 		const user = await this.userRepository.findByVerificationToken(token)
+		console.log(user)
 
 		if (!user){
 			throw new BadRequestException('Token de verificacion invalido o expirado')
@@ -22,8 +23,6 @@ export class VerifyEmailUseCase {
 		user.emailVerified = true
 		user.emailVerifiedAt = new Date()
 		user.emailVerificationToken = null
-
 		await this.userRepository.save(user)
-
 	}
 }
