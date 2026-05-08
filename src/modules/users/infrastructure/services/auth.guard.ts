@@ -1,3 +1,4 @@
+// SE USA COMO GUARDIAN PARA LAS OPERACIONES: tiene que verifiacion si en la consulta viene con el token integrado
 import { CanActivate, Injectable, ExecutionContext, UnauthorizedException} from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { JwtService } from "@nestjs/jwt";
