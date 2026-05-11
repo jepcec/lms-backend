@@ -371,6 +371,8 @@ model Enrollment {
   completed_at           DateTime?
   last_accessed_at       DateTime?
 
+  final_score      Decimal?  @db.Decimal(4, 2) // Para registrar notas como 13.50
+
   student                User                  @relation("StudentEnrollments", fields: [user_id], references: [id])
   course                 Course                @relation(fields: [course_id], references: [id])
   order                  Order?                @relation(fields: [order_id], references: [id])
@@ -444,6 +446,7 @@ model Certificate {
   id                String              @id @default(uuid()) @db.Uuid
   enrollment_id     String              @unique @db.Uuid
   template_id       String              @db.Uuid
+  type              CertificateType     // Nuevo campo para distinguir el tipo
   verification_code String              @unique @db.Uuid @default(uuid())
   pdf_url           String
   issued_at         DateTime            @default(now())
@@ -457,6 +460,18 @@ model Certificate {
 
   @@map("certificates")
 }
+
+
+
+// Actualización en el archivo schema.prisma
+
+enum CertificateType {
+  Aprobado    // Certificado (Nota >= 13)
+  Desaprobado // Constancia (Nota < 13)
+}
+
+
+
 
 // =============================================================
 // SISTEMA — Notificaciones y auditoría
