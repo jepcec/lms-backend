@@ -41,6 +41,11 @@ enum CourseCurrency {
   PEN
 }
 
+enum CertificateType {
+  Certificado    // Certificado (Nota >= 13)
+  Constancia // Constancia (Nota < 13)
+}
+
 enum CourseAccessDuration {
   one_year  // Mapea "1_year" (nombre reservado)
   lifetime
@@ -370,6 +375,7 @@ model Enrollment {
   progress_percent       Decimal               @default(0) @db.Decimal(5, 2)
   completed_at           DateTime?
   last_accessed_at       DateTime?
+  final_score      Decimal?  @db.Decimal(4, 2) // Para registrar notas como 13.50
 
   student                User                  @relation("StudentEnrollments", fields: [user_id], references: [id])
   course                 Course                @relation(fields: [course_id], references: [id])
@@ -444,6 +450,7 @@ model Certificate {
   id                String              @id @default(uuid()) @db.Uuid
   enrollment_id     String              @unique @db.Uuid
   template_id       String              @db.Uuid
+  type              CertificateType // Nuevo campo para distinguir el documento
   verification_code String              @unique @db.Uuid @default(uuid())
   pdf_url           String
   issued_at         DateTime            @default(now())
