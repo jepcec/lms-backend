@@ -68,8 +68,8 @@ export class AuthController{
 	// resetear password 
 	// refactorizar parametros
 	@Post('reset-password')
-	async resetPassword(@Body() body :{newPassword: string, token: string} ){
-		await this.passwordResetUseCase.execute(body.newPassword,body.token)
+	async resetPassword(@Body() body :{password: string, token: string} ){
+		await this.passwordResetUseCase.execute(body.password,body.token)
 		return {mensaje: 'Contrase;a actualizada correctamente'}
 	}
 
