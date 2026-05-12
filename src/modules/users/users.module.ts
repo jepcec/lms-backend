@@ -66,6 +66,3 @@ import { SetGradeUseCase } from "./application/use-cases/set-enrollment-grade.us
     exports: [I_USER_REPOSITORY, I_AUTH_TOKEN_SERVICE]
 })
 export class UsersModule {}
-
-// agregar mas providers
-// agregar valore de .env de nodemailer
