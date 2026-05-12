@@ -8,19 +8,21 @@ import * as bcrypt from 'bcrypt'; // Asumiendo que usas bcrypt para los hashes
 export class UpdateProfileUseCase {
   constructor(private readonly prisma: PrismaService) {}
 
-  async execute(userId: string, dto: UpdateProfileDto) {
+  async execute(userId: string, dto: UpdateProfileDto, imagePath?: string) {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
     if (!user) throw new NotFoundException('Usuario no encontrado');
 
+    // Construimos los datos base para la actualización
     const updateData: any = {
       first_name: dto.first_name,
       last_name: dto.last_name,
       phone: dto.phone,
       country: dto.country,
-      profile_photo_url: dto.profile_photo_url,
+      // Prioriza la nueva imagen si existe, si no usa la del DTO
+      profile_photo_url: imagePath ? imagePath : dto.profile_photo_url,
     };
 
-    // Lógica para cambio de contraseña [cite: 123, 130]
+    // Lógica para cambio de contraseña
     if (dto.new_password) {
       if (!dto.current_password) {
         throw new BadRequestException('Debes proporcionar la contraseña actual');
@@ -37,7 +39,7 @@ export class UpdateProfileUseCase {
     return await this.prisma.user.update({
       where: { id: userId },
       data: updateData,
-      select: { // No devolvemos el hash por seguridad
+      select: {
         id: true,
         first_name: true,
         last_name: true,
