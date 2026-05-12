@@ -377,7 +377,6 @@ model Enrollment {
   last_accessed_at       DateTime?
   final_score      Decimal?  @db.Decimal(4, 2) // Para registrar notas como 13.50
 
-  final_score      Decimal?  @db.Decimal(4, 2) // Para registrar notas como 13.50
 
   student                User                  @relation("StudentEnrollments", fields: [user_id], references: [id])
   course                 Course                @relation(fields: [course_id], references: [id])
@@ -465,15 +464,6 @@ model Certificate {
   review            Review?             @relation(fields: [review_id], references: [id])
 
   @@map("certificates")
-}
-
-
-
-// Actualización en el archivo schema.prisma
-
-enum CertificateType {
-  Aprobado    // Certificado (Nota >= 13)
-  Desaprobado // Constancia (Nota < 13)
 }
 
 
