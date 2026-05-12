@@ -17,6 +17,7 @@ import { RequestPasswordResetUseCase } from "./application/use-cases/request-pas
 import { ResetPasswordUseCase } from "./application/use-cases/reset-password.use-case";
 import { VerifyEmailUseCase } from "./application/use-cases/verify-email.use-case";
 import { CryptoTokenService } from "./infrastructure/services/crypto-token.service";
+import { UpdateProfileUseCase } from "./application/use-cases/update-profile.use-case";
 
 
 @Module({
@@ -40,6 +41,8 @@ import { CryptoTokenService } from "./infrastructure/services/crypto-token.servi
 		ResetPasswordUseCase,
 		VerifyEmailUseCase,
 		CryptoTokenService,
+		UpdateProfileUseCase,
+
 		{provide: I_USER_REPOSITORY, useClass: PrismaUserRepository},
 		{provide: I_PASSWORD_SERVICE, useClass: PasswordService },
 		{provide: I_AUTH_TOKEN_SERVICE, useClass: TokenService},
