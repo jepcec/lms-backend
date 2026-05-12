@@ -1,57 +1,71 @@
+// src/modules/users/users.module.ts
 import { Module } from "@nestjs/common";
-import { I_USER_REPOSITORY } from "./domain/users.repository";
-import { PrismaUserRepository } from "./infrastructure/database/prisma-users.repository";
-import { UsersController } from "./infrastructure/routes/users.controller";
-import { PrismaService } from "src/core/database/prisma.service";
-import { RegisterUserUseCase } from "./application/use-cases/register-user.use-case";
-import { I_AUTH_TOKEN_SERVICE, I_PASSWORD_SERVICE } from "./domain/services/auth.service";
-import { PasswordService } from "./infrastructure/services/auth-password.service";
-import { TokenService } from "./infrastructure/services/auth-token.service";
-import { LoginUserUseCase } from "./application/use-cases/login-user.use-case";
 import { JwtModule } from "@nestjs/jwt";
 import { ConfigModule, ConfigService } from "@nestjs/config";
-import { AuthController } from "./infrastructure/routes/auth.controller";
+
+// Repositories & Services Interfaces
+import { I_USER_REPOSITORY } from "./domain/users.repository";
+import { I_AUTH_TOKEN_SERVICE, I_PASSWORD_SERVICE } from "./domain/services/auth.service";
 import { I_EMAIL_SERVICE } from "./domain/services/email.service";
+
+// Infrastructure Implementations
+import { PrismaUserRepository } from "./infrastructure/database/prisma-users.repository";
+import { PrismaService } from '../../core/database/prisma.service';
+import { PasswordService } from "./infrastructure/services/auth-password.service";
+import { TokenService } from "./infrastructure/services/auth-token.service";
 import { NodemailerEmailService } from "./infrastructure/services/nodemailer.service";
+import { CryptoTokenService } from "./infrastructure/services/crypto-token.service";
+
+// Controllers
+import { UsersController } from "./infrastructure/routes/users.controller";
+import { AuthController } from "./infrastructure/routes/auth.controller";
+
+// Use Cases
+import { LoginUserUseCase } from "./application/use-cases/login-user.use-case";
+import { RegisterUserUseCase } from "./application/use-cases/register-user.use-case";
 import { RequestPasswordResetUseCase } from "./application/use-cases/request-password-reset.use-case";
 import { ResetPasswordUseCase } from "./application/use-cases/reset-password.use-case";
 import { VerifyEmailUseCase } from "./application/use-cases/verify-email.use-case";
-import { CryptoTokenService } from "./infrastructure/services/crypto-token.service";
+import { GetProfileUseCase } from "./application/use-cases/get-profile.use-case";
 import { UpdateProfileUseCase } from "./application/use-cases/update-profile.use-case";
-
+import { DeleteAccountUseCase } from "./application/use-cases/delete-user.use-case";
+import { SetGradeUseCase } from "./application/use-cases/set-enrollment-grade.use-case";
 
 @Module({
-	imports:[
-		JwtModule.registerAsync({
-			imports: [ConfigModule],
-			inject: [ConfigService],
-			useFactory: (config: ConfigService) => ({
-				secret: config.get<string>('JWT_SECRET'),
-				signOptions: {expiresIn: '1d'},
-			})
-		}),
-		ConfigModule
-	],
-	controllers:[UsersController, AuthController],
-	providers:[
-		PrismaService,
-		LoginUserUseCase,
-		RegisterUserUseCase,
-		RequestPasswordResetUseCase,
-		ResetPasswordUseCase,
-		VerifyEmailUseCase,
-		CryptoTokenService,
-		UpdateProfileUseCase,
-
-		{provide: I_USER_REPOSITORY, useClass: PrismaUserRepository},
-		{provide: I_PASSWORD_SERVICE, useClass: PasswordService },
-		{provide: I_AUTH_TOKEN_SERVICE, useClass: TokenService},
-		{provide: I_EMAIL_SERVICE, useClass: NodemailerEmailService},
-		{provide: I_EMAIL_SERVICE, useClass: NodemailerEmailService},
-	]
+    imports: [
+        JwtModule.registerAsync({
+            imports: [ConfigModule],
+            inject: [ConfigService],
+            useFactory: (config: ConfigService) => ({
+                secret: config.get<string>('JWT_SECRET'),
+                signOptions: { expiresIn: '1d' },
+            })
+        }),
+        ConfigModule
+    ],
+    controllers: [UsersController, AuthController],
+    providers: [
+        PrismaService,
+        // Use Cases
+        LoginUserUseCase,
+        RegisterUserUseCase,
+        RequestPasswordResetUseCase,
+        ResetPasswordUseCase,
+        VerifyEmailUseCase,
+        GetProfileUseCase,
+        UpdateProfileUseCase,
+        DeleteAccountUseCase,
+        SetGradeUseCase,
+        CryptoTokenService,
+        // Interface Mappings
+        { provide: I_USER_REPOSITORY, useClass: PrismaUserRepository },
+        { provide: I_PASSWORD_SERVICE, useClass: PasswordService },
+        { provide: I_AUTH_TOKEN_SERVICE, useClass: TokenService },
+        { provide: I_EMAIL_SERVICE, useClass: NodemailerEmailService },
+    ],
+    exports: [I_USER_REPOSITORY, I_AUTH_TOKEN_SERVICE]
 })
-export class UsersModule{}
-
+export class UsersModule {}
 
 // agregar mas providers
 // agregar valore de .env de nodemailer
