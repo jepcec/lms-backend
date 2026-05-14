@@ -13,10 +13,10 @@ export class TokenService implements IAuthTokenService {
 		return this.jwtService.sign(payload, {expiresIn: '15m'});
 	}
 
-	generateRefresh(payload: { userId: string; }): string {
+	generateRefresh(payload: { userId: string; role: string }): string {
 		const refreshSecret = this.configService.get<string>('JWT_REFRESH_SECRET')	
 
-		return this.jwtService.sign(payload,{secret: refreshSecret, expiresIn:'7d'})
+		return this.jwtService.sign({userId: payload.userId, role: payload.role},{secret: refreshSecret, expiresIn:'7d'})
 	}
 	verifyRefresh(token: string) {
 		const refreshSecret = this.configService.get<string>('JWT_REFRESH_SECRET')	
