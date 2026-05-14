@@ -21,7 +21,7 @@ export class LoginUserUseCase{
 
 		// TOKENS  crear - refrescar - verificar
 		const token = this.tokenService.generate({userId: userDb.id, role: userDb.role})
-		const refreshToken = this.tokenService.generateRefresh({userId: userDb.id})
+		const refreshToken = this.tokenService.generateRefresh({userId: userDb.id, role: userDb.role})
 		
 		// return {accessToken: token} // retorno inicial, para test
 		return {

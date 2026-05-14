@@ -1,4 +1,7 @@
-import { Controller, Get, Post, Put, Patch, Delete, Body, Param } from "@nestjs/common";
+import { Controller, Get, Post, Patch, Delete, Body, Param } from "@nestjs/common";
+import { Public } from "../../../auth/decorators/public.decorator";
+import { Roles } from "../../../auth/decorators/roles.decorator";
+import { CurrentUser } from "../../../auth/decorators/current-user.decorator";
 import { CreateCourseUseCase } from "../../application/use-cases/create-course.use-case";
 import { CreateCourseDto } from "../../application/dtos/create-course.dto";
 import { UpdateCourseUseCase } from "../../application/use-cases/update-course.use-case";
@@ -18,31 +21,38 @@ export class CoursesController {
 	) { }
 
 	@Get()
+	@Public()
 	async getAll() {
 		return this.getAllCourses.execute()
 	}
 
 	@Get(':id')
+	@Public()
 	async getById(@Param('id') id: string) {
 		return this.getCourse.execute(id)
 	}
 
 	@Get('slug/:slug')
+	@Public()
 	async getBySlug(@Param('slug') slug: string) {
 		return this.getCourse.executeBySlug(slug)
 	}
 
 	@Post()
-	async create(@Body() dto: CreateCourseDto) {
-		return this.createCourse.execute(dto, 'system-user-id')
+	@Roles('admin')
+	async create(@Body() dto: CreateCourseDto, @CurrentUser('userId') userId: string) {
+		console.log("Entrando")
+		return this.createCourse.execute(dto, userId)
 	}
 
 	@Patch(':id')
+	@Roles('admin')
 	async update(@Param('id') id: string, @Body() dto: UpdateCourseDto) {
 		return this.updateCourse.execute(id, dto)
 	}
 
 	@Delete(':id')
+	@Roles('admin')
 	async delete(@Param('id') id: string) {
 		return this.deleteCourse.execute(id)
 	}

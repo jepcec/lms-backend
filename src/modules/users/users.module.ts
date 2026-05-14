@@ -63,6 +63,9 @@ import { SetGradeUseCase } from "./application/use-cases/set-enrollment-grade.us
         { provide: I_AUTH_TOKEN_SERVICE, useClass: TokenService },
         { provide: I_EMAIL_SERVICE, useClass: NodemailerEmailService },
     ],
-    exports: [I_USER_REPOSITORY, I_AUTH_TOKEN_SERVICE]
+    exports: [
+	    I_USER_REPOSITORY,
+	    I_AUTH_TOKEN_SERVICE,
+    ]
 })
 export class UsersModule {}
