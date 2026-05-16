@@ -19,6 +19,7 @@ import { CryptoTokenService } from "./infrastructure/services/crypto-token.servi
 // Controllers
 import { UsersController } from "./infrastructure/routes/users.controller";
 import { AuthController } from "./infrastructure/routes/auth.controller";
+import { StudentController } from "./infrastructure/routes/student.controller";
 
 // Use Cases
 import { LoginUserUseCase } from "./application/use-cases/login-user.use-case";
@@ -30,6 +31,10 @@ import { GetProfileUseCase } from "./application/use-cases/get-profile.use-case"
 import { UpdateProfileUseCase } from "./application/use-cases/update-profile.use-case";
 import { DeleteAccountUseCase } from "./application/use-cases/delete-user.use-case";
 import { SetGradeUseCase } from "./application/use-cases/set-enrollment-grade.use-case";
+import { GetMyEnrollmentsUseCase } from "./application/use-cases/get-my-enrollments.use-case";
+import { GetCourseContentUseCase } from "./application/use-cases/get-course-content.use-case";
+import { GetCourseProgressUseCase } from "./application/use-cases/get-course-progress.use-case";
+import { UpdateSessionProgressUseCase } from "./application/use-cases/update-session-progress.use-case";
 
 @Module({
     imports: [
@@ -43,7 +48,7 @@ import { SetGradeUseCase } from "./application/use-cases/set-enrollment-grade.us
         }),
         ConfigModule
     ],
-    controllers: [UsersController, AuthController],
+    controllers: [UsersController, AuthController, StudentController],
     providers: [
         PrismaService,
         // Use Cases
@@ -56,6 +61,10 @@ import { SetGradeUseCase } from "./application/use-cases/set-enrollment-grade.us
         UpdateProfileUseCase,
         DeleteAccountUseCase,
         SetGradeUseCase,
+        GetMyEnrollmentsUseCase,
+        GetCourseContentUseCase,
+        GetCourseProgressUseCase,
+        UpdateSessionProgressUseCase,
         CryptoTokenService,
         // Interface Mappings
         { provide: I_USER_REPOSITORY, useClass: PrismaUserRepository },
