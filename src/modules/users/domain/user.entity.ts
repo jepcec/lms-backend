@@ -21,8 +21,12 @@ export interface UserProps{
 	email_verified_at?: Date | null;
 	password_reset_expires_at?: Date | null;
 
-	
-	// los demas campos
+	country?: string | null;
+	profile_photo_url?: string | null;
+	status?: string;
+	created_by?: string | null;
+	created_at?: Date;
+	updated_at?: Date;
 }
 
 export class UserEntity{
@@ -58,7 +62,13 @@ export class UserEntity{
 
 	get emailVerifiedAt() {return this.props.email_verified_at?? null}
 	set emailVerifiedAt(value: Date | null) {this.props.email_verified_at = value}
- 
+
+	get country() {return this.props.country ?? null}
+	get profilePhotoUrl() {return this.props.profile_photo_url ?? null}
+	get status() {return this.props.status ?? 'active'}
+	get createdBy() {return this.props.created_by ?? null}
+	get createdAt() {return this.props.created_at ?? new Date()}
+	get updatedAt() {return this.props.updated_at ?? new Date()}
 
 	// operaciones - logica - reglas de negocio
 

@@ -10,6 +10,7 @@ import { ResetPasswordUseCase } from "../../application/use-cases/reset-password
 import { Public } from "src/modules/auth/decorators/public.decorator";
 
 @Controller('auth')
+@Public()
 export class AuthController{
 	constructor(
 		private readonly registerUseCase: RegisterUserUseCase,
@@ -25,7 +26,6 @@ export class AuthController{
 	}
 
 	// logeo de usuario + tokens
-	@Public()
 	@Post('login')
 	async login(@Body() dto: LoginUserDto, @Res({passthrough: true}) response: Response){
 		const result = await this.loginUserCase.execute(dto)   
@@ -52,6 +52,7 @@ export class AuthController{
 	}
 
 	// verificar un email cuando usuario se registra
+	@Public()
 	@Get('verify-email')
 	async verifyEmail(@Query('token') token: string){
 		if(!token) throw new BadRequestException("Token requerido")
