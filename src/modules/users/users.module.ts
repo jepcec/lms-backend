@@ -20,6 +20,7 @@ import { CryptoTokenService } from "./infrastructure/services/crypto-token.servi
 import { UsersController } from "./infrastructure/routes/users.controller";
 import { AuthController } from "./infrastructure/routes/auth.controller";
 import { StudentController } from "./infrastructure/routes/student.controller";
+import { AdminController } from "./infrastructure/routes/admin.controller";
 
 // Use Cases
 import { LoginUserUseCase } from "./application/use-cases/login-user.use-case";
@@ -35,6 +36,7 @@ import { GetMyEnrollmentsUseCase } from "./application/use-cases/get-my-enrollme
 import { GetCourseContentUseCase } from "./application/use-cases/get-course-content.use-case";
 import { GetCourseProgressUseCase } from "./application/use-cases/get-course-progress.use-case";
 import { UpdateSessionProgressUseCase } from "./application/use-cases/update-session-progress.use-case";
+import { ListUsuariosUseCase } from "./application/use-cases/list-usuarios.use-case";
 
 @Module({
     imports: [
@@ -48,7 +50,7 @@ import { UpdateSessionProgressUseCase } from "./application/use-cases/update-ses
         }),
         ConfigModule
     ],
-    controllers: [UsersController, AuthController, StudentController],
+    controllers: [UsersController, AuthController, StudentController, AdminController],
     providers: [
         PrismaService,
         // Use Cases
@@ -65,6 +67,7 @@ import { UpdateSessionProgressUseCase } from "./application/use-cases/update-ses
         GetCourseContentUseCase,
         GetCourseProgressUseCase,
         UpdateSessionProgressUseCase,
+        ListUsuariosUseCase,
         CryptoTokenService,
         // Interface Mappings
         { provide: I_USER_REPOSITORY, useClass: PrismaUserRepository },
