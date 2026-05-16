@@ -7,6 +7,7 @@ import type { Response } from "express";
 import { VerifyEmailUseCase } from "../../application/use-cases/verify-email.use-case";
 import { RequestPasswordResetUseCase } from "../../application/use-cases/request-password-reset.use-case";
 import { ResetPasswordUseCase } from "../../application/use-cases/reset-password.use-case";
+import { Public } from "src/modules/auth/decorators/public.decorator";
 
 @Controller('auth')
 export class AuthController{
@@ -24,6 +25,7 @@ export class AuthController{
 	}
 
 	// logeo de usuario + tokens
+	@Public()
 	@Post('login')
 	async login(@Body() dto: LoginUserDto, @Res({passthrough: true}) response: Response){
 		const result = await this.loginUserCase.execute(dto)   
