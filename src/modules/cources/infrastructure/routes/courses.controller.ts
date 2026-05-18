@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Patch, Delete, Body, Param } from "@nestjs/common";
+import { Controller, Get, Post, Patch, Delete, Body, Param, Query } from "@nestjs/common";
 import { Public } from "../../../auth/decorators/public.decorator";
 import { Roles } from "../../../auth/decorators/roles.decorator";
 import { CurrentUser } from "../../../auth/decorators/current-user.decorator";
@@ -9,6 +9,7 @@ import { UpdateCourseDto } from "../../application/dtos/update-course.dto";
 import { GetCourseUseCase } from "../../application/use-cases/get-course.use-case";
 import { GetAllCoursesUseCase } from "../../application/use-cases/get-all-courses.use-case";
 import { DeleteCourseUseCase } from "../../application/use-cases/delete-course.use-case";
+import { GetFeaturedCoursesUseCase } from "../../application/use-cases/get-featured-courses.use-case";
 
 @Controller('courses')
 export class CoursesController {
@@ -18,12 +19,20 @@ export class CoursesController {
 		private readonly getCourse: GetCourseUseCase,
 		private readonly getAllCourses: GetAllCoursesUseCase,
 		private readonly deleteCourse: DeleteCourseUseCase,
+		private readonly getFeaturedCourses: GetFeaturedCoursesUseCase,
 	) { }
 
 	@Get()
 	@Public()
 	async getAll() {
 		return this.getAllCourses.execute()
+	}
+
+	@Get('featured')
+	@Public()
+	async getFeatured(@Query('limit') limit?: string) {
+		const parsedLimit = limit ? parseInt(limit, 10) : 8;
+		return this.getFeaturedCourses.execute(parsedLimit);
 	}
 
 	@Get(':id')

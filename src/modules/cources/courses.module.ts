@@ -28,6 +28,7 @@ import { GetSessionsUseCase } from "./application/use-cases/get-sessions.use-cas
 import { CreateMaterialUseCase } from "./application/use-cases/create-material.use-case";
 import { DeleteMaterialUseCase } from "./application/use-cases/delete-material.use-case";
 import { GetMaterialsUseCase } from "./application/use-cases/get-materials.use-case";
+import { GetFeaturedCoursesUseCase } from "./application/use-cases/get-featured-courses.use-case";
 @Module({
 	controllers: [
 		CoursesController,
@@ -40,6 +41,7 @@ import { GetMaterialsUseCase } from "./application/use-cases/get-materials.use-c
 		CreateCourseUseCase,
 		GetCourseUseCase,
 		GetAllCoursesUseCase,
+		GetFeaturedCoursesUseCase,
 		UpdateCourseUseCase,
 		DeleteCourseUseCase,
 		CreateModuleUseCase,
