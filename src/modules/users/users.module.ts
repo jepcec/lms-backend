@@ -37,6 +37,16 @@ import { GetCourseContentUseCase } from "./application/use-cases/get-course-cont
 import { GetCourseProgressUseCase } from "./application/use-cases/get-course-progress.use-case";
 import { UpdateSessionProgressUseCase } from "./application/use-cases/update-session-progress.use-case";
 import { ListUsuariosUseCase } from "./application/use-cases/list-usuarios.use-case";
+import { GetDashboardStatsUseCase } from "./application/use-cases/get-dashboard-stats.use-case";
+import { GetAuditLogsUseCase } from "./application/use-cases/get-audit-logs.use-case";
+import { GetIngresosChartUseCase } from "./application/use-cases/get-ingresos-chart.use-case";
+import { GetTopCursosUseCase } from "./application/use-cases/get-top-cursos.use-case";
+import { GetCategoriasDistribucionUseCase } from "./application/use-cases/get-categorias-distribucion.use-case";
+import { GetEstudiantesActivosUseCase } from "./application/use-cases/get-estudiantes-activos.use-case";
+import { GetTopFinalizacionUseCase } from "./application/use-cases/get-top-finalizacion.use-case";
+import { GetTopEstudiantesUseCase } from "./application/use-cases/get-top-estudiantes.use-case";
+import { GetMatriculadosCursoUseCase } from "./application/use-cases/get-matriculados-curso.use-case";
+import { GetActividadEstudianteUseCase } from "./application/use-cases/get-actividad-estudiante.use-case";
 
 @Module({
     imports: [
@@ -68,6 +78,16 @@ import { ListUsuariosUseCase } from "./application/use-cases/list-usuarios.use-c
         GetCourseProgressUseCase,
         UpdateSessionProgressUseCase,
         ListUsuariosUseCase,
+        GetDashboardStatsUseCase,
+        GetAuditLogsUseCase,
+        GetIngresosChartUseCase,
+        GetTopCursosUseCase,
+        GetCategoriasDistribucionUseCase,
+        GetEstudiantesActivosUseCase,
+        GetTopFinalizacionUseCase,
+        GetTopEstudiantesUseCase,
+        GetMatriculadosCursoUseCase,
+        GetActividadEstudianteUseCase,
         CryptoTokenService,
         // Interface Mappings
         { provide: I_USER_REPOSITORY, useClass: PrismaUserRepository },
