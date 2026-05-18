@@ -47,6 +47,11 @@ import { GetTopFinalizacionUseCase } from "./application/use-cases/get-top-final
 import { GetTopEstudiantesUseCase } from "./application/use-cases/get-top-estudiantes.use-case";
 import { GetMatriculadosCursoUseCase } from "./application/use-cases/get-matriculados-curso.use-case";
 import { GetActividadEstudianteUseCase } from "./application/use-cases/get-actividad-estudiante.use-case";
+import { GetUsuarioUseCase } from "./application/use-cases/get-usuario.use-case";
+import { CreateUsuarioUseCase } from "./application/use-cases/create-usuario.use-case";
+import { UpdateUsuarioUseCase } from "./application/use-cases/update-usuario.use-case";
+import { SuspendUsuarioUseCase } from "./application/use-cases/suspend-usuario.use-case";
+import { ActivateUsuarioUseCase } from "./application/use-cases/activate-usuario.use-case";
 
 @Module({
     imports: [
@@ -88,6 +93,11 @@ import { GetActividadEstudianteUseCase } from "./application/use-cases/get-activ
         GetTopEstudiantesUseCase,
         GetMatriculadosCursoUseCase,
         GetActividadEstudianteUseCase,
+        GetUsuarioUseCase,
+        CreateUsuarioUseCase,
+        UpdateUsuarioUseCase,
+        SuspendUsuarioUseCase,
+        ActivateUsuarioUseCase,
         CryptoTokenService,
         // Interface Mappings
         { provide: I_USER_REPOSITORY, useClass: PrismaUserRepository },
