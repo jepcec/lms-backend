@@ -11,6 +11,7 @@ import { CoursesController } from "./infrastructure/routes/courses.controller";
 import { ModulesController } from "./infrastructure/routes/modules.controller";
 import { SessionsController } from "./infrastructure/routes/sessions.controller";
 import { MaterialsController } from "./infrastructure/routes/materials.controller";
+import { CategoriesController } from "./infrastructure/routes/categories.controller";
 import { PrismaService } from "src/core/database/prisma.service";
 import { CreateCourseUseCase } from "./application/use-cases/create-course.use-case";
 import { GetCourseUseCase } from "./application/use-cases/get-course.use-case";
@@ -28,18 +29,41 @@ import { GetSessionsUseCase } from "./application/use-cases/get-sessions.use-cas
 import { CreateMaterialUseCase } from "./application/use-cases/create-material.use-case";
 import { DeleteMaterialUseCase } from "./application/use-cases/delete-material.use-case";
 import { GetMaterialsUseCase } from "./application/use-cases/get-materials.use-case";
+import { GetFeaturedCoursesUseCase } from "./application/use-cases/get-featured-courses.use-case";
+import { UploadThumbnailUseCase } from "./application/use-cases/upload-thumbnail.use-case";
+import { AddInstructorUseCase } from "./application/use-cases/add-instructor.use-case";
+import { RemoveInstructorUseCase } from "./application/use-cases/remove-instructor.use-case";
+import { GetMatriculadosCursoUseCase } from "./application/use-cases/get-matriculados-curso.use-case";
+import { ListCategoriasUseCase } from "./application/use-cases/list-categorias.use-case";
+import { GetCategoriaUseCase } from "./application/use-cases/get-categoria.use-case";
+import { CreateCategoriaUseCase } from "./application/use-cases/create-categoria.use-case";
+import { UpdateCategoriaUseCase } from "./application/use-cases/update-categoria.use-case";
+import { DeleteCategoriaUseCase } from "./application/use-cases/delete-categoria.use-case";
+import { ReorderCategoriasUseCase } from "./application/use-cases/reorder-categorias.use-case";
 @Module({
 	controllers: [
 		CoursesController,
 		ModulesController,
 		SessionsController,
 		MaterialsController,
+		CategoriesController,
 	],
 	providers: [
 		PrismaService,
 		CreateCourseUseCase,
 		GetCourseUseCase,
 		GetAllCoursesUseCase,
+		GetFeaturedCoursesUseCase,
+		UploadThumbnailUseCase,
+		AddInstructorUseCase,
+		RemoveInstructorUseCase,
+		GetMatriculadosCursoUseCase,
+		ListCategoriasUseCase,
+		GetCategoriaUseCase,
+		CreateCategoriaUseCase,
+		UpdateCategoriaUseCase,
+		DeleteCategoriaUseCase,
+		ReorderCategoriasUseCase,
 		UpdateCourseUseCase,
 		DeleteCourseUseCase,
 		CreateModuleUseCase,

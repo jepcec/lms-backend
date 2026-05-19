@@ -28,6 +28,15 @@ export class PrismaCourseRepository implements ICourseRepository {
 		return courses.map(c => this.mapToEntity(c))
 	}
 
+	async findFeatured(limit: number): Promise<CourseEntity[]> {
+		const courses = await this.prisma.course.findMany({
+			where: { status: 'published', deleted_at: null },
+			orderBy: { enrolled_count: 'desc' },
+			take: limit,
+		});
+		return courses.map(c => this.mapToEntity(c));
+	}
+
 	async save(course: CourseEntity): Promise<void> {
 		await this.prisma.course.upsert({
 			where: { id: course.id },

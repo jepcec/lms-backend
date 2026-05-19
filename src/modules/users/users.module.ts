@@ -21,6 +21,7 @@ import { UsersController } from "./infrastructure/routes/users.controller";
 import { AuthController } from "./infrastructure/routes/auth.controller";
 import { StudentController } from "./infrastructure/routes/student.controller";
 import { AdminController } from "./infrastructure/routes/admin.controller";
+import { EnrollmentsController } from "./infrastructure/routes/enrollments.controller";
 
 // Use Cases
 import { LoginUserUseCase } from "./application/use-cases/login-user.use-case";
@@ -37,6 +38,24 @@ import { GetCourseContentUseCase } from "./application/use-cases/get-course-cont
 import { GetCourseProgressUseCase } from "./application/use-cases/get-course-progress.use-case";
 import { UpdateSessionProgressUseCase } from "./application/use-cases/update-session-progress.use-case";
 import { ListUsuariosUseCase } from "./application/use-cases/list-usuarios.use-case";
+import { GetDashboardStatsUseCase } from "./application/use-cases/get-dashboard-stats.use-case";
+import { GetAuditLogsUseCase } from "./application/use-cases/get-audit-logs.use-case";
+import { GetIngresosChartUseCase } from "./application/use-cases/get-ingresos-chart.use-case";
+import { GetTopCursosUseCase } from "./application/use-cases/get-top-cursos.use-case";
+import { GetCategoriasDistribucionUseCase } from "./application/use-cases/get-categorias-distribucion.use-case";
+import { GetEstudiantesActivosUseCase } from "./application/use-cases/get-estudiantes-activos.use-case";
+import { GetTopFinalizacionUseCase } from "./application/use-cases/get-top-finalizacion.use-case";
+import { GetTopEstudiantesUseCase } from "./application/use-cases/get-top-estudiantes.use-case";
+import { GetMatriculadosCursoUseCase } from "./application/use-cases/get-matriculados-curso.use-case";
+import { GetActividadEstudianteUseCase } from "./application/use-cases/get-actividad-estudiante.use-case";
+import { GetUsuarioUseCase } from "./application/use-cases/get-usuario.use-case";
+import { CreateUsuarioUseCase } from "./application/use-cases/create-usuario.use-case";
+import { UpdateUsuarioUseCase } from "./application/use-cases/update-usuario.use-case";
+import { SuspendUsuarioUseCase } from "./application/use-cases/suspend-usuario.use-case";
+import { ActivateUsuarioUseCase } from "./application/use-cases/activate-usuario.use-case";
+import { ListMatriculasUseCase } from "./application/use-cases/list-matriculas.use-case";
+import { CreateMatriculasUseCase } from "./application/use-cases/create-matriculas.use-case";
+import { BuscarUsuariosUseCase } from "./application/use-cases/buscar-usuarios.use-case";
 
 @Module({
     imports: [
@@ -50,7 +69,7 @@ import { ListUsuariosUseCase } from "./application/use-cases/list-usuarios.use-c
         }),
         ConfigModule
     ],
-    controllers: [UsersController, AuthController, StudentController, AdminController],
+    controllers: [UsersController, AuthController, StudentController, AdminController, EnrollmentsController],
     providers: [
         PrismaService,
         // Use Cases
@@ -68,6 +87,24 @@ import { ListUsuariosUseCase } from "./application/use-cases/list-usuarios.use-c
         GetCourseProgressUseCase,
         UpdateSessionProgressUseCase,
         ListUsuariosUseCase,
+        GetDashboardStatsUseCase,
+        GetAuditLogsUseCase,
+        GetIngresosChartUseCase,
+        GetTopCursosUseCase,
+        GetCategoriasDistribucionUseCase,
+        GetEstudiantesActivosUseCase,
+        GetTopFinalizacionUseCase,
+        GetTopEstudiantesUseCase,
+        GetMatriculadosCursoUseCase,
+        GetActividadEstudianteUseCase,
+        GetUsuarioUseCase,
+        CreateUsuarioUseCase,
+        UpdateUsuarioUseCase,
+        SuspendUsuarioUseCase,
+        ActivateUsuarioUseCase,
+        ListMatriculasUseCase,
+        CreateMatriculasUseCase,
+        BuscarUsuariosUseCase,
         CryptoTokenService,
         // Interface Mappings
         { provide: I_USER_REPOSITORY, useClass: PrismaUserRepository },

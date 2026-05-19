@@ -1,3 +1,5 @@
+import type { InstructorInput } from "./create-course.dto";
+
 export class UpdateCourseDto {
 	title?: string;
 	tagline?: string;
@@ -12,4 +14,5 @@ export class UpdateCourseDto {
 	prerequisites?: string[];
 	outcomes?: string[];
 	status?: string;
+	instructors?: InstructorInput[];
 }
