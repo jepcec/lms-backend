@@ -6,7 +6,7 @@ export interface ICourseRepository {
 	save(course: CourseEntity): Promise<void>
 	delete(id: string): Promise<void>
 	findAll(): Promise<CourseEntity[]>
-	
+	findFeatured(limit: number): Promise<CourseEntity[]>
 
 }
 

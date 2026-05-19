@@ -1,4 +1,7 @@
-import { Controller, Get, Post, Patch, Delete, Body, Param } from "@nestjs/common";
+import { Controller, Get, Post, Patch, Delete, Body, Param, Query, UseInterceptors, UploadedFile } from "@nestjs/common";
+import { FileInterceptor } from "@nestjs/platform-express";
+import { diskStorage } from "multer";
+import { extname } from "path";
 import { Public } from "../../../auth/decorators/public.decorator";
 import { Roles } from "../../../auth/decorators/roles.decorator";
 import { CurrentUser } from "../../../auth/decorators/current-user.decorator";
@@ -9,8 +12,16 @@ import { UpdateCourseDto } from "../../application/dtos/update-course.dto";
 import { GetCourseUseCase } from "../../application/use-cases/get-course.use-case";
 import { GetAllCoursesUseCase } from "../../application/use-cases/get-all-courses.use-case";
 import { DeleteCourseUseCase } from "../../application/use-cases/delete-course.use-case";
+import { GetFeaturedCoursesUseCase } from "../../application/use-cases/get-featured-courses.use-case";
+import { CursoParams } from "../../application/dtos/curso-params.dto";
+import { UploadThumbnailUseCase } from "../../application/use-cases/upload-thumbnail.use-case";
+import { AddInstructorUseCase } from "../../application/use-cases/add-instructor.use-case";
+import { RemoveInstructorUseCase } from "../../application/use-cases/remove-instructor.use-case";
+import { CreateInstructorDto } from "../../application/dtos/create-instructor.dto";
+import { GetMatriculadosCursoUseCase } from "../../application/use-cases/get-matriculados-curso.use-case";
+import type { Express } from "express";
 
-@Controller('courses')
+@Controller("courses")
 export class CoursesController {
 	constructor(
 		private readonly createCourse: CreateCourseUseCase,
@@ -18,42 +29,101 @@ export class CoursesController {
 		private readonly getCourse: GetCourseUseCase,
 		private readonly getAllCourses: GetAllCoursesUseCase,
 		private readonly deleteCourse: DeleteCourseUseCase,
-	) { }
+		private readonly getFeaturedCourses: GetFeaturedCoursesUseCase,
+		private readonly uploadThumbnail: UploadThumbnailUseCase,
+		private readonly addInstructor: AddInstructorUseCase,
+		private readonly removeInstructor: RemoveInstructorUseCase,
+		private readonly getMatriculadosCurso: GetMatriculadosCursoUseCase,
+	) {}
 
 	@Get()
 	@Public()
-	async getAll() {
-		return this.getAllCourses.execute()
+	async getAll(@Query() params: CursoParams) {
+		return this.getAllCourses.execute(params);
 	}
 
-	@Get(':id')
+	@Get("featured")
 	@Public()
-	async getById(@Param('id') id: string) {
-		return this.getCourse.execute(id)
+	async getFeatured(@Query("limit") limit?: string) {
+		const parsedLimit = limit ? parseInt(limit, 10) : 8;
+		return this.getFeaturedCourses.execute(parsedLimit);
 	}
 
-	@Get('slug/:slug')
+	@Get(":id")
 	@Public()
-	async getBySlug(@Param('slug') slug: string) {
-		return this.getCourse.executeBySlug(slug)
+	async getById(@Param("id") id: string) {
+		return this.getCourse.execute(id);
+	}
+
+	@Get("slug/:slug")
+	@Public()
+	async getBySlug(@Param("slug") slug: string) {
+		return this.getCourse.executeBySlug(slug);
 	}
 
 	@Post()
-	@Roles('admin')
-	async create(@Body() dto: CreateCourseDto, @CurrentUser('userId') userId: string) {
-		console.log("Entrando")
-		return this.createCourse.execute(dto, userId)
+	@Roles("admin")
+	async create(@Body() dto: CreateCourseDto, @CurrentUser("userId") userId: string) {
+		return this.createCourse.execute(dto, userId);
 	}
 
-	@Patch(':id')
-	@Roles('admin')
-	async update(@Param('id') id: string, @Body() dto: UpdateCourseDto) {
-		return this.updateCourse.execute(id, dto)
+	@Patch(":id")
+	@Roles("admin")
+	async update(@Param("id") id: string, @Body() dto: UpdateCourseDto) {
+		return this.updateCourse.execute(id, dto);
 	}
 
-	@Delete(':id')
-	@Roles('admin')
-	async delete(@Param('id') id: string) {
-		return this.deleteCourse.execute(id)
+	@Delete(":id")
+	@Roles("admin")
+	async delete(@Param("id") id: string) {
+		return this.deleteCourse.execute(id);
+	}
+
+	@Post(":id/thumbnail")
+	@Roles("admin")
+	@UseInterceptors(
+		FileInterceptor("thumbnail", {
+			storage: diskStorage({
+				destination: "./uploads/thumbnails",
+				filename: (req, file, cb) => {
+					const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+					cb(null, `${uniqueSuffix}${extname(file.originalname)}`);
+				},
+			}),
+		}),
+	)
+	async uploadThumbnailHandler(
+		@Param("id") id: string,
+		@UploadedFile() file: Express.Multer.File,
+	) {
+		const imagePath = `/uploads/thumbnails/${file.filename}`;
+		return this.uploadThumbnail.execute(id, imagePath);
+	}
+
+	@Post(":id/instructors")
+	@Roles("admin")
+	async addInstructorHandler(
+		@Param("id") id: string,
+		@Body() dto: CreateInstructorDto,
+	) {
+		return this.addInstructor.execute(id, dto);
+	}
+
+	@Delete(":id/instructors/:instructorId")
+	@Roles("admin")
+	async removeInstructorHandler(
+		@Param("id") id: string,
+		@Param("instructorId") instructorId: string,
+	) {
+		return this.removeInstructor.execute(id, instructorId);
+	}
+
+	@Get(":id/matriculados")
+	@Roles("admin")
+	async getMatriculadosHandler(
+		@Param("id") id: string,
+		@Query() params: { page?: number; limit?: number; search?: string },
+	) {
+		return this.getMatriculadosCurso.execute(id, params);
 	}
 }

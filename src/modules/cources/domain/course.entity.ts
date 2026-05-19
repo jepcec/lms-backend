@@ -66,4 +66,35 @@ export class CourseEntity {
 
 	get hasDiscount() { return this.props.discount_price !== null && this.props.discount_price !== undefined }
 	get finalPrice() { return this.hasDiscount ? this.props.discount_price! : this.props.price }
+
+	toJSON() {
+		return {
+			id: this.id,
+			category_id: this.category_id,
+			title: this.title,
+			slug: this.slug,
+			tagline: this.tagline,
+			description: this.description,
+			thumbnail_url: this.thumbnail_url,
+			level: this.level,
+			software_tools: this.software_tools,
+			price: this.price,
+			discount_price: this.discount_price,
+			currency: this.currency,
+			access_duration: this.access_duration,
+			prerequisites: this.prerequisites,
+			outcomes: this.outcomes,
+			status: this.status,
+			published_at: this.published_at,
+			avg_rating: this.avg_rating,
+			review_count: this.review_count,
+			enrolled_count: this.enrolled_count,
+			total_duration_minutes: this.total_duration_minutes,
+			created_by: this.created_by,
+			created_at: this.created_at,
+			updated_at: this.updated_at,
+			deleted_at: this.deleted_at
+		}
+	}
 }
+
