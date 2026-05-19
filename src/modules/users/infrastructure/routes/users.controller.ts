@@ -24,6 +24,7 @@ export class UsersController {
     private readonly getProfile: GetProfileUseCase,
     private readonly updateProfile: UpdateProfileUseCase,
     private readonly deleteAccount: DeleteAccountUseCase,
+
     private readonly getUsuarioUC: GetUsuarioUseCase,
     private readonly createUsuarioUC: CreateUsuarioUseCase,
     private readonly updateUsuarioUC: UpdateUsuarioUseCase,

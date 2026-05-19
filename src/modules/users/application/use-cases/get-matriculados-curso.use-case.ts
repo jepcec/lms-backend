@@ -16,8 +16,8 @@ export class GetMatriculadosCursoUseCase {
 			throw new NotFoundException("Curso no encontrado");
 		}
 
-		const page = params.page ?? 1;
-		const limit = params.limit ?? 10;
+		const page = Number(params.page) || 1;
+		const limit = Number(params.limit) || 10;
 		const skip = (page - 1) * limit;
 
 		const where: Record<string, unknown> = { course_id: cursoId };

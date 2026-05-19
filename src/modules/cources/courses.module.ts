@@ -29,6 +29,10 @@ import { CreateMaterialUseCase } from "./application/use-cases/create-material.u
 import { DeleteMaterialUseCase } from "./application/use-cases/delete-material.use-case";
 import { GetMaterialsUseCase } from "./application/use-cases/get-materials.use-case";
 import { GetFeaturedCoursesUseCase } from "./application/use-cases/get-featured-courses.use-case";
+import { UploadThumbnailUseCase } from "./application/use-cases/upload-thumbnail.use-case";
+import { AddInstructorUseCase } from "./application/use-cases/add-instructor.use-case";
+import { RemoveInstructorUseCase } from "./application/use-cases/remove-instructor.use-case";
+import { GetMatriculadosCursoUseCase } from "./application/use-cases/get-matriculados-curso.use-case";
 @Module({
 	controllers: [
 		CoursesController,
@@ -42,6 +46,10 @@ import { GetFeaturedCoursesUseCase } from "./application/use-cases/get-featured-
 		GetCourseUseCase,
 		GetAllCoursesUseCase,
 		GetFeaturedCoursesUseCase,
+		UploadThumbnailUseCase,
+		AddInstructorUseCase,
+		RemoveInstructorUseCase,
+		GetMatriculadosCursoUseCase,
 		UpdateCourseUseCase,
 		DeleteCourseUseCase,
 		CreateModuleUseCase,
