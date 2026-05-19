@@ -7,8 +7,8 @@ export class GetAuditLogsUseCase {
 	constructor(private readonly prisma: PrismaService) {}
 
 	async execute(params: AuditLogsQueryDto) {
-		const page = params.page ?? 1;
-		const limit = params.limit ?? 10;
+		const page = Number(params.page) || 1;
+		const limit = Number(params.limit) || 10;
 		const skip = (page - 1) * limit;
 
 		const [data, total] = await Promise.all([

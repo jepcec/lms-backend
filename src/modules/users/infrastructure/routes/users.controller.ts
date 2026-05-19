@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Patch, Delete, Body, Param, UseGuards, UseInterceptors, UploadedFile } from "@nestjs/common";
+import { Controller, Get, Post, Patch, Delete, Body, Param, Query, UseGuards, UseInterceptors, UploadedFile } from "@nestjs/common";
 import { FileInterceptor } from "@nestjs/platform-express";
 import { diskStorage } from "multer";
 import { extname } from "path";
@@ -17,6 +17,7 @@ import { SuspendUsuarioUseCase } from "../../application/use-cases/suspend-usuar
 import { ActivateUsuarioUseCase } from "../../application/use-cases/activate-usuario.use-case";
 import { CreateUsuarioDto } from "../../application/dtos/create-usuario.dto";
 import { UpdateUsuarioDto } from "../../application/dtos/update-usuario.dto";
+import { BuscarUsuariosUseCase } from "../../application/use-cases/buscar-usuarios.use-case";
 
 @Controller('users')
 export class UsersController {
@@ -30,6 +31,7 @@ export class UsersController {
     private readonly updateUsuarioUC: UpdateUsuarioUseCase,
     private readonly suspendUsuarioUC: SuspendUsuarioUseCase,
     private readonly activateUsuarioUC: ActivateUsuarioUseCase,
+    private readonly buscarUsuariosUC: BuscarUsuariosUseCase,
   ) {}
 
   @Get('profile/:id')
@@ -59,6 +61,15 @@ export class UsersController {
   @Delete('profile/:id')
   async delete(@Param('id') id: string) {
     return this.deleteAccount.execute(id);
+  }
+
+  @Roles('admin')
+  @Get('buscar')
+  async buscarUsuarios(
+    @Query('q') q: string,
+    @Query('role') role?: string,
+  ) {
+    return this.buscarUsuariosUC.execute(q, role);
   }
 
   @Roles('admin')
