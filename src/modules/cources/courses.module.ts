@@ -34,6 +34,7 @@ import { UploadThumbnailUseCase } from "./application/use-cases/upload-thumbnail
 import { AddInstructorUseCase } from "./application/use-cases/add-instructor.use-case";
 import { RemoveInstructorUseCase } from "./application/use-cases/remove-instructor.use-case";
 import { GetMatriculadosCursoUseCase } from "./application/use-cases/get-matriculados-curso.use-case";
+import { GetCourseSoftwaresUseCase } from "./application/use-cases/get-course-softwares.use-case";
 import { ListCategoriasUseCase } from "./application/use-cases/list-categorias.use-case";
 import { GetCategoriaUseCase } from "./application/use-cases/get-categoria.use-case";
 import { CreateCategoriaUseCase } from "./application/use-cases/create-categoria.use-case";
@@ -58,6 +59,7 @@ import { ReorderCategoriasUseCase } from "./application/use-cases/reorder-catego
 		AddInstructorUseCase,
 		RemoveInstructorUseCase,
 		GetMatriculadosCursoUseCase,
+		GetCourseSoftwaresUseCase,
 		ListCategoriasUseCase,
 		GetCategoriaUseCase,
 		CreateCategoriaUseCase,

@@ -19,6 +19,7 @@ import { AddInstructorUseCase } from "../../application/use-cases/add-instructor
 import { RemoveInstructorUseCase } from "../../application/use-cases/remove-instructor.use-case";
 import { CreateInstructorDto } from "../../application/dtos/create-instructor.dto";
 import { GetMatriculadosCursoUseCase } from "../../application/use-cases/get-matriculados-curso.use-case";
+import { GetCourseSoftwaresUseCase } from "../../application/use-cases/get-course-softwares.use-case";
 import type { Express } from "express";
 
 @Controller("courses")
@@ -34,12 +35,19 @@ export class CoursesController {
 		private readonly addInstructor: AddInstructorUseCase,
 		private readonly removeInstructor: RemoveInstructorUseCase,
 		private readonly getMatriculadosCurso: GetMatriculadosCursoUseCase,
+		private readonly getCourseSoftwares: GetCourseSoftwaresUseCase,
 	) {}
 
 	@Get()
 	@Public()
 	async getAll(@Query() params: CursoParams) {
 		return this.getAllCourses.execute(params);
+	}
+
+	@Get("softwares")
+	@Public()
+	async getSoftwares() {
+		return this.getCourseSoftwares.execute();
 	}
 
 	@Get("featured")
