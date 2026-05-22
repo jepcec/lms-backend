@@ -11,8 +11,10 @@ import { UpdateCourseUseCase } from "../../application/use-cases/update-course.u
 import { UpdateCourseDto } from "../../application/dtos/update-course.dto";
 import { GetCourseUseCase } from "../../application/use-cases/get-course.use-case";
 import { GetAllCoursesUseCase } from "../../application/use-cases/get-all-courses.use-case";
+import { ListCatalogUseCase } from "../../application/use-cases/list-catalog.use-case";
 import { DeleteCourseUseCase } from "../../application/use-cases/delete-course.use-case";
 import { GetFeaturedCoursesUseCase } from "../../application/use-cases/get-featured-courses.use-case";
+import { GetSoftwaresUseCase } from "../../application/use-cases/get-softwares.use-case";
 import { CursoParams } from "../../application/dtos/curso-params.dto";
 import { UploadThumbnailUseCase } from "../../application/use-cases/upload-thumbnail.use-case";
 import { AddInstructorUseCase } from "../../application/use-cases/add-instructor.use-case";
@@ -28,8 +30,10 @@ export class CoursesController {
 		private readonly updateCourse: UpdateCourseUseCase,
 		private readonly getCourse: GetCourseUseCase,
 		private readonly getAllCourses: GetAllCoursesUseCase,
+		private readonly listCatalog: ListCatalogUseCase,
 		private readonly deleteCourse: DeleteCourseUseCase,
 		private readonly getFeaturedCourses: GetFeaturedCoursesUseCase,
+		private readonly getSoftwaresUseCase: GetSoftwaresUseCase,
 		private readonly uploadThumbnail: UploadThumbnailUseCase,
 		private readonly addInstructor: AddInstructorUseCase,
 		private readonly removeInstructor: RemoveInstructorUseCase,
@@ -42,11 +46,23 @@ export class CoursesController {
 		return this.getAllCourses.execute(params);
 	}
 
+	@Get("catalog")
+	@Public()
+	async getCatalog(@Query() params: CursoParams) {
+		return this.listCatalog.execute(params);
+	}
+
 	@Get("featured")
 	@Public()
 	async getFeatured(@Query("limit") limit?: string) {
 		const parsedLimit = limit ? parseInt(limit, 10) : 8;
 		return this.getFeaturedCourses.execute(parsedLimit);
+	}
+
+	@Get("softwares")
+	@Public()
+	async getSoftwares() {
+		return this.getSoftwaresUseCase.execute();
 	}
 
 	@Get(":id")

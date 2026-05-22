@@ -16,6 +16,7 @@ import { PrismaService } from "src/core/database/prisma.service";
 import { CreateCourseUseCase } from "./application/use-cases/create-course.use-case";
 import { GetCourseUseCase } from "./application/use-cases/get-course.use-case";
 import { GetAllCoursesUseCase } from "./application/use-cases/get-all-courses.use-case";
+import { ListCatalogUseCase } from "./application/use-cases/list-catalog.use-case";
 import { UpdateCourseUseCase } from "./application/use-cases/update-course.use-case";
 import { DeleteCourseUseCase } from "./application/use-cases/delete-course.use-case";
 import { CreateModuleUseCase } from "./application/use-cases/create-module.use-case";
@@ -30,6 +31,7 @@ import { CreateMaterialUseCase } from "./application/use-cases/create-material.u
 import { DeleteMaterialUseCase } from "./application/use-cases/delete-material.use-case";
 import { GetMaterialsUseCase } from "./application/use-cases/get-materials.use-case";
 import { GetFeaturedCoursesUseCase } from "./application/use-cases/get-featured-courses.use-case";
+import { GetSoftwaresUseCase } from "./application/use-cases/get-softwares.use-case";
 import { UploadThumbnailUseCase } from "./application/use-cases/upload-thumbnail.use-case";
 import { AddInstructorUseCase } from "./application/use-cases/add-instructor.use-case";
 import { RemoveInstructorUseCase } from "./application/use-cases/remove-instructor.use-case";
@@ -53,7 +55,9 @@ import { ReorderCategoriasUseCase } from "./application/use-cases/reorder-catego
 		CreateCourseUseCase,
 		GetCourseUseCase,
 		GetAllCoursesUseCase,
+		ListCatalogUseCase,
 		GetFeaturedCoursesUseCase,
+		GetSoftwaresUseCase,
 		UploadThumbnailUseCase,
 		AddInstructorUseCase,
 		RemoveInstructorUseCase,
