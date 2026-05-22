@@ -1,6 +1,6 @@
 export class CursoParams {
 	page?: number = 1;
-	limit?: number = 10;
+	limit?: number = 12;
 	search?: string;
 	status?: string;
 	categoria_id?: string;
