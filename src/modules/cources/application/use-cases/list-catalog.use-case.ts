@@ -3,80 +3,89 @@ import { PrismaService } from "src/core/database/prisma.service";
 import { CursoParams } from "../dtos/curso-params.dto";
 
 @Injectable()
-export class GetAllCoursesUseCase {
+export class ListCatalogUseCase {
 	constructor(private readonly prisma: PrismaService) {}
 
 	async execute(params: CursoParams) {
 		const page = Number(params.page) || 1;
-		const limit = Number(params.limit) || 12;
+		const limit = Number(params.limit) || 10;
 		const skip = (page - 1) * limit;
 
-		const where: Record<string, unknown> = { deleted_at: null };
+		const where: any = {
+			deleted_at: null,
+			status: params.status || "published",
+		};
 
-		// Búsqueda por texto
 		if (params.search) {
 			where.OR = [
 				{ title: { contains: params.search, mode: "insensitive" } },
 				{ tagline: { contains: params.search, mode: "insensitive" } },
-				{ description: { contains: params.search, mode: "insensitive" } },
 			];
 		}
 
-		// Filtro por estado
-		if (params.status) {
-			where.status = params.status;
-		}
-
-		// Filtro por categorías (una o múltiples separadas por coma)
-		if (params.categoria_ids) {
-			const ids = params.categoria_ids.split(",").map((s) => s.trim()).filter(Boolean);
-			if (ids.length > 0) where.category_id = { in: ids };
-		} else if (params.categoria_id) {
+		if (params.categoria_id) {
 			where.category_id = params.categoria_id;
 		}
 
-		// Filtro por calificación mínima
+		if (params.categoria_ids) {
+			const ids = params.categoria_ids.split(",").filter((id) => id.trim() !== "");
+			if (ids.length > 0) {
+				where.category_id = { in: ids };
+			}
+		}
+
 		if (params.min_rating) {
 			where.avg_rating = { gte: Number(params.min_rating) };
 		}
 
-		// Filtro por rango de precio
-		if (params.min_price || params.max_price) {
-			const priceFilter: Record<string, number> = {};
-			if (params.min_price) priceFilter.gte = Number(params.min_price);
-			if (params.max_price) priceFilter.lte = Number(params.max_price);
-			where.price = priceFilter;
-		}
-
-		// Filtro por duración (en horas → convertir a minutos)
-		if (params.duration) {
-			if (params.duration === "<10") {
-				where.total_duration_minutes = { lt: 600 };
-			} else if (params.duration === "10-30") {
-				where.total_duration_minutes = { gte: 600, lte: 1800 };
-			} else if (params.duration === ">30") {
-				where.total_duration_minutes = { gt: 1800 };
-			}
-		}
-
-		// Filtro por softwares (array, hasSome = al menos uno coincide)
 		if (params.softwares) {
-			const softwareList = params.softwares.split(",").map((s) => s.trim()).filter(Boolean);
+			const softwareList = params.softwares.split(",").filter((s) => s.trim() !== "");
 			if (softwareList.length > 0) {
 				where.software_tools = { hasSome: softwareList };
 			}
 		}
 
-		// Ordenamiento
-		const ASC = "asc" as const;
-		const DESC = "desc" as const;
-		let orderBy: Record<string, typeof ASC | typeof DESC> = { created_at: DESC };
-		switch (params.sort) {
-			case "popular":    orderBy = { enrolled_count: DESC }; break;
-			case "best_rated": orderBy = { avg_rating: DESC }; break;
-			case "recent":     orderBy = { created_at: DESC }; break;
-			case "price_asc":  orderBy = { price: ASC }; break;
-			case "price_desc": orderBy = { price: DESC }; break;
+		if (params.min_price !== undefined || params.max_price !== undefined) {
+			where.price = {};
+			if (params.min_price !== undefined) {
+				where.price.gte = Number(params.min_price);
+			}
+			if (params.max_price !== undefined) {
+				where.price.lte = Number(params.max_price);
+			}
+		}
+
+		if (params.duration) {
+			// duration: '<10' | '10-30' | '>30' (assuming hours)
+			// total_duration_minutes is in minutes
+			if (params.duration === "<10") {
+				where.total_duration_minutes = { lt: 10 * 60 };
+			} else if (params.duration === "10-30") {
+				where.total_duration_minutes = { gte: 10 * 60, lte: 30 * 60 };
+			} else if (params.duration === ">30") {
+				where.total_duration_minutes = { gt: 30 * 60 };
+			}
+		}
+
+		let orderBy: any = { created_at: "desc" };
+		if (params.sort) {
+			switch (params.sort) {
+				case "popular":
+					orderBy = { enrolled_count: "desc" };
+					break;
+				case "best_rated":
+					orderBy = { avg_rating: "desc" };
+					break;
+				case "recent":
+					orderBy = { published_at: { sort: "desc", nulls: "last" } };
+					break;
+				case "price_asc":
+					orderBy = { price: "asc" };
+					break;
+				case "price_desc":
+					orderBy = { price: "desc" };
+					break;
+			}
 		}
 
 		const [data, total] = await Promise.all([
@@ -86,12 +95,16 @@ export class GetAllCoursesUseCase {
 				take: limit,
 				include: {
 					category: true,
-					instructors: { orderBy: { display_order: "asc" } },
+					instructors: {
+						orderBy: { display_order: "asc" },
+					},
 				},
 				orderBy,
 			}),
 			this.prisma.course.count({ where }),
 		]);
+
+		const total_pages = Math.ceil(total / limit);
 
 		return {
 			data: data.map((course) => ({
@@ -125,7 +138,7 @@ export class GetAllCoursesUseCase {
 			total,
 			page,
 			limit,
-			total_pages: Math.ceil(total / limit),
+			total_pages,
 		};
 	}
 }
