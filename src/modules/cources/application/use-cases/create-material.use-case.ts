@@ -22,6 +22,15 @@ export class CreateMaterialUseCase {
 		})
 
 		await this.materialRepository.save(material)
-		return { success: true, message: "Material creado", material }
+		return {
+			success: true,
+			message: "Material creado",
+			material: {
+				id: material.id,
+				name: material.name,
+				drive_url: material.drive_url,
+				type: material.type,
+			},
+		}
 	}
 }
