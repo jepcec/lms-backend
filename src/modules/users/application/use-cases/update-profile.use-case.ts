@@ -1,54 +1,55 @@
-// modules/users/application/use-cases/update-profile.use-case.ts
-import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
-import { PrismaService } from '../../../../core/database/prisma.service';
-import { UpdateProfileDto } from '../dtos/update-profile.dto';
-import * as bcrypt from 'bcrypt'; // Asumiendo que usas bcrypt para los hashes
+import { Injectable, NotFoundException } from "@nestjs/common";
+import { PrismaService } from "../../../../core/database/prisma.service";
+import { UpdateProfileDto } from "../dtos/update-profile.dto";
 
 @Injectable()
 export class UpdateProfileUseCase {
-  constructor(private readonly prisma: PrismaService) {}
+    constructor(private readonly prisma: PrismaService) {}
 
-  async execute(userId: string, dto: UpdateProfileDto, imagePath?: string) {
-    const user = await this.prisma.user.findUnique({ where: { id: userId } });
-    if (!user) throw new NotFoundException('Usuario no encontrado');
+    async execute(id: string, dto: UpdateProfileDto) {
+        // 1. Verificar si el usuario existe
+        const existing = await this.prisma.user.findUnique({
+            where: { id },
+        });
 
-    // Construimos los datos base para la actualización
-    const updateData: any = {
-      first_name: dto.first_name,
-      last_name: dto.last_name,
-      phone: dto.phone,
-      country: dto.country,
-      // Prioriza la nueva imagen si existe, si no usa la del DTO
-      profile_photo_url: imagePath ? imagePath : dto.profile_photo_url,
-    };
+        if (!existing) {
+            throw new NotFoundException("Usuario no encontrado");
+        }
 
-    // Lógica para cambio de contraseña
-    if (dto.new_password) {
-      if (!dto.current_password) {
-        throw new BadRequestException('Debes proporcionar la contraseña actual');
-      }
+        // 2. Construir dinámicamente los datos a actualizar
+        const data: Record<string, unknown> = {};
 
-      const isPasswordValid = await bcrypt.compare(dto.current_password, user.password_hash);
-      if (!isPasswordValid) {
-        throw new BadRequestException('La contraseña actual es incorrecta');
-      }
+        if (dto.first_name !== undefined) data.first_name = dto.first_name;
+        if (dto.last_name !== undefined) data.last_name = dto.last_name;
+        if (dto.phone !== undefined) data.phone = dto.phone;
+        if (dto.country !== undefined) data.country = dto.country;
+        
+        // Aquí se mapea la ruta provisional de la foto local
+        if (dto.profile_photo_url !== undefined) {
+            data.profile_photo_url = dto.profile_photo_url;
+        }
 
-      updateData.password_hash = await bcrypt.hash(dto.new_password, 10);
+        // 3. Ejecutar actualización
+        const user = await this.prisma.user.update({
+            where: { id },
+            data,
+        });
+
+        // 4. Retornar estructura estándar formateada
+        return {
+            id: user.id,
+            first_name: user.first_name,
+            last_name: user.last_name,
+            email: user.email,
+            phone: user.phone,
+            country: user.country ?? undefined,
+            role: user.role,
+            profile_photo_url: user.profile_photo_url ?? undefined,
+            email_verified: user.email_verified,
+            status: user.status,
+            created_by: user.created_by ?? undefined,
+            created_at: user.created_at.toISOString(),
+            updated_at: user.updated_at.toISOString(),
+        };
     }
-
-    return await this.prisma.user.update({
-      where: { id: userId },
-      data: updateData,
-      select: {
-        id: true,
-        first_name: true,
-        last_name: true,
-        email: true,
-        phone: true,
-        country: true,
-        profile_photo_url: true,
-        updated_at: true,
-      }
-    });
-  }
 }

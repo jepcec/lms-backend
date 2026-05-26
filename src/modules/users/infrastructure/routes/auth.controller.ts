@@ -21,6 +21,7 @@ export class AuthController{
 	){}
 	// registro de usuario
 	@Post('register')
+	@Public()
 	register(@Body() dto: RegisterUserDto){
 		return this.registerUseCase.execute(dto)
 	}
