@@ -21,6 +21,7 @@ export class AuthController{
 	){}
 	// registro de usuario
 	@Post('register')
+	@Public()
 	register(@Body() dto: RegisterUserDto){
 		return this.registerUseCase.execute(dto)
 	}
@@ -68,12 +69,24 @@ export class AuthController{
 		return {mensaje: 'Se envio correo para recuperacion'}
 	}
 
-	// resetear password 
+	// resetear password
 	// refactorizar parametros
 	@Post('reset-password')
 	async resetPassword(@Body() body :{password: string, token: string} ){
 		await this.passwordResetUseCase.execute(body.password,body.token)
 		return {mensaje: 'Contrase;a actualizada correctamente'}
+	}
+
+	@Post('logout')
+	async logout(@Res({ passthrough: true }) response: Response) {
+		const cookieOpts = {
+			httpOnly: true,
+			secure: process.env.NODE_ENV === 'production',
+			sameSite: 'lax' as const,
+		};
+		response.clearCookie('access_token', cookieOpts);
+		response.clearCookie('refresh_token', cookieOpts);
+		return { mensaje: 'Sesión cerrada' };
 	}
 
 }

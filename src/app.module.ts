@@ -8,9 +8,15 @@ import { UsersModule } from './modules/users/users.module';
 import { CoursesModule } from './modules/cources/courses.module';
 import { ShoppingCartModule } from './modules/shopping-cart/shopping-cart.module';
 import { MarketingModule } from './modules/marketing/marketing.module';
+import { join } from 'path';
+import { ServeStaticModule } from '@nestjs/serve-static';
 
 @Module({
   imports: [
+	ServeStaticModule.forRoot({
+      rootPath: join(__dirname, '..', 'uploads'), // Apunta a tu carpeta raíz de subidas
+      serveRoot: '/uploads', // Prefijo de la URL
+    }),
 	ConfigModule.forRoot(),
 	AuthModule,
 	UsersModule,
