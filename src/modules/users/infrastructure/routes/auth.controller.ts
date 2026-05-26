@@ -68,12 +68,25 @@ export class AuthController{
 		return {mensaje: 'Se envio correo para recuperacion'}
 	}
 
-	// resetear password 
+	// resetear password
 	// refactorizar parametros
 	@Post('reset-password')
 	async resetPassword(@Body() body :{password: string, token: string} ){
 		await this.passwordResetUseCase.execute(body.password,body.token)
 		return {mensaje: 'Contrase;a actualizada correctamente'}
+	}
+
+	@Post('logout')
+	logout(@Res({ passthrough: true }) response: Response) {
+		const cookieOptions = {
+			httpOnly: true,
+			secure: process.env.NODE_ENV === 'production',
+			sameSite: 'lax' as const,
+			path: '/',
+		};
+		response.clearCookie('access_token', cookieOptions);
+		response.clearCookie('refresh_token', cookieOptions);
+		return { mensaje: 'Sesión cerrada' };
 	}
 
 }
