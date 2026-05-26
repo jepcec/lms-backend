@@ -9,6 +9,7 @@ import { DeleteAccountUseCase } from "../../application/use-cases/delete-user.us
 import { Roles } from "../../../auth/decorators/roles.decorator";
 import { Multer } from 'multer';
 import type { Express } from "express";
+import { Public } from "../../../auth/decorators/public.decorator";
 
 import { GetUsuarioUseCase } from "../../application/use-cases/get-usuario.use-case";
 import { CreateUsuarioUseCase } from "../../application/use-cases/create-usuario.use-case";
@@ -40,7 +41,8 @@ export class UsersController {
   }
 
   @Patch('profile/:id')
-  @UseInterceptors(FileInterceptor('photo', {
+  @Public()
+  @UseInterceptors(FileInterceptor('photo', { // 'photo' coincide con el frontend
     storage: diskStorage({
       destination: './uploads/profiles',
       filename: (req, file, cb) => {
@@ -54,13 +56,13 @@ export class UsersController {
     @Body() dto: UpdateProfileDto,
     @UploadedFile() file?: Express.Multer.File,
   ) {
-    const imagePath = file ? `/uploads/profiles/${file.filename}` : undefined;
-    return this.updateProfile.execute(id, dto, imagePath);
-  }
-
-  @Delete('profile/:id')
-  async delete(@Param('id') id: string) {
-    return this.deleteAccount.execute(id);
+    // Si el archivo se subió con éxito, guardamos su ruta en el DTO
+    if (file) {
+      dto.profile_photo_url = `/uploads/profiles/${file.filename}`;
+    }
+    
+    // Le pasamos el DTO ya modificado al caso de uso
+    return this.updateProfile.execute(id, dto);
   }
 
   @Roles('admin')
