@@ -1,4 +1,5 @@
 import { Controller, Get, Post, Patch, Delete, Body, Param } from "@nestjs/common";
+import { Public } from "src/modules/auth/decorators/public.decorator";
 import { CreateModuleUseCase } from "../../application/use-cases/create-module.use-case";
 import { UpdateModuleUseCase } from "../../application/use-cases/update-module.use-case";
 import { DeleteModuleUseCase } from "../../application/use-cases/delete-module.use-case";
@@ -15,11 +16,13 @@ export class ModulesController {
 		private readonly getModules: GetModulesUseCase,
 	) { }
 
+	@Public()
 	@Get('courses/:courseId/modules')
 	async getByCourse(@Param('courseId') courseId: string) {
 		return this.getModules.executeByCourse(courseId)
 	}
 
+	@Public()
 	@Get('modules/:id')
 	async getById(@Param('id') id: string) {
 		return this.getModules.executeById(id)

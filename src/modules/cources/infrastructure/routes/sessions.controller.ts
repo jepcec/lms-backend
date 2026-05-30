@@ -1,4 +1,5 @@
 import { Controller, Get, Post, Patch, Delete, Body, Param } from "@nestjs/common";
+import { Public } from "src/modules/auth/decorators/public.decorator";
 import { CreateSessionUseCase } from "../../application/use-cases/create-session.use-case";
 import { UpdateSessionUseCase } from "../../application/use-cases/update-session.use-case";
 import { DeleteSessionUseCase } from "../../application/use-cases/delete-session.use-case";
@@ -15,11 +16,13 @@ export class SessionsController {
 		private readonly getSessions: GetSessionsUseCase,
 	) { }
 
+	@Public()
 	@Get('modules/:moduleId/sessions')
 	async getByModule(@Param('moduleId') moduleId: string) {
 		return this.getSessions.executeByModule(moduleId)
 	}
 
+	@Public()
 	@Get('sessions/:id')
 	async getById(@Param('id') id: string) {
 		return this.getSessions.executeById(id)
