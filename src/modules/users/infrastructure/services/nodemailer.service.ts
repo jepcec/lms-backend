@@ -44,6 +44,14 @@ export class NodemailerEmailService implements IEmailService {
     });
   }
 
+  async sendAccountCreated(email: string, firstName: string): Promise<void> {
+    await this.send({
+      to: email,
+      subject: 'Tu cuenta ha sido creada',
+      html: this.getAccountCreatedTemplate(firstName),
+    });
+  }
+
   private async send(options: { to: string; subject: string; html: string }) {
     try {
       await this.transporter.sendMail({
@@ -72,6 +80,17 @@ export class NodemailerEmailService implements IEmailService {
         <p>Has solicitado restablecer tu contraseña. Haz clic en el botón de abajo para continuar:</p>
         <a href="${url}" style="display: inline-block; padding: 10px 20px; background-color: #dc3545; color: white; text-decoration: none; border-radius: 5px;">Restablecer Contraseña</a>
         <p style="margin-top: 20px; font-size: 0.8em; color: #777;">Si no solicitaste este cambio, puedes ignorar este correo.</p>
+      </div>
+    `;
+  }
+
+  private getAccountCreatedTemplate(firstName: string): string {
+    return `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; border: 1px solid #eee; padding: 20px;">
+        <h2 style="color: #333;">¡Bienvenido, ${firstName}!</h2>
+        <p>Se ha creado una cuenta para ti en nuestra plataforma.</p>
+        <p>Puedes iniciar sesión usando tus credenciales.</p>
+        <p style="margin-top: 20px; font-size: 0.8em; color: #777;">Si no esperabas este correo, por favor contacta al soporte.</p>
       </div>
     `;
   }

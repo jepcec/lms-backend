@@ -5,6 +5,10 @@ import {
   I_PASSWORD_SERVICE,
   type IPasswordService,
 } from '../../domain/services/auth.service';
+import {
+  I_EMAIL_SERVICE,
+  type IEmailService,
+} from '../../domain/services/email.service';
 
 @Injectable()
 export class CreateUsuarioUseCase {
@@ -12,6 +16,8 @@ export class CreateUsuarioUseCase {
     private readonly prisma: PrismaService,
     @Inject(I_PASSWORD_SERVICE)
     private readonly passwordService: IPasswordService,
+    @Inject(I_EMAIL_SERVICE)
+    private readonly emailService: IEmailService,
   ) {}
 
   async execute(dto: CreateUsuarioDto) {
@@ -38,6 +44,11 @@ export class CreateUsuarioUseCase {
         status: 'active',
       },
     });
+
+    try {
+      await this.emailService.sendAccountCreated(user.email, user.first_name);
+    } catch {
+    }
 
     return {
       id: user.id,
