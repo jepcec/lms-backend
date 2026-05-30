@@ -29,7 +29,9 @@ async execute(dto: CreatePromotionDto) {
         mimetype: dto.image.mimetype,
         folder: 'promotions',
       });
-      imageUrl = result.secureUrl;
+      imageUrl = this.fileStorageService.getUrl(result.publicId, {
+        format: 'webp',
+      });
       imagePublicId = result.publicId;
     }
 
