@@ -36,6 +36,7 @@ export class UpdateCourseUseCase {
       tagline: dto.tagline ?? course.tagline,
       description: dto.description ?? course.description,
       thumbnail_url: dto.thumbnail_url ?? course.thumbnail_url,
+      thumbnail_public_id: course.thumbnail_public_id,
       level: (dto.level as CourseLevel) ?? course.level,
       software_tools: dto.software_tools ?? course.software_tools,
       price: dto.price ?? course.price,

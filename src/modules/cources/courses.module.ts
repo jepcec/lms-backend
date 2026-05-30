@@ -13,6 +13,7 @@ import { SessionsController } from './infrastructure/routes/sessions.controller'
 import { MaterialsController } from './infrastructure/routes/materials.controller';
 import { CategoriesController } from './infrastructure/routes/categories.controller';
 import { PrismaService } from 'src/core/database/prisma.service';
+import { StorageModule } from '../storage/storage.module';
 import { CreateCourseUseCase } from './application/use-cases/create-course.use-case';
 import { GetCourseUseCase } from './application/use-cases/get-course.use-case';
 import { GetAllCoursesUseCase } from './application/use-cases/get-all-courses.use-case';
@@ -44,6 +45,7 @@ import { UpdateCategoriaUseCase } from './application/use-cases/update-categoria
 import { DeleteCategoriaUseCase } from './application/use-cases/delete-categoria.use-case';
 import { ReorderCategoriasUseCase } from './application/use-cases/reorder-categorias.use-case';
 @Module({
+  imports: [StorageModule],
   controllers: [
     CoursesController,
     ModulesController,

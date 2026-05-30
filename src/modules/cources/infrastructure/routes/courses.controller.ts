@@ -11,8 +11,7 @@ import {
   UploadedFile,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { diskStorage } from 'multer';
-import { extname } from 'path';
+import { memoryStorage } from 'multer';
 import { Public } from '../../../auth/decorators/public.decorator';
 import { Roles } from '../../../auth/decorators/roles.decorator';
 import { CurrentUser } from '../../../auth/decorators/current-user.decorator';
@@ -115,22 +114,23 @@ export class CoursesController {
   @Roles('admin')
   @UseInterceptors(
     FileInterceptor('thumbnail', {
-      storage: diskStorage({
-        destination: './uploads/thumbnails',
-        filename: (req, file, cb) => {
-          const uniqueSuffix =
-            Date.now() + '-' + Math.round(Math.random() * 1e9);
-          cb(null, `${uniqueSuffix}${extname(file.originalname)}`);
-        },
-      }),
+      storage: memoryStorage(),
+      fileFilter: (_req, file, callback) => {
+        if (!file.mimetype.match(/\/(jpg|jpeg|png|webp)$/)) {
+          return callback(
+            new Error('Only image files are allowed (jpg, jpeg, png, webp)'), false
+          );
+        }
+        callback(null, true);
+      },
+      limits: { fileSize: 5 * 1024 * 1024 },
     }),
   )
   async uploadThumbnailHandler(
     @Param('id') id: string,
     @UploadedFile() file: Express.Multer.File,
   ) {
-    const imagePath = `/uploads/thumbnails/${file.filename}`;
-    return this.uploadThumbnail.execute(id, imagePath);
+    return this.uploadThumbnail.execute(id, file);
   }
 
   @Post(':id/instructors')

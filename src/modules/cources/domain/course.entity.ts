@@ -10,7 +10,8 @@ export interface CourseProps {
   slug: string;
   tagline: string;
   description: string;
-  thumbnail_url: string;
+  thumbnail_url: string | null;
+  thumbnail_public_id?: string | null;
   level: CourseLevel;
   software_tools: string[];
   price: number;
@@ -58,6 +59,9 @@ export class CourseEntity {
   }
   get thumbnail_url() {
     return this.props.thumbnail_url;
+  }
+  get thumbnail_public_id() {
+    return this.props.thumbnail_public_id ?? null;
   }
   get level() {
     return this.props.level;
@@ -133,6 +137,7 @@ export class CourseEntity {
       tagline: this.tagline,
       description: this.description,
       thumbnail_url: this.thumbnail_url,
+      thumbnail_public_id: this.thumbnail_public_id,
       level: this.level,
       software_tools: this.software_tools,
       price: this.price,

@@ -204,7 +204,8 @@ model Course {
   slug                   String               @unique
   tagline                String               @db.VarChar(150)
   description            String
-  thumbnail_url          String
+  thumbnail_url          String?
+  thumbnail_public_id    String?
   level                  CourseLevel
   software_tools         String[]
   price                  Decimal              @db.Decimal(10, 2)
