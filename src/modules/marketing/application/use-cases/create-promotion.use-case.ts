@@ -18,8 +18,9 @@ export class CreatePromotionUseCase {
     private readonly fileStorageService: IFileStorageService,
   ) {}
 
-  async execute(dto: CreatePromotionDto) {
+async execute(dto: CreatePromotionDto) {
     let imageUrl = dto.image_url;
+    let imagePublicId = dto.image_public_id;
 
     if (dto.image) {
       const result = await this.fileStorageService.upload({
@@ -28,18 +29,20 @@ export class CreatePromotionUseCase {
         mimetype: dto.image.mimetype,
         folder: 'promotions',
       });
-      imageUrl = result.url;
+      imageUrl = result.secureUrl;
+      imagePublicId = result.publicId;
     }
 
     return this.promotionRepository.create({
       title: dto.title,
       image_url: imageUrl,
+      image_public_id: imagePublicId,
       destination_url: dto.destination_url,
       destination_course_id: dto.destination_course_id,
       display_order: dto.display_order,
       status: dto.status,
       starts_at: dto.starts_at ? new Date(dto.starts_at) : undefined,
       ends_at: dto.ends_at ? new Date(dto.ends_at) : undefined,
-    });
+    } as any);
   }
 }

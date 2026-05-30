@@ -10,9 +10,7 @@ import {
   UploadedFile,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import type { DiskStorageOptions } from 'multer';
-import { diskStorage } from 'multer';
-import { extname } from 'path';
+import { memoryStorage } from 'multer';
 import type { Express, Request } from 'express';
 import type { FileFilterCallback } from 'multer';
 import { CreatePromotionDto } from '../../application/dtos/create-promotion.dto';
@@ -23,15 +21,6 @@ import { DeletePromotionUseCase } from '../../application/use-cases/delete-promo
 import { GetPromotionsUseCase } from '../../application/use-cases/get-promotions.use-case';
 import { ReorderPromotionsUseCase } from '../../application/use-cases/reorder-promotions.use-case';
 import { UpdatePromotionUseCase } from '../../application/use-cases/update-promotion.use-case';
-
-const promotionStorage: DiskStorageOptions = {
-  destination: './uploads/promotions',
-  filename: (_req, file, callback) => {
-    const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
-    const ext = extname(file.originalname);
-    callback(null, `${uniqueSuffix}${ext}`);
-  },
-};
 
 const imageFileFilter = (
   _req: Request,
@@ -64,7 +53,7 @@ export class PromotionsController {
   @Post()
   @UseInterceptors(
     FileInterceptor('image', {
-      storage: promotionStorage,
+      storage: memoryStorage(),
       fileFilter: imageFileFilter,
       limits: { fileSize: 5 * 1024 * 1024 },
     }),
@@ -87,7 +76,7 @@ export class PromotionsController {
   @Patch(':id')
   @UseInterceptors(
     FileInterceptor('image', {
-      storage: promotionStorage,
+      storage: memoryStorage(),
       fileFilter: imageFileFilter,
       limits: { fileSize: 5 * 1024 * 1024 },
     }),

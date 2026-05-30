@@ -29,7 +29,8 @@ export class PrismaPromotionRepository implements IPromotionRepository {
     const p = await this.prisma.promotion.create({
       data: {
         title: data.title!,
-        image_url: data.image_url!,
+        image_url: data.image_url,
+        image_public_id: data.image_public_id,
         destination_url: data.destination_url,
         destination_course_id: data.destination_course_id,
         display_order: data.display_order ?? count + 1,
@@ -50,6 +51,7 @@ export class PrismaPromotionRepository implements IPromotionRepository {
       data: {
         title: data.title,
         image_url: data.image_url,
+        image_public_id: data.image_public_id,
         destination_url: data.destination_url,
         destination_course_id: data.destination_course_id,
         display_order: data.display_order,

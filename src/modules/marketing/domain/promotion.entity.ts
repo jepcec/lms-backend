@@ -3,7 +3,8 @@ export type PromotionStatus = 'active' | 'inactive';
 export class PromotionEntity {
   id: string;
   title: string;
-  image_url: string;
+  image_url?: string | null;
+  image_public_id?: string | null;
   destination_url?: string | null;
   destination_course_id?: string | null;
   display_order: number;
