@@ -1,4 +1,8 @@
-import { ImageTransformOptions, UploadFileOptions, UploadFileResult } from "./file-storage.types";
+import {
+  ImageTransformOptions,
+  UploadFileOptions,
+  UploadFileResult,
+} from './file-storage.types';
 
 export interface IFileStorageService {
   upload(file: UploadFileOptions): Promise<UploadFileResult>;
@@ -6,4 +10,4 @@ export interface IFileStorageService {
   getUrl(publicId: string, options?: ImageTransformOptions): string;
 }
 
-export const I_FILE_STORAGE_SERVICE = Symbol("IFileStorageService");
+export const I_FILE_STORAGE_SERVICE = Symbol('IFileStorageService');

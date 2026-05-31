@@ -2,7 +2,11 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/core/database/prisma.service';
 import { SliderEntity } from '../../domain/slider.entity';
 import { ISliderRepository } from '../../domain/sliders.repository';
-import { ContentStatus, SliderPosition, SliderType } from 'src/generated/prisma/enums';
+import {
+  ContentStatus,
+  SliderPosition,
+  SliderType,
+} from 'src/generated/prisma/enums';
 
 @Injectable()
 export class PrismaSliderRepository implements ISliderRepository {
@@ -51,7 +55,9 @@ export class PrismaSliderRepository implements ISliderRepository {
     });
   }
 
-  async create(data: Partial<SliderEntity> & { course_ids?: string[] }): Promise<SliderEntity> {
+  async create(
+    data: Partial<SliderEntity> & { course_ids?: string[] },
+  ): Promise<SliderEntity> {
     const count = await this.prisma.slider.count();
     const s = await this.prisma.slider.create({
       data: {
@@ -86,7 +92,10 @@ export class PrismaSliderRepository implements ISliderRepository {
     });
   }
 
-  async update(id: string, data: Partial<SliderEntity> & { course_ids?: string[] }): Promise<SliderEntity> {
+  async update(
+    id: string,
+    data: Partial<SliderEntity> & { course_ids?: string[] },
+  ): Promise<SliderEntity> {
     const { course_ids, ...rest } = data;
 
     const s = await this.prisma.slider.update({

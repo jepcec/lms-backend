@@ -1,4 +1,12 @@
-import { Controller, Get, Post, Delete, Body, Param, Query } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Delete,
+  Body,
+  Param,
+  Query,
+} from '@nestjs/common';
 import { AddItemUseCase } from '../../application/use-cases/add-item.use-case';
 import { GetCartUseCase } from '../../application/use-cases/get-cart.use-case';
 import { RemoveItemUseCase } from '../../application/use-cases/remove-item.use-case';
@@ -17,7 +25,10 @@ export class CartController {
   ) {}
 
   @Get() // GET /cart
-  async getCart(@Query('userId') userId?: string, @Query('token') token?: string) {
+  async getCart(
+    @Query('userId') userId?: string,
+    @Query('token') token?: string,
+  ) {
     return this.getCartUC.execute({ userId, token });
   }
 
@@ -32,7 +43,10 @@ export class CartController {
   }
 
   @Delete('clear') // DELETE /cart/clear
-  async clear(@Query('userId') userId?: string, @Query('token') token?: string) {
+  async clear(
+    @Query('userId') userId?: string,
+    @Query('token') token?: string,
+  ) {
     return this.clearCartUC.execute({ userId, token });
   }
 

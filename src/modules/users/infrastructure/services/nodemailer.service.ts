@@ -1,64 +1,68 @@
-import { Injectable, InternalServerErrorException } from "@nestjs/common";
-import { IEmailService } from "../../domain/services/email.service";
-import * as nodemailer from 'nodemailer'
-import { ConfigService } from "@nestjs/config";
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import { IEmailService } from '../../domain/services/email.service';
+import * as nodemailer from 'nodemailer';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
-
 export class NodemailerEmailService implements IEmailService {
-	private transporter: nodemailer.Transporter
+  private transporter: nodemailer.Transporter;
 
-	constructor(private readonly configService: ConfigService){
-		this.transporter = nodemailer.createTransport({
-			host: this.configService.get<string>("SMTP_HOST"),
-			port: this.configService.get<number>("SMTP_PORT"),
-			secure: false,
-			auth: {
-				user: this.configService.get<string>('SMTP_USER'),
-				pass: this.configService.get<string>('SMTP_PASS')
-			},
-			tls:{
-				rejectUnauthorized: false
-			}
+  constructor(private readonly configService: ConfigService) {
+    this.transporter = nodemailer.createTransport({
+      host: this.configService.get<string>('SMTP_HOST'),
+      port: this.configService.get<number>('SMTP_PORT'),
+      secure: false,
+      auth: {
+        user: this.configService.get<string>('SMTP_USER'),
+        pass: this.configService.get<string>('SMTP_PASS'),
+      },
+      tls: {
+        rejectUnauthorized: false,
+      },
+    });
+  }
 
-		})
-	}
+  async sendEmailVerification(email: string, token: string): Promise<void> {
+    const baseUrl = this.configService.get<string>('URL_FRONTEND');
+    const verificationUrl = `${baseUrl}/auth/verify-email?token=${token}`;
+    const res = await this.send({
+      to: email,
+      subject: 'verifica tu cuenta',
+      html: this.getVerificationTemplate(verificationUrl),
+    });
+    return res;
+  }
 
-	async sendEmailVerification(email: string, token: string): Promise<void> {
+  async sendPasswordRecovery(email: string, token: string): Promise<void> {
+    const baseUrl = this.configService.get<string>('URL_FRONTEND');
+    const recoveryUrl = `${baseUrl}/auth/reset-password?token=${token}`;
 
-		const baseUrl = this.configService.get<string>('URL_FRONTEND')    
-		const verificationUrl = `${baseUrl}/auth/verify-email?token=${token}`
-		const res = await this.send({
-			to: email,
-			subject: 'verifica tu cuenta',
-			html: this.getVerificationTemplate(verificationUrl)
-		})
-		return res
-	}
+    await this.send({
+      to: email,
+      subject: 'Recuperacion de contrase;a',
+      html: this.getRecoveryTemplate(recoveryUrl),
+    });
+  }
 
-	async sendPasswordRecovery(email: string, token: string): Promise<void> {
-		const baseUrl = this.configService.get<string>('URL_FRONTEND')    
-		const recoveryUrl = `${baseUrl}/auth/reset-password?token=${token}`
+  async sendAccountCreated(email: string, firstName: string): Promise<void> {
+    await this.send({
+      to: email,
+      subject: 'Tu cuenta ha sido creada',
+      html: this.getAccountCreatedTemplate(firstName),
+    });
+  }
 
-		await this.send({
-			to: email,
-			subject: 'Recuperacion de contrase;a',
-			html: this.getRecoveryTemplate(recoveryUrl)
-		})
-			    
-	}
-
-	private async send(options: {to: string; subject: string; html: string}){
-		try {
-			await this.transporter.sendMail({
-				from: `"Soporte Técnico" <${this.configService.get('SMTP_USER')}>`,
-        			...options,
-			})	
-		} catch (error) {
-			throw new InternalServerErrorException("Error al enviar el correo")	
-		}
-	}
-	private getVerificationTemplate(url: string): string {
+  private async send(options: { to: string; subject: string; html: string }) {
+    try {
+      await this.transporter.sendMail({
+        from: `"Soporte Técnico" <${this.configService.get('SMTP_USER')}>`,
+        ...options,
+      });
+    } catch (error) {
+      throw new InternalServerErrorException('Error al enviar el correo');
+    }
+  }
+  private getVerificationTemplate(url: string): string {
     return `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; border: 1px solid #eee; padding: 20px;">
         <h2 style="color: #333;">¡Bienvenido!</h2>
@@ -80,7 +84,14 @@ export class NodemailerEmailService implements IEmailService {
     `;
   }
 
-
-
-
+  private getAccountCreatedTemplate(firstName: string): string {
+    return `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; border: 1px solid #eee; padding: 20px;">
+        <h2 style="color: #333;">¡Bienvenido, ${firstName}!</h2>
+        <p>Se ha creado una cuenta para ti en nuestra plataforma.</p>
+        <p>Puedes iniciar sesión usando tus credenciales.</p>
+        <p style="margin-top: 20px; font-size: 0.8em; color: #777;">Si no esperabas este correo, por favor contacta al soporte.</p>
+      </div>
+    `;
+  }
 }

@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { PrismaService } from '../../../../core/database/prisma.service';
 
 @Injectable()
@@ -63,7 +67,9 @@ export class UpdateSessionProgressUseCase {
       },
     });
 
-    const allSessions = session.module.course.modules.flatMap((m) => m.sessions);
+    const allSessions = session.module.course.modules.flatMap(
+      (m) => m.sessions,
+    );
     const totalSessions = allSessions.length;
 
     const completedProgress = await this.prisma.lessonProgress.count({
@@ -73,7 +79,9 @@ export class UpdateSessionProgressUseCase {
       },
     });
 
-    const progressPercent = Math.round((completedProgress / totalSessions) * 100);
+    const progressPercent = Math.round(
+      (completedProgress / totalSessions) * 100,
+    );
 
     const updateData: Record<string, unknown> = {
       progress_percent: progressPercent,

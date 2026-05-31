@@ -1,5 +1,8 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { I_PROMOTION_REPOSITORY, type  IPromotionRepository } from '../../domain/promotions.repository';
+import {
+  I_PROMOTION_REPOSITORY,
+  type IPromotionRepository,
+} from '../../domain/promotions.repository';
 import { ReorderPromotionsDto } from '../dtos/reorder-promotions.dto';
 
 @Injectable()

@@ -1,5 +1,8 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { I_SLIDER_REPOSITORY, type ISliderRepository } from '../../domain/sliders.repository';
+import {
+  I_SLIDER_REPOSITORY,
+  type ISliderRepository,
+} from '../../domain/sliders.repository';
 import { CreateSliderDto } from '../dtos/create-slider.dto';
 
 @Injectable()
@@ -10,6 +13,6 @@ export class CreateSliderUseCase {
   ) {}
 
   async execute(dto: CreateSliderDto) {
-    return this.sliderRepository.create(dto as any);
+    return this.sliderRepository.create(dto);
   }
 }

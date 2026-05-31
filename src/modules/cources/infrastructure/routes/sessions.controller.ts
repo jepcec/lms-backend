@@ -14,7 +14,7 @@ export class SessionsController {
 		private readonly updateSession: UpdateSessionUseCase,
 		private readonly deleteSession: DeleteSessionUseCase,
 		private readonly getSessions: GetSessionsUseCase,
-	) { }
+	) {}
 
 	@Public()
 	@Get('modules/:moduleId/sessions')
@@ -29,18 +29,21 @@ export class SessionsController {
 	}
 
 	@Post('modules/:moduleId/sessions')
-	async create(@Param('moduleId') moduleId: string, @Body() dto: CreateSessionDto) {
-		dto.module_id = moduleId
-		return this.createSession.execute(dto)
+	async create(
+		@Param('moduleId') moduleId: string,
+		@Body() dto: CreateSessionDto,
+	) {
+		dto.module_id = moduleId;
+		return this.createSession.execute(dto);
 	}
 
 	@Patch('sessions/:id')
 	async update(@Param('id') id: string, @Body() dto: UpdateSessionDto) {
-		return this.updateSession.execute(id, dto)
+		return this.updateSession.execute(id, dto);
 	}
 
 	@Delete('sessions/:id')
 	async delete(@Param('id') id: string) {
-		return this.deleteSession.execute(id)
+		return this.deleteSession.execute(id);
 	}
 }

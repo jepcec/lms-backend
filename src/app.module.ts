@@ -13,17 +13,16 @@ import { ServeStaticModule } from '@nestjs/serve-static';
 
 @Module({
   imports: [
-	ServeStaticModule.forRoot({
+    ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', 'uploads'), // Apunta a tu carpeta raíz de subidas
       serveRoot: '/uploads', // Prefijo de la URL
     }),
-	ConfigModule.forRoot(),
-	AuthModule,
-	UsersModule,
-	CoursesModule,
-  	ShoppingCartModule,
-    MarketingModule
-
+    ConfigModule.forRoot(),
+    AuthModule,
+    UsersModule,
+    CoursesModule,
+    ShoppingCartModule,
+    MarketingModule,
   ],
   controllers: [AppController],
   providers: [AppService, PrismaService],
