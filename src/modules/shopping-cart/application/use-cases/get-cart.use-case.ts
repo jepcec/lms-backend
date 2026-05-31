@@ -5,8 +5,6 @@ import { PrismaService } from '../../../../core/database/prisma.service';
 // la ruta que archivo Course.ts
 import { Decimal } from '@prisma/client/runtime/client';
 
-
-
 @Injectable()
 export class GetCartUseCase {
   constructor(private readonly prisma: PrismaService) {}
@@ -16,8 +14,8 @@ export class GetCartUseCase {
       where: {
         OR: [
           { user_id: filter.userId ?? undefined },
-          { session_token: filter.token ?? undefined }
-        ]
+          { session_token: filter.token ?? undefined },
+        ],
       },
       include: {
         course: {
@@ -27,16 +25,16 @@ export class GetCartUseCase {
             thumbnail_url: true,
             price: true,
             discount_price: true,
-            currency: true
-          }
-        }
-      }
+            currency: true,
+          },
+        },
+      },
     });
 
     // Cálculo de totales usando la lógica de Decimal
     let subtotal = new Decimal(0);
 
-    const formattedItems = items.map(item => {
+    const formattedItems = items.map((item) => {
       const priceToCharge = item.course.discount_price || item.course.price;
       subtotal = subtotal.add(priceToCharge);
 
@@ -48,7 +46,7 @@ export class GetCartUseCase {
         price: item.course.price,
         discountPrice: item.course.discount_price,
         finalPrice: priceToCharge,
-        currency: item.course.currency
+        currency: item.course.currency,
       };
     });
 
@@ -56,7 +54,7 @@ export class GetCartUseCase {
       items: formattedItems,
       totalCount: formattedItems.length,
       subtotal: subtotal.toNumber(), // Convertimos al final para el JSON
-      currency: formattedItems[0]?.currency || 'USD'
+      currency: formattedItems[0]?.currency || 'USD',
     };
   }
 }

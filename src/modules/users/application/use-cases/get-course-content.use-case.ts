@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { PrismaService } from '../../../../core/database/prisma.service';
 
 @Injectable()
@@ -9,7 +13,6 @@ export class GetCourseContentUseCase {
     const enrollment = await this.prisma.enrollment.findUnique({
       where: { user_id_course_id: { user_id: userId, course_id: courseId } },
     });
-
 
     if (!enrollment) {
       throw new ForbiddenException('No estás matriculado en este curso');
@@ -31,7 +34,6 @@ export class GetCourseContentUseCase {
         },
       },
     });
-
 
     if (!course) {
       throw new NotFoundException('Curso no encontrado');

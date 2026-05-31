@@ -1,5 +1,8 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { I_SLIDER_REPOSITORY, type  ISliderRepository } from '../../domain/sliders.repository';
+import {
+  I_SLIDER_REPOSITORY,
+  type ISliderRepository,
+} from '../../domain/sliders.repository';
 
 @Injectable()
 export class GetSlidersUseCase {

@@ -1,8 +1,10 @@
-import { CreatePromotionDto } from './create-promotion.dto';
+import type { Express } from 'express';
 
-export class UpdatePromotionDto implements Partial<CreatePromotionDto> {
+export class UpdatePromotionDto {
   title?: string;
+  image?: Express.Multer.File;
   image_url?: string;
+  image_public_id?: string;
   destination_url?: string;
   destination_course_id?: string;
   display_order?: number;

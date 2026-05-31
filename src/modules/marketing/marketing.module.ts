@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { PrismaService } from 'src/core/database/prisma.service';
+import { StorageModule } from '../storage/storage.module';
 import { CreatePromotionUseCase } from './application/use-cases/create-promotion.use-case';
 import { DeletePromotionUseCase } from './application/use-cases/delete-promotion.use-case';
 import { GetPromotionsUseCase } from './application/use-cases/get-promotions.use-case';
@@ -17,6 +18,7 @@ import { PromotionsController } from './infrastructure/routes/promotions.control
 import { SlidersController } from './infrastructure/routes/sliders.controller';
 
 @Module({
+  imports: [StorageModule],
   controllers: [PromotionsController, SlidersController],
   providers: [
     PrismaService,

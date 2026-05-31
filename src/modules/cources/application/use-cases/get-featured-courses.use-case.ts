@@ -1,5 +1,8 @@
 import { Injectable, Inject } from '@nestjs/common';
-import { I_COURSE_REPOSITORY,type ICourseRepository } from '../../domain/courses.repository';
+import {
+  I_COURSE_REPOSITORY,
+  type ICourseRepository,
+} from '../../domain/courses.repository';
 
 @Injectable()
 export class GetFeaturedCoursesUseCase {

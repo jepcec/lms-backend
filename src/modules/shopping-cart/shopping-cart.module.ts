@@ -16,7 +16,7 @@ import { PrismaService } from '../../core/database/prisma.service';
     GetCartUseCase,
     RemoveItemUseCase,
     ClearCartUseCase,
-    MergeCartUseCase
+    MergeCartUseCase,
   ],
 })
 export class ShoppingCartModule {}
