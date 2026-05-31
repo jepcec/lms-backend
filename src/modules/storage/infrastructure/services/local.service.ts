@@ -1,15 +1,19 @@
-import { Injectable } from "@nestjs/common";
-import { extname, join } from "path";
-import { existsSync, mkdirSync, unlinkSync, writeFileSync } from "fs";
-import { IFileStorageService } from "../../domain/file-storage.interface";
-import { ImageTransformOptions, UploadFileOptions, UploadFileResult } from "../../domain/file-storage.types";
+import { Injectable } from '@nestjs/common';
+import { extname, join } from 'path';
+import { existsSync, mkdirSync, unlinkSync, writeFileSync } from 'fs';
+import { IFileStorageService } from '../../domain/file-storage.interface';
+import {
+  ImageTransformOptions,
+  UploadFileOptions,
+  UploadFileResult,
+} from '../../domain/file-storage.types';
 
 @Injectable()
 export class LocalStorageService implements IFileStorageService {
-  private readonly basePath = "./uploads";
+  private readonly basePath = './uploads';
 
   async upload(file: UploadFileOptions): Promise<UploadFileResult> {
-    const folder = file.folder ?? "misc";
+    const folder = file.folder ?? 'misc';
     const destDir = join(this.basePath, folder);
 
     if (!existsSync(destDir)) {

@@ -1,3 +1,3 @@
 export class ReorderCategoriasDto {
-	ids: string[];
+  ids: string[];
 }

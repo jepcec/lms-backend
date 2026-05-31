@@ -52,7 +52,7 @@ describe('RegisterUserUseCase', () => {
       first_name: 'Jhon Doe',
       last_name: 'Body mars',
       email: 'jhon@test.com',
-      role: 'estudiante'
+      role: 'estudiante',
     });
     // Verificamos que se llamó al servicio de hash
     expect(mockPasswordService.hash).toHaveBeenCalledWith('plain_password');

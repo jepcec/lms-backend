@@ -1,4 +1,20 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+  UseInterceptors,
+  UploadedFile,
+} from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+import type { DiskStorageOptions } from 'multer';
+import { diskStorage } from 'multer';
+import { extname } from 'path';
+import type { Express, Request } from 'express';
+import type { FileFilterCallback } from 'multer';
 import { CreatePromotionDto } from '../../application/dtos/create-promotion.dto';
 import { ReorderPromotionsDto } from '../../application/dtos/reorder-promotions.dto';
 import { UpdatePromotionDto } from '../../application/dtos/update-promotion.dto';
@@ -7,6 +23,28 @@ import { DeletePromotionUseCase } from '../../application/use-cases/delete-promo
 import { GetPromotionsUseCase } from '../../application/use-cases/get-promotions.use-case';
 import { ReorderPromotionsUseCase } from '../../application/use-cases/reorder-promotions.use-case';
 import { UpdatePromotionUseCase } from '../../application/use-cases/update-promotion.use-case';
+
+const promotionStorage: DiskStorageOptions = {
+  destination: './uploads/promotions',
+  filename: (_req, file, callback) => {
+    const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
+    const ext = extname(file.originalname);
+    callback(null, `${uniqueSuffix}${ext}`);
+  },
+};
+
+const imageFileFilter = (
+  _req: Request,
+  file: Express.Multer.File,
+  callback: FileFilterCallback,
+) => {
+  if (!file.mimetype.match(/\/(jpg|jpeg|png|webp)$/)) {
+    return callback(
+      new Error('Only image files are allowed (jpg, jpeg, png, webp)'),
+    );
+  }
+  callback(null, true);
+};
 
 @Controller('promociones')
 export class PromotionsController {
@@ -24,7 +62,20 @@ export class PromotionsController {
   }
 
   @Post()
-  create(@Body() dto: CreatePromotionDto) {
+  @UseInterceptors(
+    FileInterceptor('image', {
+      storage: promotionStorage,
+      fileFilter: imageFileFilter,
+      limits: { fileSize: 5 * 1024 * 1024 },
+    }),
+  )
+  create(
+    @Body() dto: CreatePromotionDto,
+    @UploadedFile() image?: Express.Multer.File,
+  ) {
+    if (image) {
+      dto.image = image;
+    }
     return this.createPromotionUseCase.execute(dto);
   }
 
@@ -34,7 +85,21 @@ export class PromotionsController {
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() dto: UpdatePromotionDto) {
+  @UseInterceptors(
+    FileInterceptor('image', {
+      storage: promotionStorage,
+      fileFilter: imageFileFilter,
+      limits: { fileSize: 5 * 1024 * 1024 },
+    }),
+  )
+  update(
+    @Param('id') id: string,
+    @Body() dto: UpdatePromotionDto,
+    @UploadedFile() image?: Express.Multer.File,
+  ) {
+    if (image) {
+      dto.image = image;
+    }
     return this.updatePromotionUseCase.execute(id, dto);
   }
 

@@ -1,4 +1,12 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+} from '@nestjs/common';
 import { CreateSliderDto } from '../../application/dtos/create-slider.dto';
 import { UpdateSliderDto } from '../../application/dtos/update-slider.dto';
 import { CreateSliderUseCase } from '../../application/use-cases/create-slider.use-case';

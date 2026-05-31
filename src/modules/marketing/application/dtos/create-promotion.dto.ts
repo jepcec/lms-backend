@@ -1,6 +1,9 @@
+import type { Express } from 'express';
+
 export class CreatePromotionDto {
   title: string;
-  image_url: string;
+  image?: Express.Multer.File;
+  image_url?: string;
   destination_url?: string;
   destination_course_id?: string;
   display_order?: number;

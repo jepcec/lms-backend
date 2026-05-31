@@ -11,9 +11,9 @@ export class ClearCartUseCase {
       where: {
         OR: [
           { user_id: filter.userId ?? undefined },
-          { session_token: filter.token ?? undefined }
-        ]
-      }
+          { session_token: filter.token ?? undefined },
+        ],
+      },
     });
   }
 }

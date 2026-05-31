@@ -8,7 +8,7 @@ export class RemoveItemUseCase {
 
   async execute(id: string) {
     return await this.prisma.cartItem.delete({
-      where: { id }
+      where: { id },
     });
   }
 }

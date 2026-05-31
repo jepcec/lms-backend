@@ -21,7 +21,7 @@ export class PrismaPromotionRepository implements IPromotionRepository {
     });
     if (!p) return null;
 
-    return new PromotionEntity(p as any);
+    return new PromotionEntity(p);
   }
 
   async create(data: Partial<PromotionEntity>): Promise<PromotionEntity> {
@@ -38,10 +38,13 @@ export class PrismaPromotionRepository implements IPromotionRepository {
         ends_at: data.ends_at,
       },
     });
-    return new PromotionEntity(p as any);
+    return new PromotionEntity(p);
   }
 
-  async update(id: string, data: Partial<PromotionEntity>): Promise<PromotionEntity> {
+  async update(
+    id: string,
+    data: Partial<PromotionEntity>,
+  ): Promise<PromotionEntity> {
     const p = await this.prisma.promotion.update({
       where: { id },
       data: {
@@ -55,7 +58,7 @@ export class PrismaPromotionRepository implements IPromotionRepository {
         ends_at: data.ends_at,
       },
     });
-    return new PromotionEntity(p as any);
+    return new PromotionEntity(p);
   }
 
   async delete(id: string): Promise<void> {
