@@ -1,24 +1,36 @@
-import { Controller, Get, Post, Patch, Delete, Body, Param, Query, UseGuards, UseInterceptors, UploadedFile } from "@nestjs/common";
-import { FileInterceptor } from "@nestjs/platform-express";
-import { diskStorage } from "multer";
-import { extname } from "path";
-import { GetProfileUseCase } from "../../application/use-cases/get-profile.use-case";
-import { UpdateProfileUseCase } from "../../application/use-cases/update-profile.use-case";
-import { UpdateProfileDto } from "../../application/dtos/update-profile.dto";
-import { DeleteAccountUseCase } from "../../application/use-cases/delete-user.use-case";
-import { Roles } from "../../../auth/decorators/roles.decorator";
+import {
+  Controller,
+  Get,
+  Post,
+  Patch,
+  Delete,
+  Body,
+  Param,
+  Query,
+  UseGuards,
+  UseInterceptors,
+  UploadedFile,
+} from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { diskStorage } from 'multer';
+import { extname } from 'path';
+import { GetProfileUseCase } from '../../application/use-cases/get-profile.use-case';
+import { UpdateProfileUseCase } from '../../application/use-cases/update-profile.use-case';
+import { UpdateProfileDto } from '../../application/dtos/update-profile.dto';
+import { DeleteAccountUseCase } from '../../application/use-cases/delete-user.use-case';
+import { Roles } from '../../../auth/decorators/roles.decorator';
 import { Multer } from 'multer';
-import type { Express } from "express";
-import { Public } from "../../../auth/decorators/public.decorator";
+import type { Express } from 'express';
+import { Public } from '../../../auth/decorators/public.decorator';
 
-import { GetUsuarioUseCase } from "../../application/use-cases/get-usuario.use-case";
-import { CreateUsuarioUseCase } from "../../application/use-cases/create-usuario.use-case";
-import { UpdateUsuarioUseCase } from "../../application/use-cases/update-usuario.use-case";
-import { SuspendUsuarioUseCase } from "../../application/use-cases/suspend-usuario.use-case";
-import { ActivateUsuarioUseCase } from "../../application/use-cases/activate-usuario.use-case";
-import { CreateUsuarioDto } from "../../application/dtos/create-usuario.dto";
-import { UpdateUsuarioDto } from "../../application/dtos/update-usuario.dto";
-import { BuscarUsuariosUseCase } from "../../application/use-cases/buscar-usuarios.use-case";
+import { GetUsuarioUseCase } from '../../application/use-cases/get-usuario.use-case';
+import { CreateUsuarioUseCase } from '../../application/use-cases/create-usuario.use-case';
+import { UpdateUsuarioUseCase } from '../../application/use-cases/update-usuario.use-case';
+import { SuspendUsuarioUseCase } from '../../application/use-cases/suspend-usuario.use-case';
+import { ActivateUsuarioUseCase } from '../../application/use-cases/activate-usuario.use-case';
+import { CreateUsuarioDto } from '../../application/dtos/create-usuario.dto';
+import { UpdateUsuarioDto } from '../../application/dtos/update-usuario.dto';
+import { BuscarUsuariosUseCase } from '../../application/use-cases/buscar-usuarios.use-case';
 
 @Controller('users')
 export class UsersController {
@@ -42,15 +54,19 @@ export class UsersController {
 
   @Patch('profile/:id')
   @Public()
-  @UseInterceptors(FileInterceptor('photo', { // 'photo' coincide con el frontend
-    storage: diskStorage({
-      destination: './uploads/profiles',
-      filename: (req, file, cb) => {
-        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
-        cb(null, `${uniqueSuffix}${extname(file.originalname)}`);
-      },
+  @UseInterceptors(
+    FileInterceptor('photo', {
+      // 'photo' coincide con el frontend
+      storage: diskStorage({
+        destination: './uploads/profiles',
+        filename: (req, file, cb) => {
+          const uniqueSuffix =
+            Date.now() + '-' + Math.round(Math.random() * 1e9);
+          cb(null, `${uniqueSuffix}${extname(file.originalname)}`);
+        },
+      }),
     }),
-  }))
+  )
   async update(
     @Param('id') id: string,
     @Body() dto: UpdateProfileDto,
@@ -60,17 +76,14 @@ export class UsersController {
     if (file) {
       dto.profile_photo_url = `/uploads/profiles/${file.filename}`;
     }
-    
+
     // Le pasamos el DTO ya modificado al caso de uso
     return this.updateProfile.execute(id, dto);
   }
 
   @Roles('admin')
   @Get('buscar')
-  async buscarUsuarios(
-    @Query('q') q: string,
-    @Query('role') role?: string,
-  ) {
+  async buscarUsuarios(@Query('q') q: string, @Query('role') role?: string) {
     return this.buscarUsuariosUC.execute(q, role);
   }
 

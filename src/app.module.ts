@@ -14,18 +14,16 @@ import { PaymentsModule } from './modules/payments/payments.module';
 
 @Module({
   imports: [
-	ServeStaticModule.forRoot({
+    ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', 'uploads'), // Apunta a tu carpeta raíz de subidas
       serveRoot: '/uploads', // Prefijo de la URL
     }),
-	ConfigModule.forRoot(),
-	AuthModule,
-	UsersModule,
-	CoursesModule,
-  	ShoppingCartModule,
+    ConfigModule.forRoot(),
+    AuthModule,
+    UsersModule,
+    CoursesModule,
+    ShoppingCartModule,
     MarketingModule,
-    PaymentsModule,
-
   ],
   controllers: [AppController],
   providers: [AppService, PrismaService],

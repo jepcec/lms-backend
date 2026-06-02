@@ -205,7 +205,8 @@ model Course {
   slug                   String               @unique
   tagline                String               @db.VarChar(150)
   description            String
-  thumbnail_url          String
+  thumbnail_url          String?
+  thumbnail_public_id    String?
   level                  CourseLevel
   software_tools         String[]
   price                  Decimal              @db.Decimal(10, 2)
@@ -511,9 +512,12 @@ model AuditLog {
 model Slider {
   id               String         @id @default(uuid()) @db.Uuid
   title            String
+  subtitle         String?
   type             SliderType
-  image_url        String?        // Solo para tipo banner
+  image_url        String?
+  image_public_id  String?
   destination_url  String?
+  contact_url      String?
   position_on_page SliderPosition
   display_order    Int
   status           ContentStatus  @default(active)
@@ -540,7 +544,8 @@ model SliderCourse {
 model Promotion {
   id                    String          @id @default(uuid()) @db.Uuid
   title                 String
-  image_url             String
+  image_url             String?
+  image_public_id       String?
   destination_url       String?
   destination_course_id String?         @db.Uuid
   display_order         Int

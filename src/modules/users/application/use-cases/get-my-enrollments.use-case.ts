@@ -38,14 +38,17 @@ export class GetMyEnrollmentsUseCase {
       enrolled_at: enrollment.enrolled_at.toISOString(),
       enrollment_type: enrollment.enrollment_type,
       offline_payment_method: enrollment.offline_payment_method,
-      offline_amount: enrollment.offline_amount ? enrollment.offline_amount.toNumber() : undefined,
+      offline_amount: enrollment.offline_amount
+        ? enrollment.offline_amount.toNumber()
+        : undefined,
       enrolled_by: enrollment.enrolled_by,
       internal_notes: enrollment.internal_notes,
       progress_percent: enrollment.progress_percent.toNumber(),
       completed_at: enrollment.completed_at?.toISOString(),
       last_accessed_at: enrollment.last_accessed_at?.toISOString(),
       total_watched_seconds: enrollment.lesson_progress.reduce(
-        (sum, lp) => sum + lp.watched_seconds, 0,
+        (sum, lp) => sum + lp.watched_seconds,
+        0,
       ),
       has_review: enrollment.review !== null,
     }));

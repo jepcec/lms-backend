@@ -2,7 +2,11 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/core/database/prisma.service';
 import { SliderEntity } from '../../domain/slider.entity';
 import { ISliderRepository } from '../../domain/sliders.repository';
-import { ContentStatus, SliderPosition, SliderType } from 'src/generated/prisma/enums';
+import {
+  ContentStatus,
+  SliderPosition,
+  SliderType,
+} from 'src/generated/prisma/enums';
 
 @Injectable()
 export class PrismaSliderRepository implements ISliderRepository {
@@ -51,14 +55,19 @@ export class PrismaSliderRepository implements ISliderRepository {
     });
   }
 
-  async create(data: Partial<SliderEntity> & { course_ids?: string[] }): Promise<SliderEntity> {
+  async create(
+    data: Partial<SliderEntity> & { course_ids?: string[] },
+  ): Promise<SliderEntity> {
     const count = await this.prisma.slider.count();
     const s = await this.prisma.slider.create({
       data: {
         title: data.title!,
+        subtitle: data.subtitle,
         type: data.type as SliderType,
         image_url: data.image_url,
+        image_public_id: data.image_public_id,
         destination_url: data.destination_url,
+        contact_url: data.contact_url,
         position_on_page: data.position_on_page as SliderPosition,
         display_order: data.display_order ?? count + 1,
         status: (data.status as ContentStatus) ?? ContentStatus.active,
@@ -86,16 +95,22 @@ export class PrismaSliderRepository implements ISliderRepository {
     });
   }
 
-  async update(id: string, data: Partial<SliderEntity> & { course_ids?: string[] }): Promise<SliderEntity> {
+  async update(
+    id: string,
+    data: Partial<SliderEntity> & { course_ids?: string[] },
+  ): Promise<SliderEntity> {
     const { course_ids, ...rest } = data;
 
     const s = await this.prisma.slider.update({
       where: { id },
       data: {
         title: rest.title,
+        subtitle: rest.subtitle,
         type: rest.type as SliderType,
         image_url: rest.image_url,
+        image_public_id: rest.image_public_id,
         destination_url: rest.destination_url,
+        contact_url: rest.contact_url,
         position_on_page: rest.position_on_page as SliderPosition,
         display_order: rest.display_order,
         status: rest.status as ContentStatus,

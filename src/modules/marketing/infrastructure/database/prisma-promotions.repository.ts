@@ -21,7 +21,7 @@ export class PrismaPromotionRepository implements IPromotionRepository {
     });
     if (!p) return null;
 
-    return new PromotionEntity(p as any);
+    return new PromotionEntity(p);
   }
 
   async create(data: Partial<PromotionEntity>): Promise<PromotionEntity> {
@@ -29,7 +29,8 @@ export class PrismaPromotionRepository implements IPromotionRepository {
     const p = await this.prisma.promotion.create({
       data: {
         title: data.title!,
-        image_url: data.image_url!,
+        image_url: data.image_url,
+        image_public_id: data.image_public_id,
         destination_url: data.destination_url,
         destination_course_id: data.destination_course_id,
         display_order: data.display_order ?? count + 1,
@@ -38,15 +39,19 @@ export class PrismaPromotionRepository implements IPromotionRepository {
         ends_at: data.ends_at,
       },
     });
-    return new PromotionEntity(p as any);
+    return new PromotionEntity(p);
   }
 
-  async update(id: string, data: Partial<PromotionEntity>): Promise<PromotionEntity> {
+  async update(
+    id: string,
+    data: Partial<PromotionEntity>,
+  ): Promise<PromotionEntity> {
     const p = await this.prisma.promotion.update({
       where: { id },
       data: {
         title: data.title,
         image_url: data.image_url,
+        image_public_id: data.image_public_id,
         destination_url: data.destination_url,
         destination_course_id: data.destination_course_id,
         display_order: data.display_order,
@@ -55,7 +60,7 @@ export class PrismaPromotionRepository implements IPromotionRepository {
         ends_at: data.ends_at,
       },
     });
-    return new PromotionEntity(p as any);
+    return new PromotionEntity(p);
   }
 
   async delete(id: string): Promise<void> {

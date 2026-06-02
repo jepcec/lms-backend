@@ -1,5 +1,8 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
-import { I_SLIDER_REPOSITORY, type ISliderRepository } from '../../domain/sliders.repository';
+import {
+  I_SLIDER_REPOSITORY,
+  type ISliderRepository,
+} from '../../domain/sliders.repository';
 import { UpdateSliderDto } from '../dtos/update-slider.dto';
 
 @Injectable()
@@ -13,6 +16,6 @@ export class UpdateSliderUseCase {
     const slider = await this.sliderRepository.findById(id);
     if (!slider) throw new NotFoundException('Slider not found');
 
-    return this.sliderRepository.update(id, dto as any);
+    return this.sliderRepository.update(id, dto);
   }
 }

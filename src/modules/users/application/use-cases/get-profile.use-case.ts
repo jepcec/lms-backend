@@ -8,9 +8,9 @@ export class GetProfileUseCase {
 
   async execute(userId: string) {
     const user = await this.prisma.user.findFirst({
-      where: { 
+      where: {
         id: userId,
-        deleted_at: null // Solo busca usuarios activos (RF-012/RF-004) [cite: 110, 405]
+        deleted_at: null, // Solo busca usuarios activos (RF-012/RF-004) [cite: 110, 405]
       },
     });
 

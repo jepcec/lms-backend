@@ -12,10 +12,10 @@ export class DeleteAccountUseCase {
 
     return await this.prisma.user.update({
       where: { id: userId },
-      data: { 
+      data: {
         deleted_at: new Date(),
-        status: 'deleted' // Usando el enum UserStatus 
-      }
+        status: 'deleted', // Usando el enum UserStatus
+      },
     });
   }
 }

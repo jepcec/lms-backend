@@ -13,9 +13,10 @@ export class AddItemUseCase {
     // 1. Validación: ¿Ya está matriculado? (Solo si hay user_id)
     if (user_id) {
       const isEnrolled = await this.prisma.enrollment.findUnique({
-        where: { user_id_course_id: { user_id, course_id } }
+        where: { user_id_course_id: { user_id, course_id } },
       });
-      if (isEnrolled) throw new BadRequestException('Ya estás matriculado en este curso.');
+      if (isEnrolled)
+        throw new BadRequestException('Ya estás matriculado en este curso.');
     }
 
     // 2. Validación: ¿Ya está en el carrito?
@@ -24,18 +25,21 @@ export class AddItemUseCase {
         course_id,
         OR: [
           { user_id: user_id ?? undefined },
-          { session_token: session_token ?? undefined }
-        ]
-      }
+          { session_token: session_token ?? undefined },
+        ],
+      },
     });
-    if (alreadyInCart) throw new BadRequestException('El curso ya está en tu carrito.');
+    if (alreadyInCart)
+      throw new BadRequestException('El curso ya está en tu carrito.');
 
     // 3. Registro con expiración para invitados (7 días)
-    const expiresAt = user_id ? null : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+    const expiresAt = user_id
+      ? null
+      : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
 
     return await this.prisma.cartItem.create({
       data: { course_id, user_id, session_token, expires_at: expiresAt },
-      include: { course: true }
+      include: { course: true },
     });
   }
 }

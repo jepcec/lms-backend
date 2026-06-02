@@ -14,10 +14,10 @@ export class MergeCartUseCase {
 
     const [guestItems, userItems] = await Promise.all([
       this.prisma.cartItem.findMany({ where: { session_token: sessionToken } }),
-      this.prisma.cartItem.findMany({ where: { user_id: userId } })
+      this.prisma.cartItem.findMany({ where: { user_id: userId } }),
     ]);
 
-    const userCourseIds = new Set(userItems.map(i => i.course_id));
+    const userCourseIds = new Set(userItems.map((i) => i.course_id));
 
     // 2. Usamos el tipo PrismaPromise para que $transaction lo acepte
     // Esto quita el error de "not assignable to parameter of type 'never'"
@@ -26,18 +26,20 @@ export class MergeCartUseCase {
     for (const guestItem of guestItems) {
       if (userCourseIds.has(guestItem.course_id)) {
         // RF-021: Si el curso ya existe en el perfil, borramos el temporal
-        operations.push(this.prisma.cartItem.delete({ where: { id: guestItem.id } }));
+        operations.push(
+          this.prisma.cartItem.delete({ where: { id: guestItem.id } }),
+        );
       } else {
         // RF-021: Si es nuevo, lo vinculamos al usuario logueado
         operations.push(
           this.prisma.cartItem.update({
             where: { id: guestItem.id },
-            data: { 
-              user_id: userId, 
-              session_token: null, 
-              expires_at: null 
-            }
-          })
+            data: {
+              user_id: userId,
+              session_token: null,
+              expires_at: null,
+            },
+          }),
         );
       }
     }

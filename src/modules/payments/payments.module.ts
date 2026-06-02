@@ -6,6 +6,8 @@ import { ProcessPaymentCallbackUseCase } from './application/use-cases/process-p
 import { StripeAdapter } from './infrastructure/adapters/stripe.adapter';
 import { PaypalAdapter } from './infrastructure/adapters/paypal.adapter';
 import { MercadoPagoAdapter } from './infrastructure/adapters/mercadopago.adapter';
+import { PaypalController } from './presentation/paypal.controller';
+import { PaypalService } from './infrastructure/paypal.service';
 
 @Module({
   controllers: [PaymentsController],
