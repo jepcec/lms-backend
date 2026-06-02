@@ -10,6 +10,7 @@ import { ShoppingCartModule } from './modules/shopping-cart/shopping-cart.module
 import { MarketingModule } from './modules/marketing/marketing.module';
 import { join } from 'path';
 import { ServeStaticModule } from '@nestjs/serve-static';
+import { PaymentsModule } from './modules/payments/payments.module';
 
 @Module({
   imports: [
@@ -22,7 +23,8 @@ import { ServeStaticModule } from '@nestjs/serve-static';
 	UsersModule,
 	CoursesModule,
   	ShoppingCartModule,
-    MarketingModule
+    MarketingModule,
+    PaymentsModule,
 
   ],
   controllers: [AppController],
