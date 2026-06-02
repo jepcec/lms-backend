@@ -1,19 +1,26 @@
 import {
-	Body,
-	Controller,
-	Delete,
-	Get,
-	Param,
-	Patch,
-	Post,
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+  UseInterceptors,
+  UploadedFile,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { memoryStorage } from 'multer';
 import { CreateSliderDto } from '../../application/dtos/create-slider.dto';
 import { UpdateSliderDto } from '../../application/dtos/update-slider.dto';
 import { CreateSliderUseCase } from '../../application/use-cases/create-slider.use-case';
 import { DeleteSliderUseCase } from '../../application/use-cases/delete-slider.use-case';
 import { GetSlidersUseCase } from '../../application/use-cases/get-sliders.use-case';
 import { UpdateSliderUseCase } from '../../application/use-cases/update-slider.use-case';
+import { UploadSliderImageUseCase } from '../../application/use-cases/upload-slider-image.use-case';
 import { Public } from 'src/modules/auth/decorators/public.decorator';
+import { Roles } from 'src/modules/auth/decorators/roles.decorator';
+import type { Express } from 'express';
 
 @Controller('sliders')
 export class SlidersController {
@@ -22,6 +29,7 @@ export class SlidersController {
 		private readonly getSlidersUseCase: GetSlidersUseCase,
 		private readonly updateSliderUseCase: UpdateSliderUseCase,
 		private readonly deleteSliderUseCase: DeleteSliderUseCase,
+		private readonly uploadSliderImageUseCase: UploadSliderImageUseCase,
 	) {}
 	
 	@Public()
@@ -43,5 +51,29 @@ export class SlidersController {
 	@Delete(':id')
 	remove(@Param('id') id: string) {
 		return this.deleteSliderUseCase.execute(id);
+	}
+
+	@Post(':id/image')
+	@Roles('admin')
+	@UseInterceptors(
+		FileInterceptor('image', {
+			storage: memoryStorage(),
+			fileFilter: (_req, file, callback) => {
+				if (!file.mimetype.match(/\/(jpg|jpeg|png|webp)$/)) {
+					return callback(
+						new Error('Only image files are allowed (jpg, jpeg, png, webp)'),
+						false,
+					);
+				}
+				callback(null, true);
+			},
+			limits: { fileSize: 5 * 1024 * 1024 },
+		}),
+	)
+	uploadImage(
+		@Param('id') id: string,
+		@UploadedFile() file: Express.Multer.File,
+	) {
+		return this.uploadSliderImageUseCase.execute(id, file);
 	}
 }

@@ -511,9 +511,12 @@ model AuditLog {
 model Slider {
   id               String         @id @default(uuid()) @db.Uuid
   title            String
+  subtitle         String?
   type             SliderType
-  image_url        String?        // Solo para tipo banner
+  image_url        String?
+  image_public_id  String?
   destination_url  String?
+  contact_url      String?
   position_on_page SliderPosition
   display_order    Int
   status           ContentStatus  @default(active)
