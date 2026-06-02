@@ -62,9 +62,12 @@ export class PrismaSliderRepository implements ISliderRepository {
     const s = await this.prisma.slider.create({
       data: {
         title: data.title!,
+        subtitle: data.subtitle,
         type: data.type as SliderType,
         image_url: data.image_url,
+        image_public_id: data.image_public_id,
         destination_url: data.destination_url,
+        contact_url: data.contact_url,
         position_on_page: data.position_on_page as SliderPosition,
         display_order: data.display_order ?? count + 1,
         status: (data.status as ContentStatus) ?? ContentStatus.active,
@@ -102,9 +105,12 @@ export class PrismaSliderRepository implements ISliderRepository {
       where: { id },
       data: {
         title: rest.title,
+        subtitle: rest.subtitle,
         type: rest.type as SliderType,
         image_url: rest.image_url,
+        image_public_id: rest.image_public_id,
         destination_url: rest.destination_url,
+        contact_url: rest.contact_url,
         position_on_page: rest.position_on_page as SliderPosition,
         display_order: rest.display_order,
         status: rest.status as ContentStatus,
