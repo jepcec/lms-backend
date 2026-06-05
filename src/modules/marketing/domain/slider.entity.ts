@@ -7,6 +7,8 @@ export class SliderEntity {
   title: string;
   subtitle?: string | null;
   type: SliderType;
+  event_type_id?: string | null;
+  event_type?: { id: string; name: string } | null;
   image_url?: string | null;
   image_public_id?: string | null;
   destination_url?: string | null;
