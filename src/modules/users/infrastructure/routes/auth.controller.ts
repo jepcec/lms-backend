@@ -41,22 +41,20 @@ export class AuthController {
     @Res({ passthrough: true }) response: Response,
   ) {
     const result = await this.loginUserCase.execute(dto);
+	response.cookie('access_token', result.accessToken, {
+	  httpOnly: true,
+	  secure: true,        // obligatorio en producción HTTPS
+	  sameSite: 'none',    // 👈 CLAVE
+	  maxAge: 15 * 60 * 1000,
+	});
 
+	response.cookie('refresh_token', result.refresh_token, {
+	  httpOnly: true,
+	  secure: true,
+	  sameSite: 'none',    // 👈 CLAVE
+	  maxAge: 7 * 24 * 60 * 60 * 1000,
+	});
     // cokies generadas se envian atravez de headers para el frontend
-    response.cookie('access_token', result.accessToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 15 * 60 * 1000,
-    });
-
-    // implementacion en un caso de uso
-    response.cookie('refresh_token', result.refresh_token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 días
-    });
     return {
       mensaje: 'login exitoso',
       user: result.user,
