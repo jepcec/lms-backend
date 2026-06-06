@@ -1,9 +1,3 @@
-/*
-  Warnings:
-
-  - You are about to drop the `User` table. If the table is not empty, all the data it contains will be lost.
-
-*/
 -- CreateEnum
 CREATE TYPE "UserRole" AS ENUM ('estudiante', 'soporte', 'marketing', 'admin');
 
@@ -15,6 +9,9 @@ CREATE TYPE "CourseLevel" AS ENUM ('principiante', 'intermedio', 'avanzado');
 
 -- CreateEnum
 CREATE TYPE "CourseCurrency" AS ENUM ('USD', 'PEN');
+
+-- CreateEnum
+CREATE TYPE "CertificateType" AS ENUM ('Certificado', 'Constancia');
 
 -- CreateEnum
 CREATE TYPE "CourseAccessDuration" AS ENUM ('one_year', 'lifetime');
@@ -35,7 +32,7 @@ CREATE TYPE "OfflinePaymentMethod" AS ENUM ('transferencia', 'efectivo', 'cortes
 CREATE TYPE "OrderCurrency" AS ENUM ('USD', 'PEN');
 
 -- CreateEnum
-CREATE TYPE "PaymentMethod" AS ENUM ('stripe', 'niubiz');
+CREATE TYPE "PaymentMethod" AS ENUM ('stripe', 'niubiz', 'paypal');
 
 -- CreateEnum
 CREATE TYPE "PaymentStatus" AS ENUM ('pending', 'paid', 'failed', 'refunded');
@@ -60,9 +57,6 @@ CREATE TYPE "PromotionStatus" AS ENUM ('active', 'inactive');
 
 -- CreateEnum
 CREATE TYPE "AuditAction" AS ENUM ('create', 'update', 'delete');
-
--- DropTable
-DROP TABLE "User";
 
 -- CreateTable
 CREATE TABLE "users" (
@@ -113,7 +107,8 @@ CREATE TABLE "courses" (
     "slug" TEXT NOT NULL,
     "tagline" VARCHAR(150) NOT NULL,
     "description" TEXT NOT NULL,
-    "thumbnail_url" TEXT NOT NULL,
+    "thumbnail_url" TEXT,
+    "thumbnail_public_id" TEXT,
     "level" "CourseLevel" NOT NULL,
     "software_tools" TEXT[],
     "price" DECIMAL(10,2) NOT NULL,
@@ -248,6 +243,7 @@ CREATE TABLE "enrollments" (
     "progress_percent" DECIMAL(5,2) NOT NULL DEFAULT 0,
     "completed_at" TIMESTAMP(3),
     "last_accessed_at" TIMESTAMP(3),
+    "final_score" DECIMAL(4,2),
 
     CONSTRAINT "enrollments_pkey" PRIMARY KEY ("id")
 );
@@ -302,6 +298,7 @@ CREATE TABLE "certificates" (
     "id" UUID NOT NULL,
     "enrollment_id" UUID NOT NULL,
     "template_id" UUID NOT NULL,
+    "type" "CertificateType" NOT NULL,
     "verification_code" UUID NOT NULL,
     "pdf_url" TEXT NOT NULL,
     "issued_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -341,9 +338,12 @@ CREATE TABLE "audit_logs" (
 CREATE TABLE "sliders" (
     "id" UUID NOT NULL,
     "title" TEXT NOT NULL,
+    "subtitle" TEXT,
     "type" "SliderType" NOT NULL,
     "image_url" TEXT,
+    "image_public_id" TEXT,
     "destination_url" TEXT,
+    "contact_url" TEXT,
     "position_on_page" "SliderPosition" NOT NULL,
     "display_order" INTEGER NOT NULL,
     "status" "ContentStatus" NOT NULL DEFAULT 'active',
@@ -365,7 +365,8 @@ CREATE TABLE "slider_courses" (
 CREATE TABLE "promotions" (
     "id" UUID NOT NULL,
     "title" TEXT NOT NULL,
-    "image_url" TEXT NOT NULL,
+    "image_url" TEXT,
+    "image_public_id" TEXT,
     "destination_url" TEXT,
     "destination_course_id" UUID,
     "display_order" INTEGER NOT NULL,
