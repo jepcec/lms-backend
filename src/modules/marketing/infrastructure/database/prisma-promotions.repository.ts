@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/core/database/prisma.service';
 import { PromotionEntity } from '../../domain/promotion.entity';
 import { IPromotionRepository } from '../../domain/promotions.repository';
-import { PromotionStatus } from 'src/generated/prisma/enums';
+import { PromotionStatus } from '@prisma/client';
 
 @Injectable()
 export class PrismaPromotionRepository implements IPromotionRepository {

@@ -9,6 +9,7 @@
     "seed": "tsx prisma/seed.ts"
   },
   "scripts": {
+    "prebuild": "prisma generate",
     "build": "nest build",
     "postinstall":"prisma generate",
     "db:seed": "npx prisma db seed",

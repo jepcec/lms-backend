@@ -3,7 +3,7 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../../core/database/prisma.service';
 
 // 1. Importamos el namespace directamente desde donde Prisma lo definió
-import type * as Prisma from '../../../../generated/prisma/internal/prismaNamespace';
+import type * as PrismaNamespace from '@prisma/client';
 
 @Injectable()
 export class MergeCartUseCase {
@@ -21,7 +21,7 @@ export class MergeCartUseCase {
 
     // 2. Usamos el tipo PrismaPromise para que $transaction lo acepte
     // Esto quita el error de "not assignable to parameter of type 'never'"
-    const operations: Prisma.PrismaPromise<any>[] = [];
+    const operations: PrismaNamespace.PrismaPromise<any>[] = [];
 
     for (const guestItem of guestItems) {
       if (userCourseIds.has(guestItem.course_id)) {

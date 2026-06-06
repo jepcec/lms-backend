@@ -5,7 +5,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '../../../../core/database/prisma.service';
-import { CertificateType } from '../../../../generated/prisma/client';
+import { CertificateType } from '@prisma/client';
 
 @Injectable()
 export class SetGradeUseCase {

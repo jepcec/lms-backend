@@ -6,7 +6,7 @@ import {
   ContentStatus,
   SliderPosition,
   SliderType,
-} from 'src/generated/prisma/enums';
+} from '@prisma/client';
 
 @Injectable()
 export class PrismaSliderRepository implements ISliderRepository {
