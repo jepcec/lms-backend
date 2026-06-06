@@ -6,7 +6,8 @@
   "private": true,
   "license": "UNLICENSED",
   "prisma": {
-    "seed": "tsx prisma/seed.ts"
+    "seed": "tsx prisma/seed.ts",
+    "seed:deploy": "tsx prisma/seed_deploy.ts"
   },
   "scripts": {
     "prebuild": "prisma generate",
