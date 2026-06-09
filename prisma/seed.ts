@@ -190,12 +190,9 @@ async function main() {
       name: 'Plantilla Estándar',
       background_image_url: faker.image.urlPicsumPhotos(),
       student_name_position: { x: 100, y: 200 },
-      course_name_position: { x: 100, y: 300 },
-      dates_position: { x: 100, y: 400 },
-      verification_code_position: { x: 100, y: 500 },
       qr_position: { x: 400, y: 400 },
       font_family: 'Arial',
-      font_sizes: { student_name: 24, course_name: 20, dates: 14, verification_code: 12 },
+      font_sizes: { student_name: 24 },
       is_active: true,
     },
   })
