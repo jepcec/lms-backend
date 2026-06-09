@@ -96,7 +96,8 @@ export class PrismaSliderRepository implements ISliderRepository {
         title: rest.title,
         subtitle: rest.subtitle,
         type: rest.type as SliderType,
-        event_type_id: rest.event_type_id !== undefined ? rest.event_type_id : undefined,
+        event_type_id:
+          rest.event_type_id !== undefined ? rest.event_type_id : undefined,
         image_url: rest.image_url,
         image_public_id: rest.image_public_id,
         destination_url: rest.destination_url,
