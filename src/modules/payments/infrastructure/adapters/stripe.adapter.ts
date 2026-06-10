@@ -19,7 +19,11 @@ export class StripeAdapter {
     });
 
     const data = await response.json();
-    if (!response.ok) throw new HttpException('Error con la API de Stripe', HttpStatus.BAD_REQUEST);
+    if (!response.ok)
+      throw new HttpException(
+        'Error con la API de Stripe',
+        HttpStatus.BAD_REQUEST,
+      );
     return data;
   }
 }

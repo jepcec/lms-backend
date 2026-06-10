@@ -24,56 +24,56 @@ import type { Express } from 'express';
 
 @Controller('sliders')
 export class SlidersController {
-	constructor(
-		private readonly createSliderUseCase: CreateSliderUseCase,
-		private readonly getSlidersUseCase: GetSlidersUseCase,
-		private readonly updateSliderUseCase: UpdateSliderUseCase,
-		private readonly deleteSliderUseCase: DeleteSliderUseCase,
-		private readonly uploadSliderImageUseCase: UploadSliderImageUseCase,
-	) {}
-	
-	@Public()
-	@Get()
-	findAll() {
-		return this.getSlidersUseCase.execute();
-	}
+  constructor(
+    private readonly createSliderUseCase: CreateSliderUseCase,
+    private readonly getSlidersUseCase: GetSlidersUseCase,
+    private readonly updateSliderUseCase: UpdateSliderUseCase,
+    private readonly deleteSliderUseCase: DeleteSliderUseCase,
+    private readonly uploadSliderImageUseCase: UploadSliderImageUseCase,
+  ) {}
 
-	@Post()
-	create(@Body() dto: CreateSliderDto) {
-		return this.createSliderUseCase.execute(dto);
-	}
+  @Public()
+  @Get()
+  findAll() {
+    return this.getSlidersUseCase.execute();
+  }
 
-	@Patch(':id')
-	update(@Param('id') id: string, @Body() dto: UpdateSliderDto) {
-		return this.updateSliderUseCase.execute(id, dto);
-	}
+  @Post()
+  create(@Body() dto: CreateSliderDto) {
+    return this.createSliderUseCase.execute(dto);
+  }
 
-	@Delete(':id')
-	remove(@Param('id') id: string) {
-		return this.deleteSliderUseCase.execute(id);
-	}
+  @Patch(':id')
+  update(@Param('id') id: string, @Body() dto: UpdateSliderDto) {
+    return this.updateSliderUseCase.execute(id, dto);
+  }
 
-	@Post(':id/image')
-	@Roles('admin')
-	@UseInterceptors(
-		FileInterceptor('image', {
-			storage: memoryStorage(),
-			fileFilter: (_req, file, callback) => {
-				if (!file.mimetype.match(/\/(jpg|jpeg|png|webp)$/)) {
-					return callback(
-						new Error('Only image files are allowed (jpg, jpeg, png, webp)'),
-						false,
-					);
-				}
-				callback(null, true);
-			},
-			limits: { fileSize: 5 * 1024 * 1024 },
-		}),
-	)
-	uploadImage(
-		@Param('id') id: string,
-		@UploadedFile() file: Express.Multer.File,
-	) {
-		return this.uploadSliderImageUseCase.execute(id, file);
-	}
+  @Delete(':id')
+  remove(@Param('id') id: string) {
+    return this.deleteSliderUseCase.execute(id);
+  }
+
+  @Post(':id/image')
+  @Roles('admin')
+  @UseInterceptors(
+    FileInterceptor('image', {
+      storage: memoryStorage(),
+      fileFilter: (_req, file, callback) => {
+        if (!file.mimetype.match(/\/(jpg|jpeg|png|webp)$/)) {
+          return callback(
+            new Error('Only image files are allowed (jpg, jpeg, png, webp)'),
+            false,
+          );
+        }
+        callback(null, true);
+      },
+      limits: { fileSize: 5 * 1024 * 1024 },
+    }),
+  )
+  uploadImage(
+    @Param('id') id: string,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    return this.uploadSliderImageUseCase.execute(id, file);
+  }
 }

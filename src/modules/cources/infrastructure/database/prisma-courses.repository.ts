@@ -108,10 +108,10 @@ export class PrismaCourseRepository implements ICourseRepository {
       slug: course.slug,
       tagline: course.tagline,
       description: course.description,
-thumbnail_url: course.thumbnail_url,
-        thumbnail_public_id: course.thumbnail_public_id,
-        level: course.level,
-        software_tools: course.software_tools,
+      thumbnail_url: course.thumbnail_url,
+      thumbnail_public_id: course.thumbnail_public_id,
+      level: course.level,
+      software_tools: course.software_tools,
       price: Number(course.price),
       discount_price: course.discount_price
         ? Number(course.discount_price)

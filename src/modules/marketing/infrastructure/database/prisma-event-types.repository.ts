@@ -30,7 +30,10 @@ export class PrismaEventTypeRepository implements IEventTypeRepository {
     return new EventTypeEntity(r);
   }
 
-  async update(id: string, data: Partial<EventTypeEntity>): Promise<EventTypeEntity> {
+  async update(
+    id: string,
+    data: Partial<EventTypeEntity>,
+  ): Promise<EventTypeEntity> {
     const r = await this.prisma.eventType.update({
       where: { id },
       data: {

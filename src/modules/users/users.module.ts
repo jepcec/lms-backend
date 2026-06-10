@@ -2,6 +2,7 @@
 import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { StorageModule } from '../storage/storage.module';
 
 // Repositories & Services Interfaces
 import { I_USER_REPOSITORY } from './domain/users.repository';
@@ -25,6 +26,8 @@ import { AuthController } from './infrastructure/routes/auth.controller';
 import { StudentController } from './infrastructure/routes/student.controller';
 import { AdminController } from './infrastructure/routes/admin.controller';
 import { EnrollmentsController } from './infrastructure/routes/enrollments.controller';
+import { CertificateTemplatesController } from './infrastructure/routes/certificate-templates.controller';
+import { CertificatesController } from './infrastructure/routes/certificates.controller';
 
 // Use Cases
 import { LoginUserUseCase } from './application/use-cases/login-user.use-case';
@@ -59,6 +62,14 @@ import { ActivateUsuarioUseCase } from './application/use-cases/activate-usuario
 import { ListMatriculasUseCase } from './application/use-cases/list-matriculas.use-case';
 import { CreateMatriculasUseCase } from './application/use-cases/create-matriculas.use-case';
 import { BuscarUsuariosUseCase } from './application/use-cases/buscar-usuarios.use-case';
+import { ListCertificateTemplatesUseCase } from './application/use-cases/list-certificate-templates.use-case';
+import { GetCertificateTemplateUseCase } from './application/use-cases/get-certificate-template.use-case';
+import { CreateCertificateTemplateUseCase } from './application/use-cases/create-certificate-template.use-case';
+import { UpdateCertificateTemplateUseCase } from './application/use-cases/update-certificate-template.use-case';
+import { ActivateCertificateTemplateUseCase } from './application/use-cases/activate-certificate-template.use-case';
+import { DeleteCertificateTemplateUseCase } from './application/use-cases/delete-certificate-template.use-case';
+import { GetMyCertificatesUseCase } from './application/use-cases/get-my-certificates.use-case';
+import { GetCertificateUseCase } from './application/use-cases/get-certificate.use-case';
 
 @Module({
   imports: [
@@ -71,6 +82,7 @@ import { BuscarUsuariosUseCase } from './application/use-cases/buscar-usuarios.u
       }),
     }),
     ConfigModule,
+    StorageModule,
   ],
   controllers: [
     UsersController,
@@ -78,6 +90,8 @@ import { BuscarUsuariosUseCase } from './application/use-cases/buscar-usuarios.u
     StudentController,
     AdminController,
     EnrollmentsController,
+    CertificateTemplatesController,
+    CertificatesController,
   ],
   providers: [
     PrismaService,
@@ -114,6 +128,14 @@ import { BuscarUsuariosUseCase } from './application/use-cases/buscar-usuarios.u
     ListMatriculasUseCase,
     CreateMatriculasUseCase,
     BuscarUsuariosUseCase,
+    ListCertificateTemplatesUseCase,
+    GetCertificateTemplateUseCase,
+    CreateCertificateTemplateUseCase,
+    UpdateCertificateTemplateUseCase,
+    ActivateCertificateTemplateUseCase,
+    DeleteCertificateTemplateUseCase,
+    GetMyCertificatesUseCase,
+    GetCertificateUseCase,
     CryptoTokenService,
     // Interface Mappings
     { provide: I_USER_REPOSITORY, useClass: PrismaUserRepository },

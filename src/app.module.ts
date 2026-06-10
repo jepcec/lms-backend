@@ -8,6 +8,7 @@ import { UsersModule } from './modules/users/users.module';
 import { CoursesModule } from './modules/cources/courses.module';
 import { ShoppingCartModule } from './modules/shopping-cart/shopping-cart.module';
 import { MarketingModule } from './modules/marketing/marketing.module';
+import { NotificationsModule } from './modules/notifications/notifications.module';
 import { join } from 'path';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { PaymentsModule } from './modules/payments/payments.module';
@@ -24,6 +25,7 @@ import { PaymentsModule } from './modules/payments/payments.module';
     CoursesModule,
     ShoppingCartModule,
     MarketingModule,
+    NotificationsModule,
   ],
   controllers: [AppController],
   providers: [AppService, PrismaService],

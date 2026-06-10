@@ -3,7 +3,10 @@ import {
   I_PROMOTION_REPOSITORY,
   type IPromotionRepository,
 } from '../../domain/promotions.repository';
-import { I_FILE_STORAGE_SERVICE, type IFileStorageService } from '../../../storage/domain/file-storage.interface';
+import {
+  I_FILE_STORAGE_SERVICE,
+  type IFileStorageService,
+} from '../../../storage/domain/file-storage.interface';
 
 @Injectable()
 export class DeletePromotionUseCase {
