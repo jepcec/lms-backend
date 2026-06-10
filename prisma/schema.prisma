@@ -448,14 +448,14 @@ model CertificateTemplate {
 }
 
 model Certificate {
-  id            String              @id @default(uuid()) @db.Uuid
-  enrollment_id String              @unique @db.Uuid
-  template_id   String              @db.Uuid
-  type          CertificateType
-  pdf_url       String
-  issued_at     DateTime            @default(now())
+  id                String              @id @default(uuid()) @db.Uuid
+  enrollment_id     String              @unique @db.Uuid
+  template_id       String              @db.Uuid
+  type              CertificateType
+  verification_code String              @unique @default(uuid())
+  pdf_url           String
+  issued_at         DateTime            @default(now())
 
-  // Un certificado puede tener o no review_id según si se quiere rastrear cuál reseña lo disparó
   review_id         String?             @unique @db.Uuid
 
   enrollment        Enrollment          @relation(fields: [enrollment_id], references: [id])
