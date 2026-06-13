@@ -1,4 +1,8 @@
-import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  BadRequestException,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from '../../../../core/database/prisma.service';
 import { PaypalAdapter } from '../../infrastructure/adapters/paypal.adapter';
 import { MercadoPagoAdapter } from '../../infrastructure/adapters/mercadopago.adapter';
@@ -9,8 +13,8 @@ import { PaymentStatus } from '../../../../generated/prisma/enums';
 export class ProcessPaymentCallbackUseCase {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly paypalAdapter: PaypalAdapter,       // Corregido a paypalAdapter
-    private readonly mpAdapter: MercadoPagoAdapter,       // Corregido a mpAdapter
+    private readonly paypalAdapter: PaypalAdapter, // Corregido a paypalAdapter
+    private readonly mpAdapter: MercadoPagoAdapter, // Corregido a mpAdapter
   ) {}
 
   async handlePaypalCapture(paypalOrderId: string) {
@@ -24,10 +28,10 @@ export class ProcessPaymentCallbackUseCase {
         return null;
       });
 
-      // 2. Buscamos si la orden existe físicamente en las tablas de la BD
-      const order = await this.prisma.order.findFirst({ 
-        where: { gateway_transaction_id: paypalOrderId } 
-      });
+    const order = await this.prisma.order.findFirst({
+      where: { gateway_transaction_id: paypalOrderId },
+    });
+    if (!order) throw new NotFoundException('Orden interna no encontrada');
 
       // 🛡️ ESCUDO DE EMERGENCIA PARA LA SUSTENTACIÓN DE TESIS:
       // Si la orden es null (porque es el curso inyectado desde el front para la demo),
@@ -55,13 +59,23 @@ export class ProcessPaymentCallbackUseCase {
     // 🛡️ ESCUDO DE EMERGENCIA PARA LA DEMO:
     // Si el ID de la orden viene del generador de pruebas del frente, cortamos el flujo aquí
     // y devolvemos éxito para que la pasarela redirija al "success" sin reventar Prisma.
-    if (dto.orderId.startsWith('EG-ORD-') || dto.orderId === 'curso-demo-1234') {
-      console.log('🚀 [DEMO] Interceptando pago de prueba. Evitando caída 500 de Prisma.');
-      return { success: true, order_number: 'DEMO-' + Math.floor(100000 + Math.random() * 900000) };
+    if (
+      dto.orderId.startsWith('EG-ORD-') ||
+      dto.orderId === 'curso-demo-1234'
+    ) {
+      console.log(
+        '🚀 [DEMO] Interceptando pago de prueba. Evitando caída 500 de Prisma.',
+      );
+      return {
+        success: true,
+        order_number: 'DEMO-' + Math.floor(100000 + Math.random() * 900000),
+      };
     }
 
     // ─── FLUJO REAL (Se ejecutará cuando uses órdenes reales de la BD) ───
-    const order = await this.prisma.order.findUnique({ where: { id: dto.orderId } });
+    const order = await this.prisma.order.findUnique({
+      where: { id: dto.orderId },
+    });
     if (!order) throw new BadRequestException('Orden de compra inválida');
 
     const mpPayload = {
@@ -78,25 +92,48 @@ export class ProcessPaymentCallbackUseCase {
     const mpResponse = await this.mpAdapter.processPayment(mpPayload);
 
     if (mpResponse.status === 'approved') {
-      return this.confirmOrderAndEnroll(order.id, mpResponse.id.toString(), 'niubiz');
+      return this.confirmOrderAndEnroll(
+        order.id,
+        mpResponse.id.toString(),
+        'niubiz',
+      );
     }
-    
-    throw new BadRequestException(`El pago fue rechazado. Estado: ${mpResponse.status}`);
+
+    throw new BadRequestException(
+      `El pago fue rechazado. Estado: ${mpResponse.status}`,
+    );
   }
 
-  private async confirmOrderAndEnroll(orderId: string, gatewayId: string, method: string) {
+  private async confirmOrderAndEnroll(
+    orderId: string,
+    gatewayId: string,
+    method: string,
+  ) {
     return await this.prisma.$transaction(async (tx) => {
       const order = await tx.order.update({
         where: { id: orderId },
-        data: { payment_status: PaymentStatus.paid, gateway_transaction_id: gatewayId, payment_method: method as any },
+        data: {
+          payment_status: PaymentStatus.paid,
+          gateway_transaction_id: gatewayId,
+          payment_method: method as any,
+        },
         include: { order_items: true },
       });
 
       for (const item of order.order_items) {
         await tx.enrollment.create({
-          data: { user_id: order.user_id, course_id: item.course_id, order_id: order.id, enrollment_type: 'online', progress_percent: 0 },
+          data: {
+            user_id: order.user_id,
+            course_id: item.course_id,
+            order_id: order.id,
+            enrollment_type: 'online',
+            progress_percent: 0,
+          },
         });
-        await tx.course.update({ where: { id: item.course_id }, data: { enrolled_count: { increment: 1 } } });
+        await tx.course.update({
+          where: { id: item.course_id },
+          data: { enrolled_count: { increment: 1 } },
+        });
       }
 
       await tx.cartItem.deleteMany({ where: { user_id: order.user_id } });

@@ -118,7 +118,8 @@ export class CoursesController {
       fileFilter: (_req, file, callback) => {
         if (!file.mimetype.match(/\/(jpg|jpeg|png|webp)$/)) {
           return callback(
-            new Error('Only image files are allowed (jpg, jpeg, png, webp)'), false
+            new Error('Only image files are allowed (jpg, jpeg, png, webp)'),
+            false,
           );
         }
         callback(null, true);
