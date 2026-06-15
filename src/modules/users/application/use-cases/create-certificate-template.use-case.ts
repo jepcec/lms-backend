@@ -35,6 +35,7 @@ export class CreateCertificateTemplateUseCase {
         background_image_url: backgroundImageUrl,
         student_name_position: JSON.parse(dto.student_name_position),
         qr_position: JSON.parse(dto.qr_position),
+        qr_size: dto.qr_size ? parseInt(dto.qr_size, 10) : 300,
         font_family: dto.font_family,
         font_sizes: JSON.parse(dto.font_sizes),
       },

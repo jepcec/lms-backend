@@ -15,4 +15,7 @@ export class UpdateCourseDto {
   outcomes?: string[];
   status?: string;
   instructors?: InstructorInput[];
+  certification_mode?: string;
+  certificate_template_id?: string | null;
+  constancia_template_id?: string | null;
 }

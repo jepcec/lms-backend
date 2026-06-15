@@ -42,8 +42,13 @@ enum CourseCurrency {
 }
 
 enum CertificateType {
-  Certificado    // Certificado (Nota >= 13)
-  Constancia // Constancia (Nota < 13)
+  Certificado    // Certificado (Nota >= 14)
+  Constancia     // Constancia (Nota < 14)
+}
+
+enum CertificationMode {
+  auto    // 100% progreso + reseña → certificado automático
+  manual  // Admin carga notas por módulo y emite manualmente
 }
 
 enum CourseAccessDuration {
@@ -221,7 +226,10 @@ model Course {
   review_count           Int                  @default(0)
   enrolled_count         Int                  @default(0)
   total_duration_minutes Int                  @default(0)
-  created_by             String               @db.Uuid
+  certification_mode        CertificationMode    @default(auto)
+  certificate_template_id   String?             @db.Uuid
+  constancia_template_id    String?             @db.Uuid
+  created_by                String               @db.Uuid
   created_at             DateTime             @default(now())
   updated_at             DateTime             @updatedAt
   deleted_at             DateTime?
@@ -229,6 +237,8 @@ model Course {
   // Relaciones
   category               Category             @relation(fields: [category_id], references: [id])
   creator                User                 @relation("CourseCreatedBy", fields: [created_by], references: [id])
+  certificate_template   CertificateTemplate? @relation("CourseCertificateTemplate", fields: [certificate_template_id], references: [id])
+  constancia_template    CertificateTemplate? @relation("CourseConstanciaTemplate", fields: [constancia_template_id], references: [id])
   instructors            Instructor[]
   modules                Module[]
   enrollments            Enrollment[]
@@ -267,8 +277,9 @@ model Module {
   display_order Int
   created_at    DateTime  @default(now())
 
-  course        Course    @relation(fields: [course_id], references: [id], onDelete: Cascade)
+  course        Course                  @relation(fields: [course_id], references: [id], onDelete: Cascade)
   sessions      Session[]
+  module_grades EnrollmentModuleGrade[]
 
   @@map("modules")
 }
@@ -378,14 +389,15 @@ model Enrollment {
   progress_percent       Decimal               @default(0) @db.Decimal(5, 2)
   completed_at           DateTime?
   last_accessed_at       DateTime?
-  final_score      Decimal?  @db.Decimal(4, 2) // Para registrar notas como 13.50
-
+  final_score            Decimal?              @db.Decimal(4, 2)
+  average_grade          Decimal?              @db.Decimal(4, 2)
 
   student                User                  @relation("StudentEnrollments", fields: [user_id], references: [id])
   course                 Course                @relation(fields: [course_id], references: [id])
   order                  Order?                @relation(fields: [order_id], references: [id])
   enrolled_by_user       User?                 @relation("EnrolledBy", fields: [enrolled_by], references: [id])
   lesson_progress        LessonProgress[]
+  module_grades          EnrollmentModuleGrade[]
   review                 Review?
   certificate            Certificate?
 
@@ -407,6 +419,21 @@ model LessonProgress {
 
   @@unique([enrollment_id, session_id])
   @@map("lesson_progress")
+}
+
+model EnrollmentModuleGrade {
+  id            String     @id @default(uuid()) @db.Uuid
+  enrollment_id String     @db.Uuid
+  module_id     String     @db.Uuid
+  grade         Decimal    @db.Decimal(4, 2)
+  created_at    DateTime   @default(now())
+  updated_at    DateTime   @updatedAt
+
+  enrollment    Enrollment @relation(fields: [enrollment_id], references: [id], onDelete: Cascade)
+  module        Module     @relation(fields: [module_id], references: [id], onDelete: Cascade)
+
+  @@unique([enrollment_id, module_id])
+  @@map("enrollment_module_grades")
 }
 
 // =============================================================
@@ -437,12 +464,15 @@ model CertificateTemplate {
   background_image_url  String
   student_name_position Json     // { x: number, y: number }
   qr_position           Json     // { x: number, y: number }
+  qr_size               Int      @default(300) // unidades del espacio virtual 3508×2480
   font_family           String
-  font_sizes            Json     // { campo: size }
+  font_sizes            Json     // { campo: size } — en unidades del espacio virtual
   is_active             Boolean  @default(false)
   created_at            DateTime @default(now())
 
   certificates          Certificate[]
+  courses               Course[]      @relation("CourseCertificateTemplate")
+  constancia_courses    Course[]      @relation("CourseConstanciaTemplate")
 
   @@map("certificate_templates")
 }
