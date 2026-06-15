@@ -7,6 +7,7 @@ import { MarkAllReadUseCase } from './application/use-cases/mark-all-read.use-ca
 import { CreateNotificationUseCase } from './application/use-cases/create-notification.use-case';
 import { I_NOTIFICATION_REPOSITORY } from './domain/notification.repository';
 import { PrismaNotificationRepository } from './infrastructure/database/prisma-notification.repository';
+import { NotificationsListener } from './infrastructure/listeners/notifications.listener';
 
 @Module({
   controllers: [NotificationsController],
@@ -16,6 +17,7 @@ import { PrismaNotificationRepository } from './infrastructure/database/prisma-n
     MarkReadUseCase,
     MarkAllReadUseCase,
     CreateNotificationUseCase,
+    NotificationsListener,
     {
       provide: I_NOTIFICATION_REPOSITORY,
       useClass: PrismaNotificationRepository,
