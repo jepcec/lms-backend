@@ -28,6 +28,9 @@ import { AdminController } from './infrastructure/routes/admin.controller';
 import { EnrollmentsController } from './infrastructure/routes/enrollments.controller';
 import { CertificateTemplatesController } from './infrastructure/routes/certificate-templates.controller';
 import { CertificatesController } from './infrastructure/routes/certificates.controller';
+import { PublicCertificatesController } from './infrastructure/routes/public-certificates.controller';
+import { ReviewsController } from './infrastructure/routes/reviews.controller';
+import { SubmitReviewUseCase } from './application/use-cases/submit-review.use-case';
 
 // Use Cases
 import { LoginUserUseCase } from './application/use-cases/login-user.use-case';
@@ -70,6 +73,9 @@ import { ActivateCertificateTemplateUseCase } from './application/use-cases/acti
 import { DeleteCertificateTemplateUseCase } from './application/use-cases/delete-certificate-template.use-case';
 import { GetMyCertificatesUseCase } from './application/use-cases/get-my-certificates.use-case';
 import { GetCertificateUseCase } from './application/use-cases/get-certificate.use-case';
+import { GetStudentCertificateUseCase } from './application/use-cases/get-student-certificate.use-case';
+import { VerifyCertificateUseCase } from './application/use-cases/verify-certificate.use-case';
+import { CertificatePdfService } from '../cources/application/services/certificate-pdf.service';
 
 @Module({
   imports: [
@@ -92,6 +98,8 @@ import { GetCertificateUseCase } from './application/use-cases/get-certificate.u
     EnrollmentsController,
     CertificateTemplatesController,
     CertificatesController,
+    PublicCertificatesController,
+    ReviewsController,
   ],
   providers: [
     PrismaService,
@@ -136,6 +144,10 @@ import { GetCertificateUseCase } from './application/use-cases/get-certificate.u
     DeleteCertificateTemplateUseCase,
     GetMyCertificatesUseCase,
     GetCertificateUseCase,
+    GetStudentCertificateUseCase,
+    VerifyCertificateUseCase,
+    CertificatePdfService,
+    SubmitReviewUseCase,
     CryptoTokenService,
     // Interface Mappings
     { provide: I_USER_REPOSITORY, useClass: PrismaUserRepository },

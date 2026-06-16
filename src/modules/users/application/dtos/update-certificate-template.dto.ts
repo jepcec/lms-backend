@@ -18,6 +18,10 @@ export class UpdateCertificateTemplateDto {
 
   @IsOptional()
   @IsString()
+  qr_size?: string;
+
+  @IsOptional()
+  @IsString()
   font_family?: string;
 
   @IsOptional()

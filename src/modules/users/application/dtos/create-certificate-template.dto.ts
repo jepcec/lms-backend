@@ -16,6 +16,10 @@ export class CreateCertificateTemplateDto {
   @IsNotEmpty()
   qr_position: string;
 
+  @IsOptional()
+  @IsString()
+  qr_size?: string; // viene como string desde FormData
+
   @IsString()
   @IsNotEmpty()
   font_family: string;

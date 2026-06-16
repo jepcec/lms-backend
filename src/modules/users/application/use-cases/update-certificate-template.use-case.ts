@@ -30,6 +30,8 @@ export class UpdateCertificateTemplateUseCase {
     if (dto.student_name_position)
       updateData.student_name_position = JSON.parse(dto.student_name_position);
     if (dto.qr_position) updateData.qr_position = JSON.parse(dto.qr_position);
+    if (dto.qr_size !== undefined)
+      updateData.qr_size = parseInt(String(dto.qr_size), 10);
     if (dto.font_sizes) updateData.font_sizes = JSON.parse(dto.font_sizes);
 
     if (dto.background_image) {

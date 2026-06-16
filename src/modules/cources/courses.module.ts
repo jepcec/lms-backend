@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
 import { I_COURSE_REPOSITORY } from './domain/courses.repository';
 import { I_MODULE_REPOSITORY } from './domain/modules.repository';
 import { I_SESSION_REPOSITORY } from './domain/sessions.repository';
@@ -44,14 +45,23 @@ import { CreateCategoriaUseCase } from './application/use-cases/create-categoria
 import { UpdateCategoriaUseCase } from './application/use-cases/update-categoria.use-case';
 import { DeleteCategoriaUseCase } from './application/use-cases/delete-categoria.use-case';
 import { ReorderCategoriasUseCase } from './application/use-cases/reorder-categorias.use-case';
+import { CertificationsController } from './infrastructure/routes/certifications.controller';
+import { GetCourseCertificationsUseCase } from './application/use-cases/get-course-certifications.use-case';
+import { ExportCertificationExcelUseCase } from './application/use-cases/export-certification-excel.use-case';
+import { ImportCertificationGradesUseCase } from './application/use-cases/import-certification-grades.use-case';
+import { EmitStudentCertificateUseCase } from './application/use-cases/emit-student-certificate.use-case';
+import { GenerateAllCertificationsUseCase } from './application/use-cases/generate-all-certifications.use-case';
+import { CertificatePdfService } from './application/services/certificate-pdf.service';
+
 @Module({
-  imports: [StorageModule],
+  imports: [StorageModule, ConfigModule],
   controllers: [
     CoursesController,
     ModulesController,
     SessionsController,
     MaterialsController,
     CategoriesController,
+    CertificationsController,
   ],
   providers: [
     PrismaService,
@@ -85,6 +95,12 @@ import { ReorderCategoriasUseCase } from './application/use-cases/reorder-catego
     CreateMaterialUseCase,
     DeleteMaterialUseCase,
     GetMaterialsUseCase,
+    GetCourseCertificationsUseCase,
+    ExportCertificationExcelUseCase,
+    ImportCertificationGradesUseCase,
+    EmitStudentCertificateUseCase,
+    GenerateAllCertificationsUseCase,
+    CertificatePdfService,
     { provide: I_COURSE_REPOSITORY, useClass: PrismaCourseRepository },
     { provide: I_MODULE_REPOSITORY, useClass: PrismaModuleRepository },
     { provide: I_SESSION_REPOSITORY, useClass: PrismaSessionRepository },
