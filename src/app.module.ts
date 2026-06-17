@@ -32,11 +32,8 @@ import { PaymentsModule } from './modules/payments/payments.module';
     CoursesModule,
     ShoppingCartModule,
     MarketingModule,
-<<<<<<< HEAD
-    PaymentsModule
-=======
+    PaymentsModule,
     NotificationsModule,
->>>>>>> 111bb94f1a767f555804e4e9035d70c916b110a6
   ],
   controllers: [AppController],
   providers: [AppService, PrismaService],
