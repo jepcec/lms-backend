@@ -132,7 +132,7 @@ export class PrismaCourseRepository implements ICourseRepository {
       review_count: course.review_count,
       enrolled_count: course.enrolled_count,
       total_duration_minutes: course.total_duration_minutes,
-      certification_mode: course.certification_mode as 'auto' | 'manual',
+      certification_mode: course.certification_mode,
       certificate_template_id: course.certificate_template_id,
       constancia_template_id: course.constancia_template_id,
       created_by: course.created_by,

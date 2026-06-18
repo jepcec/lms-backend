@@ -65,7 +65,7 @@ export class ExportCertificationExcelUseCase {
       }
 
       const moduleGrades = course.modules.map((m) => gradesMap[m.id] ?? null);
-      const filledGrades = moduleGrades.filter((g) => g !== null) as number[];
+      const filledGrades = moduleGrades.filter((g) => g !== null);
       const average =
         filledGrades.length > 0
           ? filledGrades.reduce((a, b) => a + b, 0) / filledGrades.length

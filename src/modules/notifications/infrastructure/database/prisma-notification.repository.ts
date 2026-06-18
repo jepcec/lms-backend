@@ -54,4 +54,19 @@ export class PrismaNotificationRepository implements INotificationRepository {
     });
     return new NotificationEntity(notification);
   }
+
+  async createMany(data: Partial<NotificationEntity>[]): Promise<number> {
+    if (data.length === 0) return 0;
+
+    const result = await this.prisma.notification.createMany({
+      data: data.map((n) => ({
+        user_id: n.user_id!,
+        type: n.type as NotificationType,
+        title: n.title!,
+        body: n.body!,
+        redirect_url: n.redirect_url,
+      })),
+    });
+    return result.count;
+  }
 }

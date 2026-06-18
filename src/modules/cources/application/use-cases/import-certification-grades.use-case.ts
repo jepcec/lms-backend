@@ -10,7 +10,6 @@ import * as ExcelJS from 'exceljs';
 export class ImportCertificationGradesUseCase {
   constructor(private readonly prisma: PrismaService) {}
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async execute(courseId: string, fileBuffer: any) {
     const course = await this.prisma.course.findUnique({
       where: { id: courseId, deleted_at: null },
@@ -44,7 +43,8 @@ export class ImportCertificationGradesUseCase {
       const moduleGrades: { module_id: string; grade: number }[] = [];
       for (let i = 0; i < moduleCount; i++) {
         const cellValue = row.getCell(5 + i).value;
-        if (cellValue === null || cellValue === undefined || cellValue === '') continue;
+        if (cellValue === null || cellValue === undefined || cellValue === '')
+          continue;
 
         const grade = Number(cellValue);
         if (isNaN(grade) || grade < 0 || grade > 20) {
