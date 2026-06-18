@@ -20,7 +20,9 @@ export class GetCourseCertificationsUseCase {
     const enrollments = await this.prisma.enrollment.findMany({
       where: { course_id: courseId },
       include: {
-        student: { select: { id: true, first_name: true, last_name: true, email: true } },
+        student: {
+          select: { id: true, first_name: true, last_name: true, email: true },
+        },
         module_grades: true,
         certificate: { select: { id: true, type: true, issued_at: true } },
       },
@@ -55,7 +57,11 @@ export class GetCourseCertificationsUseCase {
       certification_mode: course.certification_mode,
       certificate_template: course.certificate_template,
       constancia_template: course.constancia_template,
-      modules: course.modules.map((m) => ({ id: m.id, title: m.title, display_order: m.display_order })),
+      modules: course.modules.map((m) => ({
+        id: m.id,
+        title: m.title,
+        display_order: m.display_order,
+      })),
       students,
     };
   }

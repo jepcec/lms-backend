@@ -9,7 +9,12 @@ import { PrismaService } from '../../../../core/database/prisma.service';
 export class UpdateSessionProgressUseCase {
   constructor(private readonly prisma: PrismaService) {}
 
-  async execute(userId: string, sessionId: string, watchedSeconds: number, forceComplete = false) {
+  async execute(
+    userId: string,
+    sessionId: string,
+    watchedSeconds: number,
+    forceComplete = false,
+  ) {
     const session = await this.prisma.session.findUnique({
       where: { id: sessionId },
       include: {
@@ -44,7 +49,8 @@ export class UpdateSessionProgressUseCase {
     }
 
     const totalDurationSeconds = session.duration_minutes * 60;
-    const completed = forceComplete || watchedSeconds >= totalDurationSeconds * 0.9;
+    const completed =
+      forceComplete || watchedSeconds >= totalDurationSeconds * 0.9;
 
     await this.prisma.lessonProgress.upsert({
       where: {

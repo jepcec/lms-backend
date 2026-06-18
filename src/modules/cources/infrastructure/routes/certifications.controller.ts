@@ -41,7 +41,7 @@ export class CertificationsController {
   @Get('export')
   async exportToExcel(
     @Param('courseId') courseId: string,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
     @Res() res: any,
   ) {
     const response = res as Response;
@@ -58,9 +58,7 @@ export class CertificationsController {
   }
 
   @Post('import')
-  @UseInterceptors(
-    FileInterceptor('file', { storage: memoryStorage() }),
-  )
+  @UseInterceptors(FileInterceptor('file', { storage: memoryStorage() }))
   importGradesFromExcel(
     @Param('courseId') courseId: string,
     @UploadedFile() file: Express.Multer.File,

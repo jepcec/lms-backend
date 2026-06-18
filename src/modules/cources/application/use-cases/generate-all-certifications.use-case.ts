@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { PrismaService } from '../../../../core/database/prisma.service';
 import { CertificatePdfService } from '../services/certificate-pdf.service';
 
@@ -36,8 +40,8 @@ export class GenerateAllCertificationsUseCase {
         generated === 0
           ? 'No hay certificados emitidos en este curso'
           : failed === 0
-          ? `${generated} PDF(s) generados correctamente`
-          : `${generated} generados, ${failed} con error`,
+            ? `${generated} PDF(s) generados correctamente`
+            : `${generated} generados, ${failed} con error`,
     };
   }
 }

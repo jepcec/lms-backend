@@ -80,8 +80,9 @@ export class CertificatePdfService {
     // 3. Posiciones y tamaños desde la plantilla
     // Todas las unidades (coords y font_size) están en espacio virtual 3508×2480.
     // Se escalan a PDF points igual que las coordenadas.
-    const namePos = cert.template.student_name_position as unknown as NamePosition;
-    const qrPos   = cert.template.qr_position           as unknown as NamePosition;
+    const namePos = cert.template
+      .student_name_position as unknown as NamePosition;
+    const qrPos = cert.template.qr_position as unknown as NamePosition;
     const fontSizes = cert.template.font_sizes as FontSizes;
     const rawFontSize = fontSizes?.student_name ?? 200; // unidades virtuales
 
@@ -96,7 +97,7 @@ export class CertificatePdfService {
     const font = await pdfDoc.embedFont(
       this.mapToStandardFont(cert.template.font_family),
     );
-    const nameWidth  = font.widthOfTextAtSize(studentName, fontSize);
+    const nameWidth = font.widthOfTextAtSize(studentName, fontSize);
     const nameHeight = font.heightAtSize(fontSize);
 
     // Escalar posición y flipear Y (pdf-lib: origen bottom-left)
@@ -130,7 +131,12 @@ export class CertificatePdfService {
     const pdfQrX = qrPos.x * scaleX - qrPt / 2;
     const pdfQrY = PAGE_H - qrPos.y * scaleY - qrPt / 2;
 
-    page.drawImage(qrImage, { x: pdfQrX, y: pdfQrY, width: qrPt, height: qrPt });
+    page.drawImage(qrImage, {
+      x: pdfQrX,
+      y: pdfQrY,
+      width: qrPt,
+      height: qrPt,
+    });
 
     // 6. Serializar y subir
     const pdfBytes = await pdfDoc.save();
