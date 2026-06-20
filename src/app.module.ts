@@ -32,6 +32,7 @@ import { PaymentsModule } from './modules/payments/payments.module';
     CoursesModule,
     ShoppingCartModule,
     MarketingModule,
+    PaymentsModule,
     NotificationsModule,
   ],
   controllers: [AppController],
