@@ -31,7 +31,7 @@ export class LocalStorageService implements IFileStorageService {
     return {
       url,
       secureUrl: url,
-      publicId: filename,
+      publicId: `${folder}/${filename}`,
       mimetype: file.mimetype,
       originalName: file.originalName,
       size: file.buffer.length,

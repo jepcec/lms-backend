@@ -96,6 +96,16 @@ export class CreateMatriculasUseCase {
       ),
     );
 
+    // Actualizar enrolled_count en cada curso matriculado
+    await Promise.all(
+      toCreate.map((courseId) =>
+        this.prisma.course.update({
+          where: { id: courseId },
+          data: { enrolled_count: { increment: 1 } },
+        }),
+      ),
+    );
+
     const skipped = dto.course_ids.length - toCreate.length;
 
     return {

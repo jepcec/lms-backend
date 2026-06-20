@@ -18,7 +18,7 @@ export class UpdatePromotionUseCase {
     private readonly fileStorageService: IFileStorageService,
   ) {}
 
-async execute(id: string, dto: UpdatePromotionDto) {
+  async execute(id: string, dto: UpdatePromotionDto) {
     const promotion = await this.promotionRepository.findById(id);
     if (!promotion) throw new NotFoundException('Promotion not found');
 
@@ -52,6 +52,6 @@ async execute(id: string, dto: UpdatePromotionDto) {
       status: dto.status,
       starts_at: dto.starts_at ? new Date(dto.starts_at) : undefined,
       ends_at: dto.ends_at ? new Date(dto.ends_at) : undefined,
-    } as any);
+    });
   }
 }
