@@ -14,6 +14,8 @@ import { GetCourseProgressUseCase } from '../../application/use-cases/get-course
 import { UpdateSessionProgressUseCase } from '../../application/use-cases/update-session-progress.use-case';
 import { GetMyCertificatesUseCase } from '../../application/use-cases/get-my-certificates.use-case';
 import { GetStudentCertificateUseCase } from '../../application/use-cases/get-student-certificate.use-case';
+// 🚀 CAMBIO 1: Importamos el PrismaService (Verifica la ruta relativa de tus carpetas si es necesario)
+import { PrismaService } from '../../../../core/database/prisma.service'; 
 
 @Controller('student')
 @Roles('estudiante')
@@ -25,6 +27,8 @@ export class StudentController {
     private readonly updateSessionProgress: UpdateSessionProgressUseCase,
     private readonly getMyCertificates: GetMyCertificatesUseCase,
     private readonly getStudentCertificate: GetStudentCertificateUseCase,
+    // 🚀 CAMBIO 2: Inyectamos Prisma en el constructor para tener acceso directo a la BD
+    private readonly prisma: PrismaService, 
   ) {}
 
   @Get('enrollments')
@@ -37,6 +41,31 @@ export class StudentController {
     @CurrentUser('userId') userId: string,
     @Param('courseId', ParseUUIDPipe) courseId: string,
   ) {
+    // 🚀 CAMBIO 3: Escudo de Auto-Matrícula Real para el Temario
+    // Buscamos si el alumno ya tiene la fila en Postgres usando el índice único compuesto
+    const enrollment = await this.prisma.enrollment.findUnique({
+      where: { user_id_course_id: { user_id: userId, course_id: courseId } },
+    });
+
+    // Si no existe, la creamos físicamente en este instante antes de pasar al caso de uso
+    if (!enrollment) {
+      console.log(`⚡ [AUTO-MATRÍCULA] Generando inscripción en Postgres para courseId: ${courseId}`);
+      await this.prisma.enrollment.create({
+        data: {
+          user_id: userId,
+          course_id: courseId,
+          enrollment_type: 'online',
+          progress_percent: 0,
+        },
+      });
+
+      // Incrementamos el contador de alumnos del curso
+      await this.prisma.course.update({
+        where: { id: courseId },
+        data: { enrolled_count: { increment: 1 } },
+      });
+    }
+
     return await this.getCourseContent.execute(userId, courseId);
   }
 
@@ -45,6 +74,22 @@ export class StudentController {
     @CurrentUser('userId') userId: string,
     @Param('courseId', ParseUUIDPipe) courseId: string,
   ) {
+    // 🚀 CAMBIO 4: Escudo de Auto-Matrícula Real para el Progreso
+    const enrollment = await this.prisma.enrollment.findUnique({
+      where: { user_id_course_id: { user_id: userId, course_id: courseId } },
+    });
+
+    if (!enrollment) {
+      await this.prisma.enrollment.create({
+        data: {
+          user_id: userId,
+          course_id: courseId,
+          enrollment_type: 'online',
+          progress_percent: 0,
+        },
+      });
+    }
+
     return await this.getCourseProgress.execute(userId, courseId);
   }
 

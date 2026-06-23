@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from 'src/core/database/prisma.service';
+import { PrismaService } from '../../../../../src/core/database/prisma.service';
 import { NotificationEntity } from '../../domain/notification.entity';
 import type { INotificationRepository } from '../../domain/notification.repository';
-import { NotificationType } from 'src/generated/prisma/enums';
+import { NotificationType } from '../../../../../src/generated/prisma/enums';
 
 @Injectable()
 export class PrismaNotificationRepository implements INotificationRepository {
@@ -53,5 +53,20 @@ export class PrismaNotificationRepository implements INotificationRepository {
       },
     });
     return new NotificationEntity(notification);
+  }
+
+  async createMany(data: Partial<NotificationEntity>[]): Promise<number> {
+    if (data.length === 0) return 0;
+
+    const result = await this.prisma.notification.createMany({
+      data: data.map((n) => ({
+        user_id: n.user_id!,
+        type: n.type as NotificationType,
+        title: n.title!,
+        body: n.body!,
+        redirect_url: n.redirect_url,
+      })),
+    });
+    return result.count;
   }
 }

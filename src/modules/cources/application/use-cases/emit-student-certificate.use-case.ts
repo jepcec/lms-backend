@@ -58,7 +58,9 @@ export class EmitStudentCertificateUseCase {
 
     if (!enrollment) throw new NotFoundException('Matrícula no encontrada');
     if (!enrollment.certificate) {
-      throw new BadRequestException('Este estudiante no tiene certificado asignado');
+      throw new BadRequestException(
+        'Este estudiante no tiene certificado asignado',
+      );
     }
 
     await this.prisma.certificate.delete({

@@ -102,7 +102,7 @@ export class CertificatePdfService {
     const font = await pdfDoc.embedFont(
       this.mapToStandardFont(cert.template.font_family),
     );
-    const nameWidth  = font.widthOfTextAtSize(studentName, fontSize);
+    const nameWidth = font.widthOfTextAtSize(studentName, fontSize);
     const nameHeight = font.heightAtSize(fontSize);
 
     const pdfNameX = namePos.x * scaleX - nameWidth / 2;

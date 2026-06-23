@@ -53,9 +53,7 @@ export class CertificationsController {
   }
 
   @Post('import')
-  @UseInterceptors(
-    FileInterceptor('file', { storage: memoryStorage() }),
-  )
+  @UseInterceptors(FileInterceptor('file', { storage: memoryStorage() }))
   importGradesFromExcel(
     @Param('courseId') courseId: string,
     @UploadedFile() file: Express.Multer.File,
