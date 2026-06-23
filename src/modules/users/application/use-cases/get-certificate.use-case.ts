@@ -34,7 +34,6 @@ export class GetCertificateUseCase {
     return {
       id: certificate.id,
       verification_code: certificate.verification_code,
-      pdf_url: certificate.pdf_url,
       course_title: course.title,
       student_name: `${student.first_name} ${student.last_name}`,
       issued_at: certificate.issued_at,

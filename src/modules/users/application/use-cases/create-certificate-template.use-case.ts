@@ -16,6 +16,7 @@ export class CreateCertificateTemplateUseCase {
 
   async execute(dto: CreateCertificateTemplateDto) {
     let backgroundImageUrl = '';
+    let backImageUrl: string | null = null;
 
     if (dto.background_image) {
       const result = await this.fileStorageService.upload({
@@ -29,10 +30,23 @@ export class CreateCertificateTemplateUseCase {
       });
     }
 
+    if (dto.back_image) {
+      const result = await this.fileStorageService.upload({
+        buffer: dto.back_image.buffer,
+        originalName: dto.back_image.originalname,
+        mimetype: dto.back_image.mimetype,
+        folder: 'certificate-templates',
+      });
+      backImageUrl = this.fileStorageService.getUrl(result.publicId, {
+        format: 'webp',
+      });
+    }
+
     return this.prisma.certificateTemplate.create({
       data: {
         name: dto.name,
         background_image_url: backgroundImageUrl,
+        back_image_url: backImageUrl,
         student_name_position: JSON.parse(dto.student_name_position),
         qr_position: JSON.parse(dto.qr_position),
         qr_size: dto.qr_size ? parseInt(dto.qr_size, 10) : 300,

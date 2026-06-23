@@ -8,6 +8,9 @@ export class CreateCertificateTemplateDto {
   @IsOptional()
   background_image?: Express.Multer.File;
 
+  @IsOptional()
+  back_image?: Express.Multer.File;
+
   @IsString()
   @IsNotEmpty()
   student_name_position: string;

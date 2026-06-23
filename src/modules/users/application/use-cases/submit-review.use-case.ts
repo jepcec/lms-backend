@@ -6,7 +6,6 @@ import {
   Logger,
 } from '@nestjs/common';
 import { PrismaService } from '../../../../core/database/prisma.service';
-import { CertificatePdfService } from '../../../cources/application/services/certificate-pdf.service';
 
 export class SubmitReviewDto {
   course_id: string;
@@ -19,10 +18,7 @@ export class SubmitReviewDto {
 export class SubmitReviewUseCase {
   private readonly logger = new Logger(SubmitReviewUseCase.name);
 
-  constructor(
-    private readonly prisma: PrismaService,
-    private readonly pdfService: CertificatePdfService,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
   async execute(userId: string, dto: SubmitReviewDto) {
     const enrollment = await this.prisma.enrollment.findFirst({
@@ -95,23 +91,15 @@ export class SubmitReviewUseCase {
       course.certificate_template_id
     ) {
       try {
-        const cert = await this.prisma.certificate.create({
+        await this.prisma.certificate.create({
           data: {
             enrollment_id: dto.enrollment_id,
             template_id: course.certificate_template_id,
             type: 'Certificado',
-            pdf_url: 'PENDIENTE_GENERACION_PDF',
             review_id: review.id,
           },
         });
         certificate_available = true;
-
-        // Generar PDF en background sin bloquear la respuesta
-        void this.pdfService.generateForCertificate(cert.id).catch((err) => {
-          this.logger.error(
-            `Error generando PDF auto para certificado ${cert.id}: ${err?.message ?? err}`,
-          );
-        });
       } catch (err) {
         // Si el certificado ya existe, no es error fatal
         this.logger.warn(

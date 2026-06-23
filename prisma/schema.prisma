@@ -415,7 +415,7 @@ model LessonProgress {
   last_watched_at DateTime  @updatedAt
 
   enrollment      Enrollment @relation(fields: [enrollment_id], references: [id], onDelete: Cascade)
-  session         Session    @relation(fields: [session_id], references: [id])
+  session         Session    @relation(fields: [session_id], references: [id], onDelete: Cascade)
 
   @@unique([enrollment_id, session_id])
   @@map("lesson_progress")
@@ -462,6 +462,7 @@ model CertificateTemplate {
   id                    String   @id @default(uuid()) @db.Uuid
   name                  String
   background_image_url  String
+  back_image_url        String?  // imagen de contraportada
   student_name_position Json     // { x: number, y: number }
   qr_position           Json     // { x: number, y: number }
   qr_size               Int      @default(300) // unidades del espacio virtual 3508×2480
@@ -483,7 +484,7 @@ model Certificate {
   template_id       String              @db.Uuid
   type              CertificateType
   verification_code String              @unique @default(uuid())
-  pdf_url           String
+  pdf_url           String?
   issued_at         DateTime            @default(now())
 
   review_id         String?             @unique @db.Uuid

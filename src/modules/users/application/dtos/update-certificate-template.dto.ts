@@ -9,6 +9,9 @@ export class UpdateCertificateTemplateDto {
   background_image?: Express.Multer.File;
 
   @IsOptional()
+  back_image?: Express.Multer.File;
+
+  @IsOptional()
   @IsString()
   student_name_position?: string;
 

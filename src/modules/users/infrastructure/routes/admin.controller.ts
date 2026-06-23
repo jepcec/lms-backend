@@ -15,6 +15,7 @@ import { GetTopFinalizacionUseCase } from '../../application/use-cases/get-top-f
 import { GetTopEstudiantesUseCase } from '../../application/use-cases/get-top-estudiantes.use-case';
 import { GetMatriculadosCursoUseCase } from '../../application/use-cases/get-matriculados-curso.use-case';
 import { GetActividadEstudianteUseCase } from '../../application/use-cases/get-actividad-estudiante.use-case';
+import { GetStudentDetailUseCase } from '../../application/use-cases/get-student-detail.use-case';
 
 @Controller('admin')
 @Roles('admin')
@@ -31,8 +32,10 @@ export class AdminController {
     private readonly getTopEstudiantes: GetTopEstudiantesUseCase,
     private readonly getMatriculadosCurso: GetMatriculadosCursoUseCase,
     private readonly getActividadEstudiante: GetActividadEstudianteUseCase,
+    private readonly getStudentDetail: GetStudentDetailUseCase,
   ) {}
 
+  @Roles('admin', 'soporte')
   @Get('usuarios')
   async listUsuariosHandler(@Query() params: ListUsuariosDto) {
     return this.listUsuarios.execute(params);
@@ -86,6 +89,13 @@ export class AdminController {
     return this.getMatriculadosCurso.execute(cursoId, params);
   }
 
+  @Roles('admin', 'soporte')
+  @Get('estudiantes/:userId')
+  async studentDetailHandler(@Param('userId') userId: string) {
+    return this.getStudentDetail.execute(userId);
+  }
+
+  @Roles('admin', 'soporte')
   @Get('estudiantes/:userId/cursos/:courseId/actividad')
   async actividadEstudianteHandler(
     @Param('userId') userId: string,

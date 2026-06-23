@@ -76,6 +76,8 @@ import { GetCertificateUseCase } from './application/use-cases/get-certificate.u
 import { GetStudentCertificateUseCase } from './application/use-cases/get-student-certificate.use-case';
 import { VerifyCertificateUseCase } from './application/use-cases/verify-certificate.use-case';
 import { CertificatePdfService } from '../cources/application/services/certificate-pdf.service';
+import { GetStudentDetailUseCase } from './application/use-cases/get-student-detail.use-case';
+import { DeleteEnrollmentUseCase } from './application/use-cases/delete-enrollment.use-case';
 
 @Module({
   imports: [
@@ -148,6 +150,8 @@ import { CertificatePdfService } from '../cources/application/services/certifica
     VerifyCertificateUseCase,
     CertificatePdfService,
     SubmitReviewUseCase,
+    GetStudentDetailUseCase,
+    DeleteEnrollmentUseCase,
     CryptoTokenService,
     // Interface Mappings
     { provide: I_USER_REPOSITORY, useClass: PrismaUserRepository },

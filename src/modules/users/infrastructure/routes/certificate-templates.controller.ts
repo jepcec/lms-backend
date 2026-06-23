@@ -4,13 +4,12 @@ import {
   Delete,
   Get,
   Param,
-  ParseFilePipeBuilder,
   Patch,
   Post,
-  UploadedFile,
+  UploadedFiles,
   UseInterceptors,
 } from '@nestjs/common';
-import { FileInterceptor } from '@nestjs/platform-express';
+import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { memoryStorage } from 'multer';
 import { Roles } from 'src/modules/auth/decorators/roles.decorator';
 import { ListCertificateTemplatesUseCase } from '../../application/use-cases/list-certificate-templates.use-case';
@@ -60,48 +59,56 @@ export class CertificateTemplatesController {
 
   @Post()
   @UseInterceptors(
-    FileInterceptor('background_image', {
-      storage: memoryStorage(),
-      fileFilter: imageFileFilter,
-      limits: { fileSize: 10 * 1024 * 1024 },
-    }),
+    FileFieldsInterceptor(
+      [
+        { name: 'background_image', maxCount: 1 },
+        { name: 'back_image', maxCount: 1 },
+      ],
+      {
+        storage: memoryStorage(),
+        fileFilter: imageFileFilter,
+        limits: { fileSize: 10 * 1024 * 1024 },
+      },
+    ),
   )
   create(
     @Body() dto: CreateCertificateTemplateDto,
-    @UploadedFile(
-      new ParseFilePipeBuilder()
-        .addMaxSizeValidator({ maxSize: 10 * 1024 * 1024 })
-        .build({ fileIsRequired: false }),
-    )
-    image?: Express.Multer.File,
+    @UploadedFiles()
+    files: {
+      background_image?: Express.Multer.File[];
+      back_image?: Express.Multer.File[];
+    },
   ) {
-    if (image) {
-      dto.background_image = image;
-    }
+    if (files?.background_image?.[0]) dto.background_image = files.background_image[0];
+    if (files?.back_image?.[0]) dto.back_image = files.back_image[0];
     return this.createUseCase.execute(dto);
   }
 
   @Patch(':id')
   @UseInterceptors(
-    FileInterceptor('background_image', {
-      storage: memoryStorage(),
-      fileFilter: imageFileFilter,
-      limits: { fileSize: 10 * 1024 * 1024 },
-    }),
+    FileFieldsInterceptor(
+      [
+        { name: 'background_image', maxCount: 1 },
+        { name: 'back_image', maxCount: 1 },
+      ],
+      {
+        storage: memoryStorage(),
+        fileFilter: imageFileFilter,
+        limits: { fileSize: 10 * 1024 * 1024 },
+      },
+    ),
   )
   update(
     @Param('id') id: string,
     @Body() dto: UpdateCertificateTemplateDto,
-    @UploadedFile(
-      new ParseFilePipeBuilder()
-        .addMaxSizeValidator({ maxSize: 10 * 1024 * 1024 })
-        .build({ fileIsRequired: false }),
-    )
-    image?: Express.Multer.File,
+    @UploadedFiles()
+    files: {
+      background_image?: Express.Multer.File[];
+      back_image?: Express.Multer.File[];
+    },
   ) {
-    if (image) {
-      dto.background_image = image;
-    }
+    if (files?.background_image?.[0]) dto.background_image = files.background_image[0];
+    if (files?.back_image?.[0]) dto.back_image = files.back_image[0];
     return this.updateUseCase.execute(id, dto);
   }
 

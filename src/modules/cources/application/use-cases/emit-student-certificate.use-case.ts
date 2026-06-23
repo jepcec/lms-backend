@@ -33,7 +33,7 @@ export class EmitStudentCertificateUseCase {
         data: {
           type: dto.type,
           template_id: dto.template_id,
-          pdf_url: 'PENDIENTE_GENERACION_PDF',
+          pdf_url: null,
         },
       });
       return { id: updated.id, type: updated.type, action: 'updated' };
@@ -44,7 +44,6 @@ export class EmitStudentCertificateUseCase {
         enrollment_id: dto.enrollment_id,
         template_id: dto.template_id,
         type: dto.type,
-        pdf_url: 'PENDIENTE_GENERACION_PDF',
       },
     });
 

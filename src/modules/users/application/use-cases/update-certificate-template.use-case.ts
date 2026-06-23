@@ -47,6 +47,19 @@ export class UpdateCertificateTemplateUseCase {
       );
     }
 
+    if (dto.back_image) {
+      const result = await this.fileStorageService.upload({
+        buffer: dto.back_image.buffer,
+        originalName: dto.back_image.originalname,
+        mimetype: dto.back_image.mimetype,
+        folder: 'certificate-templates',
+      });
+      updateData.back_image_url = this.fileStorageService.getUrl(
+        result.publicId,
+        { format: 'webp' },
+      );
+    }
+
     return this.prisma.certificateTemplate.update({
       where: { id },
       data: updateData,

@@ -50,8 +50,6 @@ import { GetCourseCertificationsUseCase } from './application/use-cases/get-cour
 import { ExportCertificationExcelUseCase } from './application/use-cases/export-certification-excel.use-case';
 import { ImportCertificationGradesUseCase } from './application/use-cases/import-certification-grades.use-case';
 import { EmitStudentCertificateUseCase } from './application/use-cases/emit-student-certificate.use-case';
-import { GenerateAllCertificationsUseCase } from './application/use-cases/generate-all-certifications.use-case';
-import { CertificatePdfService } from './application/services/certificate-pdf.service';
 
 @Module({
   imports: [StorageModule, ConfigModule],
@@ -99,8 +97,6 @@ import { CertificatePdfService } from './application/services/certificate-pdf.se
     ExportCertificationExcelUseCase,
     ImportCertificationGradesUseCase,
     EmitStudentCertificateUseCase,
-    GenerateAllCertificationsUseCase,
-    CertificatePdfService,
     { provide: I_COURSE_REPOSITORY, useClass: PrismaCourseRepository },
     { provide: I_MODULE_REPOSITORY, useClass: PrismaModuleRepository },
     { provide: I_SESSION_REPOSITORY, useClass: PrismaSessionRepository },

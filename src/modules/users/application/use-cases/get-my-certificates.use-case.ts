@@ -31,7 +31,6 @@ export class GetMyCertificatesUseCase {
       enrollment_id: cert.enrollment_id,
       course_title: cert.enrollment.course.title,
       verification_code: cert.verification_code,
-      pdf_url: cert.pdf_url,
       issued_at: cert.issued_at,
     }));
   }

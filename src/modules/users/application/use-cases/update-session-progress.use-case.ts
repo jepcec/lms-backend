@@ -72,16 +72,18 @@ export class UpdateSessionProgressUseCase {
     );
     const totalSessions = allSessions.length;
 
+    const validSessionIds = allSessions.map((s) => s.id);
     const completedProgress = await this.prisma.lessonProgress.count({
       where: {
         enrollment_id: enrollment.id,
         completed: true,
+        session_id: { in: validSessionIds },
       },
     });
 
-    const progressPercent = Math.round(
-      (completedProgress / totalSessions) * 100,
-    );
+    const progressPercent = totalSessions === 0
+      ? 0
+      : Math.min(Math.round((completedProgress / totalSessions) * 100), 100);
 
     const updateData: Record<string, unknown> = {
       progress_percent: progressPercent,
