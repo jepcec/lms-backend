@@ -87,9 +87,10 @@ export class UpdateSessionProgressUseCase {
       },
     });
 
-    const progressPercent = totalSessions === 0
-      ? 0
-      : Math.min(Math.round((completedProgress / totalSessions) * 100), 100);
+    const progressPercent =
+      totalSessions === 0
+        ? 0
+        : Math.min(Math.round((completedProgress / totalSessions) * 100), 100);
 
     const updateData: Record<string, unknown> = {
       progress_percent: progressPercent,

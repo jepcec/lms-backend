@@ -5,6 +5,9 @@ import { Injectable } from '@nestjs/common';
 @Injectable()
 export class GenerateAllCertificationsUseCase {
   async execute(_courseId: string) {
-    return { message: 'Los PDFs ahora se generan bajo demanda en el endpoint de descarga.' };
+    return {
+      message:
+        'Los PDFs ahora se generan bajo demanda en el endpoint de descarga.',
+    };
   }
 }

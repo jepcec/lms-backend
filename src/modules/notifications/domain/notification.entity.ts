@@ -1,5 +1,7 @@
 export type NotificationType =
   | 'nuevo_curso'
+  | 'descuento'
+  | 'anuncio'
   | 'completado'
   | 'recordatorio'
   | 'matriculacion'

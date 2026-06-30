@@ -108,17 +108,24 @@ export class PaypalService {
           },
         },
       );
-      
+
       paypalData = await response.json();
       if (response.ok && paypalData.status === 'COMPLETED') {
         isCompleted = true;
       }
     } catch (error) {
-      console.warn('⚠️ [PAYPAL API WARN] Error al conectar con Sandbox o ID simulado, evaluando modo de contingencia real.');
+      console.warn(
+        '⚠️ [PAYPAL API WARN] Error al conectar con Sandbox o ID simulado, evaluando modo de contingencia real.',
+      );
     }
 
     // Si la pasarela falla de verdad y no es una prueba controlada del frente, lanzamos error clásico
-    if (!isCompleted && !paypalOrderId.startsWith('EG-ORD-') && !paypalOrderId.startsWith('OP-') && !userId) {
+    if (
+      !isCompleted &&
+      !paypalOrderId.startsWith('EG-ORD-') &&
+      !paypalOrderId.startsWith('OP-') &&
+      !userId
+    ) {
       await this.prisma.order.updateMany({
         where: { gateway_transaction_id: paypalOrderId },
         data: { payment_status: 'failed' },
@@ -135,7 +142,7 @@ export class PaypalService {
       include: { order_items: true },
     });
 
-    // 🛡️ EL SALVAVIDAS AUTOMÁTICO: Si la orden de compra no existe previamente en la BD 
+    // 🛡️ EL SALVAVIDAS AUTOMÁTICO: Si la orden de compra no existe previamente en la BD
     // pero tenemos la sesión del usuario activa (userId), hacemos la conversión real del carrito.
     if (!order) {
       if (!userId) {
@@ -145,7 +152,9 @@ export class PaypalService {
         );
       }
 
-      console.log(`🚀 [AULA VIRTUAL REAL] Procesando matrícula directa desde el carrito para el usuario: ${userId}`);
+      console.log(
+        `🚀 [AULA VIRTUAL REAL] Procesando matrícula directa desde el carrito para el usuario: ${userId}`,
+      );
 
       // Leemos los ítems que el usuario tiene agregados actualmente en la base de datos
       const cartItems = await this.prisma.cartItem.findMany({
@@ -153,7 +162,10 @@ export class PaypalService {
       });
 
       if (cartItems.length === 0) {
-        return { success: true, message: 'El carrito ya se encontraba vacío o procesado.' };
+        return {
+          success: true,
+          message: 'El carrito ya se encontraba vacío o procesado.',
+        };
       }
 
       // Ejecutamos la inserción física atómica en Postgres
@@ -161,7 +173,9 @@ export class PaypalService {
         for (const item of cartItems) {
           // Validamos para no violar el índice único @@unique([user_id, course_id]) de tu schema.prisma
           const existing = await tx.enrollment.findUnique({
-            where: { user_id_course_id: { user_id: userId, course_id: item.course_id } }
+            where: {
+              user_id_course_id: { user_id: userId, course_id: item.course_id },
+            },
           });
 
           if (!existing) {
@@ -186,7 +200,11 @@ export class PaypalService {
           where: { user_id: userId },
         });
 
-        return { success: true, order_number: 'DEMO-PP-' + Math.floor(100000 + Math.random() * 900000) };
+        return {
+          success: true,
+          order_number:
+            'DEMO-PP-' + Math.floor(100000 + Math.random() * 900000),
+        };
       });
     }
 
@@ -202,7 +220,12 @@ export class PaypalService {
 
       for (const item of order.order_items) {
         const existing = await tx.enrollment.findUnique({
-          where: { user_id_course_id: { user_id: order.user_id, course_id: item.course_id } }
+          where: {
+            user_id_course_id: {
+              user_id: order.user_id,
+              course_id: item.course_id,
+            },
+          },
         });
 
         if (!existing) {

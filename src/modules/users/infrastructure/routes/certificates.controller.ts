@@ -32,7 +32,10 @@ export class CertificatesController {
     @Res() res: any,
   ) {
     const response = res as Response;
-    const { buffer, filename } = await this.pdfService.generateBuffer(id, userId);
+    const { buffer, filename } = await this.pdfService.generateBuffer(
+      id,
+      userId,
+    );
     response.set({
       'Content-Type': 'application/pdf',
       'Content-Disposition': `attachment; filename="${filename}"`,

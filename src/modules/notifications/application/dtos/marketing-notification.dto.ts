@@ -33,6 +33,10 @@ export class SendNotificationDto {
   @MaxLength(500)
   redirect_url?: string;
 
+  @IsIn(['nuevo_curso', 'descuento', 'anuncio', 'recordatorio'])
+  @IsOptional()
+  type?: 'nuevo_curso' | 'descuento' | 'anuncio' | 'recordatorio';
+
   @IsIn(['all', 'course', 'users'])
   audience: 'all' | 'course' | 'users';
 

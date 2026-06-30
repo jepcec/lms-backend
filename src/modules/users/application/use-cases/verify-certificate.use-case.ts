@@ -39,7 +39,8 @@ export class VerifyCertificateUseCase {
       instructors: course.instructors.map((i) => i.full_name),
       template: {
         background_image_url: template.background_image_url,
-        back_image_url: (template as { back_image_url?: string }).back_image_url ?? null,
+        back_image_url:
+          (template as { back_image_url?: string }).back_image_url ?? null,
         student_name_position: template.student_name_position,
         qr_position: template.qr_position,
         qr_size: (template as { qr_size?: number }).qr_size ?? 300,

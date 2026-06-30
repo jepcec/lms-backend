@@ -25,7 +25,7 @@ export class PaypalController {
   // 🚀 REPOTENCIADO: Captura el userId del token JWT de la sesión activa
   async capturePayment(
     @Param('paypalOrderId') paypalOrderId: string,
-    @CurrentUser('userId') userId: string, 
+    @CurrentUser('userId') userId: string,
   ) {
     // Le pasamos el userId al servicio de PayPal para que lo derive al caso de uso
     return this.paypalService.capturePayment(paypalOrderId, userId);
