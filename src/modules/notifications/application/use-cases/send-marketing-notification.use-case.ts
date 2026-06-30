@@ -4,7 +4,6 @@ import {
   I_NOTIFICATION_REPOSITORY,
   type INotificationRepository,
 } from '../../domain/notification.repository';
-import { NotificationType } from 'src/generated/prisma/enums';
 import type { SendNotificationDto } from '../dtos/marketing-notification.dto';
 import type { NotificationEntity } from '../../domain/notification.entity';
 
@@ -52,7 +51,7 @@ export class SendMarketingNotificationUseCase {
     const notifications: Partial<NotificationEntity>[] = userIdList.map(
       (user_id) => ({
         user_id,
-        type: 'nuevo_curso' as NotificationType,
+        type: data.type ?? 'nuevo_curso',
         title,
         body,
         redirect_url,

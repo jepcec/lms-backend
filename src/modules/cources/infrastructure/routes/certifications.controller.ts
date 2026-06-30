@@ -35,10 +35,7 @@ export class CertificationsController {
   }
 
   @Get('export')
-  async exportToExcel(
-    @Param('courseId') courseId: string,
-    @Res() res: any,
-  ) {
+  async exportToExcel(@Param('courseId') courseId: string, @Res() res: any) {
     const response = res as Response;
     const buffer = await this.exportExcel.execute(courseId);
     response.setHeader(

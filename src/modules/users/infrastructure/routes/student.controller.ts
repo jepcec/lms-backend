@@ -15,7 +15,7 @@ import { UpdateSessionProgressUseCase } from '../../application/use-cases/update
 import { GetMyCertificatesUseCase } from '../../application/use-cases/get-my-certificates.use-case';
 import { GetStudentCertificateUseCase } from '../../application/use-cases/get-student-certificate.use-case';
 // 🚀 CAMBIO 1: Importamos el PrismaService (Verifica la ruta relativa de tus carpetas si es necesario)
-import { PrismaService } from '../../../../core/database/prisma.service'; 
+import { PrismaService } from '../../../../core/database/prisma.service';
 
 @Controller('student')
 @Roles('estudiante')
@@ -28,7 +28,7 @@ export class StudentController {
     private readonly getMyCertificates: GetMyCertificatesUseCase,
     private readonly getStudentCertificate: GetStudentCertificateUseCase,
     // 🚀 CAMBIO 2: Inyectamos Prisma en el constructor para tener acceso directo a la BD
-    private readonly prisma: PrismaService, 
+    private readonly prisma: PrismaService,
   ) {}
 
   @Get('enrollments')
@@ -49,7 +49,9 @@ export class StudentController {
 
     // Si no existe, la creamos físicamente en este instante antes de pasar al caso de uso
     if (!enrollment) {
-      console.log(`⚡ [AUTO-MATRÍCULA] Generando inscripción en Postgres para courseId: ${courseId}`);
+      console.log(
+        `⚡ [AUTO-MATRÍCULA] Generando inscripción en Postgres para courseId: ${courseId}`,
+      );
       await this.prisma.enrollment.create({
         data: {
           user_id: userId,

@@ -91,7 +91,8 @@ export class CertificatePdfService {
 
     frontPage.drawImage(bgImage, { x: 0, y: 0, width: PAGE_W, height: PAGE_H });
 
-    const namePos = cert.template.student_name_position as unknown as NamePosition;
+    const namePos = cert.template
+      .student_name_position as unknown as NamePosition;
     const fontSizes = cert.template.font_sizes as FontSizes;
     const rawFontSize = fontSizes?.student_name ?? 200;
 
@@ -123,14 +124,20 @@ export class CertificatePdfService {
     // ── Página 2: Contraportada (fondo + QR) ──
     const backPage = pdfDoc.addPage([PAGE_W, PAGE_H]);
 
-    const backImageUrl = (cert.template as { back_image_url?: string }).back_image_url;
+    const backImageUrl = (cert.template as { back_image_url?: string })
+      .back_image_url;
     if (backImageUrl) {
       const backBuffer = await this.fetchImageBuffer(backImageUrl);
       const isBackJpeg = this.isJpeg(backImageUrl, backBuffer);
       const backImage = isBackJpeg
         ? await pdfDoc.embedJpg(backBuffer)
         : await pdfDoc.embedPng(backBuffer);
-      backPage.drawImage(backImage, { x: 0, y: 0, width: PAGE_W, height: PAGE_H });
+      backPage.drawImage(backImage, {
+        x: 0,
+        y: 0,
+        width: PAGE_W,
+        height: PAGE_H,
+      });
     }
 
     const qrPos = cert.template.qr_position as unknown as NamePosition;
@@ -148,7 +155,12 @@ export class CertificatePdfService {
     const pdfQrX = qrPos.x * scaleX - qrPt / 2;
     const pdfQrY = PAGE_H - qrPos.y * scaleY - qrPt / 2;
 
-    backPage.drawImage(qrImage, { x: pdfQrX, y: pdfQrY, width: qrPt, height: qrPt });
+    backPage.drawImage(qrImage, {
+      x: pdfQrX,
+      y: pdfQrY,
+      width: qrPt,
+      height: qrPt,
+    });
 
     // 6. Serializar y retornar buffer (sin guardar en disco)
     const pdfBytes = await pdfDoc.save();

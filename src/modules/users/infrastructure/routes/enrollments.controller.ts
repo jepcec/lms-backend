@@ -1,4 +1,12 @@
-import { Controller, Get, Post, Delete, Body, Query, Param } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Delete,
+  Body,
+  Query,
+  Param,
+} from '@nestjs/common';
 import { Roles } from '../../../auth/decorators/roles.decorator';
 import { ListMatriculasUseCase } from '../../application/use-cases/list-matriculas.use-case';
 import { CreateMatriculasUseCase } from '../../application/use-cases/create-matriculas.use-case';

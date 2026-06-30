@@ -79,7 +79,8 @@ export class CertificateTemplatesController {
       back_image?: Express.Multer.File[];
     },
   ) {
-    if (files?.background_image?.[0]) dto.background_image = files.background_image[0];
+    if (files?.background_image?.[0])
+      dto.background_image = files.background_image[0];
     if (files?.back_image?.[0]) dto.back_image = files.back_image[0];
     return this.createUseCase.execute(dto);
   }
@@ -107,7 +108,8 @@ export class CertificateTemplatesController {
       back_image?: Express.Multer.File[];
     },
   ) {
-    if (files?.background_image?.[0]) dto.background_image = files.background_image[0];
+    if (files?.background_image?.[0])
+      dto.background_image = files.background_image[0];
     if (files?.back_image?.[0]) dto.back_image = files.back_image[0];
     return this.updateUseCase.execute(id, dto);
   }

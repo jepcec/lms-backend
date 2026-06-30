@@ -57,7 +57,7 @@ export class GetMarketingRecipientsUseCase {
     search?: string,
   ): Promise<NotificationRecipient[]> {
     const where: Record<string, unknown> = {
-      role: 'student',
+      role: 'estudiante',
       status: 'active',
     };
 

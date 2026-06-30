@@ -107,6 +107,8 @@ enum ReviewStatus {
 
 enum NotificationType {
   nuevo_curso
+  descuento
+  anuncio
   completado
   recordatorio
   matriculacion
