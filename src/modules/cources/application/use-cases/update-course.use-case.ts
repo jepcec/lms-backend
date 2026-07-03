@@ -56,6 +56,7 @@ export class UpdateCourseUseCase {
       review_count: course.review_count,
       enrolled_count: course.enrolled_count,
       total_duration_minutes: course.total_duration_minutes,
+      academic_hours: dto.academic_hours ?? course.academic_hours,
       certification_mode:
         (dto.certification_mode as CertificationMode) ??
         course.certification_mode,

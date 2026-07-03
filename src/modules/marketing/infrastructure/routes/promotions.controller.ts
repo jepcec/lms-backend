@@ -6,6 +6,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   UseInterceptors,
   UploadedFile,
 } from '@nestjs/common';
@@ -48,8 +49,8 @@ export class PromotionsController {
 
   @Public()
   @Get()
-  findAll() {
-    return this.getPromotionsUseCase.execute();
+  findAll(@Query('vigente') vigente?: string) {
+    return this.getPromotionsUseCase.execute(vigente === 'true');
   }
 
   @Post()

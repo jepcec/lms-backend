@@ -78,6 +78,8 @@ import { VerifyCertificateUseCase } from './application/use-cases/verify-certifi
 import { CertificatePdfService } from '../cources/application/services/certificate-pdf.service';
 import { GetStudentDetailUseCase } from './application/use-cases/get-student-detail.use-case';
 import { DeleteEnrollmentUseCase } from './application/use-cases/delete-enrollment.use-case';
+import { ExportMatriculadosCursoExcelUseCase } from './application/use-cases/export-matriculados-curso-excel.use-case';
+import { ExportDashboardExcelUseCase } from './application/use-cases/export-dashboard-excel.use-case';
 
 @Module({
   imports: [
@@ -152,6 +154,8 @@ import { DeleteEnrollmentUseCase } from './application/use-cases/delete-enrollme
     SubmitReviewUseCase,
     GetStudentDetailUseCase,
     DeleteEnrollmentUseCase,
+    ExportMatriculadosCursoExcelUseCase,
+    ExportDashboardExcelUseCase,
     CryptoTokenService,
     // Interface Mappings
     { provide: I_USER_REPOSITORY, useClass: PrismaUserRepository },

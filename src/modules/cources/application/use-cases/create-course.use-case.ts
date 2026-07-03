@@ -52,6 +52,7 @@ export class CreateCourseUseCase {
       review_count: 0,
       enrolled_count: 0,
       total_duration_minutes: 0,
+      academic_hours: dto.academic_hours ?? 0,
       certification_mode: 'auto',
       certificate_template_id: null,
       constancia_template_id: null,

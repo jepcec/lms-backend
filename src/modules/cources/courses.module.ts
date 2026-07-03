@@ -27,6 +27,7 @@ import { DeleteModuleUseCase } from './application/use-cases/delete-module.use-c
 import { GetModulesUseCase } from './application/use-cases/get-modules.use-case';
 import { CreateSessionUseCase } from './application/use-cases/create-session.use-case';
 import { UpdateSessionUseCase } from './application/use-cases/update-session.use-case';
+import { YoutubeDurationService } from './infrastructure/services/youtube-duration.service';
 import { DeleteSessionUseCase } from './application/use-cases/delete-session.use-case';
 import { GetSessionsUseCase } from './application/use-cases/get-sessions.use-case';
 import { CreateMaterialUseCase } from './application/use-cases/create-material.use-case';
@@ -88,6 +89,7 @@ import { EmitStudentCertificateUseCase } from './application/use-cases/emit-stud
     GetModulesUseCase,
     CreateSessionUseCase,
     UpdateSessionUseCase,
+    YoutubeDurationService,
     DeleteSessionUseCase,
     GetSessionsUseCase,
     CreateMaterialUseCase,

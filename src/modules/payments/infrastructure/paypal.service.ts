@@ -1,5 +1,7 @@
 import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { PrismaService } from '../../../core/database/prisma.service'; // Ajusta la ruta a tu PrismaService
+import { EnrollmentCreatedEvent } from '../../notifications/domain/events/enrollment-created.event';
 
 @Injectable()
 export class PaypalService {
@@ -8,7 +10,10 @@ export class PaypalService {
       ? 'https://api-m.sandbox.paypal.com'
       : 'https://api-m.api.paypal.com';
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly eventEmitter: EventEmitter2,
+  ) {}
 
   private async getPaypalAccessToken(): Promise<string> {
     const auth = Buffer.from(
@@ -169,7 +174,9 @@ export class PaypalService {
       }
 
       // Ejecutamos la inserción física atómica en Postgres
-      return await this.prisma.$transaction(async (tx) => {
+      const result = await this.prisma.$transaction(async (tx) => {
+        const enrolled: { course_id: string; title: string; slug: string }[] =
+          [];
         for (const item of cartItems) {
           // Validamos para no violar el índice único @@unique([user_id, course_id]) de tu schema.prisma
           const existing = await tx.enrollment.findUnique({
@@ -179,18 +186,25 @@ export class PaypalService {
           });
 
           if (!existing) {
-            await tx.enrollment.create({
+            const enrollment = await tx.enrollment.create({
               data: {
                 user_id: userId,
                 course_id: item.course_id,
                 enrollment_type: 'online',
                 progress_percent: 0,
               },
+              include: { course: { select: { title: true, slug: true } } },
             });
 
             await tx.course.update({
               where: { id: item.course_id },
               data: { enrolled_count: { increment: 1 } },
+            });
+
+            enrolled.push({
+              course_id: item.course_id,
+              title: enrollment.course.title,
+              slug: enrollment.course.slug,
             });
           }
         }
@@ -200,24 +214,38 @@ export class PaypalService {
           where: { user_id: userId },
         });
 
-        return {
-          success: true,
-          order_number:
-            'DEMO-PP-' + Math.floor(100000 + Math.random() * 900000),
-        };
+        return { enrolled };
       });
+
+      for (const enrollment of result.enrolled) {
+        this.eventEmitter.emit(
+          EnrollmentCreatedEvent.EVENT,
+          new EnrollmentCreatedEvent(
+            userId,
+            enrollment.course_id,
+            enrollment.title,
+            enrollment.slug,
+          ),
+        );
+      }
+
+      return {
+        success: true,
+        order_number: 'DEMO-PP-' + Math.floor(100000 + Math.random() * 900000),
+      };
     }
 
     // ─── FLUJO NATIVO DE PRODUCCIÓN (Si la orden sí existía previamente en la BD) ───
     if (order.payment_status === 'paid')
       return { success: true, message: 'Pago ya procesado' };
 
-    return await this.prisma.$transaction(async (tx) => {
+    const result = await this.prisma.$transaction(async (tx) => {
       await tx.order.update({
         where: { id: order.id },
         data: { payment_status: 'paid' },
       });
 
+      const enrolled: { course_id: string; title: string; slug: string }[] = [];
       for (const item of order.order_items) {
         const existing = await tx.enrollment.findUnique({
           where: {
@@ -229,7 +257,7 @@ export class PaypalService {
         });
 
         if (!existing) {
-          await tx.enrollment.create({
+          const enrollment = await tx.enrollment.create({
             data: {
               user_id: order.user_id,
               course_id: item.course_id,
@@ -237,11 +265,18 @@ export class PaypalService {
               enrollment_type: 'online',
               progress_percent: 0,
             },
+            include: { course: { select: { title: true, slug: true } } },
           });
 
           await tx.course.update({
             where: { id: item.course_id },
             data: { enrolled_count: { increment: 1 } },
+          });
+
+          enrolled.push({
+            course_id: item.course_id,
+            title: enrollment.course.title,
+            slug: enrollment.course.slug,
           });
         }
       }
@@ -250,7 +285,21 @@ export class PaypalService {
         where: { user_id: order.user_id },
       });
 
-      return { success: true, order_number: order.order_number };
+      return { enrolled };
     });
+
+    for (const enrollment of result.enrolled) {
+      this.eventEmitter.emit(
+        EnrollmentCreatedEvent.EVENT,
+        new EnrollmentCreatedEvent(
+          order.user_id,
+          enrollment.course_id,
+          enrollment.title,
+          enrollment.slug,
+        ),
+      );
+    }
+
+    return { success: true, order_number: order.order_number };
   }
 }

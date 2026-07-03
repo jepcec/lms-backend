@@ -153,6 +153,7 @@ model User {
   email                      String    @unique
   phone                      String
   country                    String?
+  profession                 String?
   password_hash              String
   role                       UserRole
   profile_photo_url          String?
@@ -228,6 +229,7 @@ model Course {
   review_count           Int                  @default(0)
   enrolled_count         Int                  @default(0)
   total_duration_minutes Int                  @default(0)
+  academic_hours         Int                  @default(0)
   certification_mode        CertificationMode    @default(auto)
   certificate_template_id   String?             @db.Uuid
   constancia_template_id    String?             @db.Uuid

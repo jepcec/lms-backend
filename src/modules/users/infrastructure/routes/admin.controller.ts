@@ -1,4 +1,5 @@
-import { Controller, Get, Query, Param } from '@nestjs/common';
+import { Controller, Get, Query, Param, Res } from '@nestjs/common';
+import type { Response } from 'express';
 import { Roles } from '../../../auth/decorators/roles.decorator';
 import { ListUsuariosUseCase } from '../../application/use-cases/list-usuarios.use-case';
 import { ListUsuariosDto } from '../../application/dtos/list-usuarios.dto';
@@ -16,6 +17,8 @@ import { GetTopEstudiantesUseCase } from '../../application/use-cases/get-top-es
 import { GetMatriculadosCursoUseCase } from '../../application/use-cases/get-matriculados-curso.use-case';
 import { GetActividadEstudianteUseCase } from '../../application/use-cases/get-actividad-estudiante.use-case';
 import { GetStudentDetailUseCase } from '../../application/use-cases/get-student-detail.use-case';
+import { ExportMatriculadosCursoExcelUseCase } from '../../application/use-cases/export-matriculados-curso-excel.use-case';
+import { ExportDashboardExcelUseCase } from '../../application/use-cases/export-dashboard-excel.use-case';
 
 @Controller('admin')
 @Roles('admin')
@@ -33,6 +36,8 @@ export class AdminController {
     private readonly getMatriculadosCurso: GetMatriculadosCursoUseCase,
     private readonly getActividadEstudiante: GetActividadEstudianteUseCase,
     private readonly getStudentDetail: GetStudentDetailUseCase,
+    private readonly exportMatriculadosCursoExcel: ExportMatriculadosCursoExcelUseCase,
+    private readonly exportDashboardExcel: ExportDashboardExcelUseCase,
   ) {}
 
   @Roles('admin', 'soporte')
@@ -44,6 +49,23 @@ export class AdminController {
   @Get('stats')
   async statsHandler(@Query() filters: AdminFiltersDto) {
     return this.getStats.execute(filters);
+  }
+
+  @Get('export')
+  async exportDashboardHandler(
+    @Query() filters: AdminFiltersDto,
+    @Res() res: Response,
+  ) {
+    const buffer = await this.exportDashboardExcel.execute(filters);
+    res.setHeader(
+      'Content-Type',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    );
+    res.setHeader(
+      'Content-Disposition',
+      'attachment; filename="dashboard-escuela-global.xlsx"',
+    );
+    res.send(buffer);
   }
 
   @Get('auditoria')
@@ -87,6 +109,23 @@ export class AdminController {
     @Query() params: MatriculadosQueryDto,
   ) {
     return this.getMatriculadosCurso.execute(cursoId, params);
+  }
+
+  @Get('cursos/:cursoId/matriculados/export')
+  async exportMatriculadosCursoHandler(
+    @Param('cursoId') cursoId: string,
+    @Res() res: Response,
+  ) {
+    const buffer = await this.exportMatriculadosCursoExcel.execute(cursoId);
+    res.setHeader(
+      'Content-Type',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    );
+    res.setHeader(
+      'Content-Disposition',
+      `attachment; filename="matriculados-${cursoId}.xlsx"`,
+    );
+    res.send(buffer);
   }
 
   @Roles('admin', 'soporte')

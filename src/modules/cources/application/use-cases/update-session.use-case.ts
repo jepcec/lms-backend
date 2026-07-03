@@ -3,6 +3,7 @@ import { I_SESSION_REPOSITORY } from '../../domain/sessions.repository';
 import type { ISessionRepository } from '../../domain/sessions.repository';
 import { UpdateSessionDto } from '../dtos/update-session.dto';
 import { SessionEntity } from '../../domain/session.entity';
+import { YoutubeDurationService } from '../../infrastructure/services/youtube-duration.service';
 
 function extractYoutubeId(url: string): string {
   try {
@@ -20,6 +21,7 @@ export class UpdateSessionUseCase {
   constructor(
     @Inject(I_SESSION_REPOSITORY)
     private readonly sessionRepository: ISessionRepository,
+    private readonly youtubeDuration: YoutubeDurationService,
   ) {}
 
   async execute(id: string, dto: UpdateSessionDto) {
@@ -27,6 +29,16 @@ export class UpdateSessionUseCase {
     if (!existing) throw new Error('Sesión no encontrada');
 
     const youtube_url = dto.youtube_url ?? existing.youtube_url;
+    const youtube_video_id =
+      dto.youtube_video_id ?? extractYoutubeId(youtube_url);
+
+    let duration_minutes = dto.duration_minutes ?? existing.duration_minutes;
+    if (dto.youtube_url && dto.youtube_url !== existing.youtube_url) {
+      const autoDuration =
+        await this.youtubeDuration.getDurationMinutes(youtube_video_id);
+      duration_minutes = autoDuration ?? duration_minutes;
+    }
+
     const updated = new SessionEntity({
       id: existing.id,
       module_id: existing.module_id,
@@ -34,8 +46,8 @@ export class UpdateSessionUseCase {
       description:
         dto.description !== undefined ? dto.description : existing.description,
       youtube_url,
-      youtube_video_id: dto.youtube_video_id ?? extractYoutubeId(youtube_url),
-      duration_minutes: dto.duration_minutes ?? existing.duration_minutes,
+      youtube_video_id,
+      duration_minutes,
       display_order: dto.display_order ?? existing.display_order,
       created_at: existing.created_at,
     });

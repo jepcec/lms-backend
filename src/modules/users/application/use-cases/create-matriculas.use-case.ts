@@ -3,12 +3,17 @@ import {
   NotFoundException,
   BadRequestException,
 } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { PrismaService } from '../../../../core/database/prisma.service';
 import { CreateMatriculasDto } from '../dtos/create-matriculas.dto';
+import { EnrollmentCreatedEvent } from '../../../notifications/domain/events/enrollment-created.event';
 
 @Injectable()
 export class CreateMatriculasUseCase {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly eventEmitter: EventEmitter2,
+  ) {}
 
   async execute(dto: CreateMatriculasDto) {
     const user = await this.prisma.user.findUnique({
@@ -105,6 +110,18 @@ export class CreateMatriculasUseCase {
         }),
       ),
     );
+
+    for (const enrollment of created) {
+      this.eventEmitter.emit(
+        EnrollmentCreatedEvent.EVENT,
+        new EnrollmentCreatedEvent(
+          enrollment.user_id,
+          enrollment.course_id,
+          enrollment.course.title,
+          enrollment.course.slug,
+        ),
+      );
+    }
 
     const skipped = dto.course_ids.length - toCreate.length;
 

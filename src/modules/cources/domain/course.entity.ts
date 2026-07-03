@@ -27,6 +27,7 @@ export interface CourseProps {
   review_count: number;
   enrolled_count: number;
   total_duration_minutes: number;
+  academic_hours: number;
   certification_mode: CertificationMode;
   certificate_template_id?: string | null;
   constancia_template_id?: string | null;
@@ -109,6 +110,9 @@ export class CourseEntity {
   get total_duration_minutes() {
     return this.props.total_duration_minutes;
   }
+  get academic_hours() {
+    return this.props.academic_hours;
+  }
   get certification_mode() {
     return this.props.certification_mode;
   }
@@ -165,6 +169,7 @@ export class CourseEntity {
       review_count: this.review_count,
       enrolled_count: this.enrolled_count,
       total_duration_minutes: this.total_duration_minutes,
+      academic_hours: this.academic_hours,
       certification_mode: this.certification_mode,
       certificate_template_id: this.certificate_template_id,
       constancia_template_id: this.constancia_template_id,

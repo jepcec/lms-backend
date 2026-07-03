@@ -3,11 +3,13 @@ import {
   BadRequestException,
   NotFoundException,
 } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { PrismaService } from '../../../../core/database/prisma.service';
 import { PaypalAdapter } from '../../infrastructure/adapters/paypal.adapter';
 import { MercadoPagoAdapter } from '../../infrastructure/adapters/mercadopago.adapter';
 import { ProcessBrickPaymentDto } from '../dtos/process-brick-payment.dto';
 import { PaymentStatus } from '../../../../generated/prisma/enums';
+import { EnrollmentCreatedEvent } from '../../../notifications/domain/events/enrollment-created.event';
 
 @Injectable()
 export class ProcessPaymentCallbackUseCase {
@@ -15,6 +17,7 @@ export class ProcessPaymentCallbackUseCase {
     private readonly prisma: PrismaService,
     private readonly paypalAdapter: PaypalAdapter,
     private readonly mpAdapter: MercadoPagoAdapter,
+    private readonly eventEmitter: EventEmitter2,
   ) {}
 
   // 🚀 REPOTENCIADO: Ahora acepta de forma opcional el userId enviado desde el frente
@@ -48,7 +51,12 @@ export class ProcessPaymentCallbackUseCase {
           });
 
           // 2. Insertamos las matrículas en Postgres usando una transacción segura
-          await this.prisma.$transaction(async (tx) => {
+          const newEnrollments = await this.prisma.$transaction(async (tx) => {
+            const enrolled: {
+              course_id: string;
+              title: string;
+              slug: string;
+            }[] = [];
             for (const item of cartItems) {
               const existing = await tx.enrollment.findUnique({
                 where: {
@@ -60,23 +68,42 @@ export class ProcessPaymentCallbackUseCase {
               });
 
               if (!existing) {
-                await tx.enrollment.create({
+                const enrollment = await tx.enrollment.create({
                   data: {
                     user_id: userId,
                     course_id: item.course_id,
                     enrollment_type: 'online',
                     progress_percent: 0,
                   },
+                  include: { course: { select: { title: true, slug: true } } },
                 });
                 await tx.course.update({
                   where: { id: item.course_id },
                   data: { enrolled_count: { increment: 1 } },
                 });
+                enrolled.push({
+                  course_id: item.course_id,
+                  title: enrollment.course.title,
+                  slug: enrollment.course.slug,
+                });
               }
             }
             // 3. Limpiamos su carrito real de la base de datos
             await tx.cartItem.deleteMany({ where: { user_id: userId } });
+            return enrolled;
           });
+
+          for (const enrollment of newEnrollments) {
+            this.eventEmitter.emit(
+              EnrollmentCreatedEvent.EVENT,
+              new EnrollmentCreatedEvent(
+                userId,
+                enrollment.course_id,
+                enrollment.title,
+                enrollment.slug,
+              ),
+            );
+          }
         }
 
         return {
@@ -116,7 +143,9 @@ export class ProcessPaymentCallbackUseCase {
         });
 
         // 3. Ejecutamos el registro de matrículas y limpieza de carrito en Postgres
-        await this.prisma.$transaction(async (tx) => {
+        const newEnrollments = await this.prisma.$transaction(async (tx) => {
+          const enrolled: { course_id: string; title: string; slug: string }[] =
+            [];
           for (const item of cartItems) {
             const existing = await tx.enrollment.findUnique({
               where: {
@@ -128,22 +157,41 @@ export class ProcessPaymentCallbackUseCase {
             });
 
             if (!existing) {
-              await tx.enrollment.create({
+              const enrollment = await tx.enrollment.create({
                 data: {
                   user_id: user.id,
                   course_id: item.course_id,
                   enrollment_type: 'online',
                   progress_percent: 0,
                 },
+                include: { course: { select: { title: true, slug: true } } },
               });
               await tx.course.update({
                 where: { id: item.course_id },
                 data: { enrolled_count: { increment: 1 } },
               });
+              enrolled.push({
+                course_id: item.course_id,
+                title: enrollment.course.title,
+                slug: enrollment.course.slug,
+              });
             }
           }
           await tx.cartItem.deleteMany({ where: { user_id: user.id } });
+          return enrolled;
         });
+
+        for (const enrollment of newEnrollments) {
+          this.eventEmitter.emit(
+            EnrollmentCreatedEvent.EVENT,
+            new EnrollmentCreatedEvent(
+              user.id,
+              enrollment.course_id,
+              enrollment.title,
+              enrollment.slug,
+            ),
+          );
+        }
       }
 
       return {
@@ -189,7 +237,7 @@ export class ProcessPaymentCallbackUseCase {
     gatewayId: string,
     method: string,
   ) {
-    return await this.prisma.$transaction(async (tx) => {
+    const result = await this.prisma.$transaction(async (tx) => {
       const order = await tx.order.update({
         where: { id: orderId },
         data: {
@@ -200,8 +248,9 @@ export class ProcessPaymentCallbackUseCase {
         include: { order_items: true },
       });
 
+      const enrolled: { course_id: string; title: string; slug: string }[] = [];
       for (const item of order.order_items) {
-        await tx.enrollment.create({
+        const enrollment = await tx.enrollment.create({
           data: {
             user_id: order.user_id,
             course_id: item.course_id,
@@ -209,15 +258,40 @@ export class ProcessPaymentCallbackUseCase {
             enrollment_type: 'online',
             progress_percent: 0,
           },
+          include: { course: { select: { title: true, slug: true } } },
         });
         await tx.course.update({
           where: { id: item.course_id },
           data: { enrolled_count: { increment: 1 } },
         });
+        enrolled.push({
+          course_id: item.course_id,
+          title: enrollment.course.title,
+          slug: enrollment.course.slug,
+        });
       }
 
       await tx.cartItem.deleteMany({ where: { user_id: order.user_id } });
-      return { success: true, order_number: order.order_number };
+      return {
+        success: true,
+        order_number: order.order_number,
+        user_id: order.user_id,
+        enrolled,
+      };
     });
+
+    for (const enrollment of result.enrolled) {
+      this.eventEmitter.emit(
+        EnrollmentCreatedEvent.EVENT,
+        new EnrollmentCreatedEvent(
+          result.user_id,
+          enrollment.course_id,
+          enrollment.title,
+          enrollment.slug,
+        ),
+      );
+    }
+
+    return { success: result.success, order_number: result.order_number };
   }
 }
