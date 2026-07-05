@@ -5,12 +5,14 @@ import { PrismaService } from '../../../../core/database/prisma.service';
 export class DeleteEnrollmentUseCase {
   constructor(private readonly prisma: PrismaService) {}
 
-  async execute(enrollmentId: string) {
+  async execute(enrollmentId: string, actorUserId: string) {
     const enrollment = await this.prisma.enrollment.findUnique({
       where: { id: enrollmentId },
       include: {
         review: { select: { id: true } },
         certificate: { select: { id: true } },
+        student: { select: { first_name: true, last_name: true } },
+        course: { select: { title: true } },
       },
     });
 
@@ -48,6 +50,25 @@ export class DeleteEnrollmentUseCase {
         },
       });
     }
+
+    await this.prisma.auditLog.create({
+      data: {
+        user_id: actorUserId,
+        entity_type: 'Enrollment',
+        entity_id: enrollmentId,
+        action: 'delete',
+        changes: {
+          before: {
+            user_id: enrollment.user_id,
+            student: `${enrollment.student.first_name} ${enrollment.student.last_name}`,
+            course_id: enrollment.course_id,
+            course: enrollment.course.title,
+            enrollment_type: enrollment.enrollment_type,
+          },
+          after: null,
+        },
+      },
+    });
 
     return { message: 'Matrícula eliminada correctamente' };
   }

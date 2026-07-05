@@ -15,7 +15,7 @@ export class CreateMatriculasUseCase {
     private readonly eventEmitter: EventEmitter2,
   ) {}
 
-  async execute(dto: CreateMatriculasDto) {
+  async execute(dto: CreateMatriculasDto, actorUserId: string) {
     const user = await this.prisma.user.findUnique({
       where: { id: dto.user_id },
     });
@@ -107,6 +107,33 @@ export class CreateMatriculasUseCase {
         this.prisma.course.update({
           where: { id: courseId },
           data: { enrolled_count: { increment: 1 } },
+        }),
+      ),
+    );
+
+    await Promise.all(
+      created.map((enrollment) =>
+        this.prisma.auditLog.create({
+          data: {
+            user_id: actorUserId,
+            entity_type: 'Enrollment',
+            entity_id: enrollment.id,
+            action: 'create',
+            changes: {
+              before: null,
+              after: {
+                user_id: enrollment.user_id,
+                student: `${enrollment.student.first_name} ${enrollment.student.last_name}`,
+                course_id: enrollment.course_id,
+                course: enrollment.course.title,
+                enrollment_type: enrollment.enrollment_type,
+                offline_payment_method: enrollment.offline_payment_method,
+                offline_amount: enrollment.offline_amount
+                  ? Number(enrollment.offline_amount)
+                  : null,
+              },
+            },
+          },
         }),
       ),
     );
