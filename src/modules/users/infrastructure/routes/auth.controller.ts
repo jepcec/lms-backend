@@ -16,6 +16,9 @@ import { VerifyEmailUseCase } from '../../application/use-cases/verify-email.use
 import { RequestPasswordResetUseCase } from '../../application/use-cases/request-password-reset.use-case';
 import { ResetPasswordUseCase } from '../../application/use-cases/reset-password.use-case';
 import { Public } from 'src/modules/auth/decorators/public.decorator';
+import { I_USER_REPOSITORY } from '../../domain/users.repository';
+import type { IUserRepository } from '../../domain/users.repository';
+import { Inject } from '@nestjs/common';
 
 @Controller('auth')
 @Public()
@@ -26,12 +29,51 @@ export class AuthController {
     private readonly verifyEmailUseCase: VerifyEmailUseCase,
     private readonly requestPasswordReset: RequestPasswordResetUseCase,
     private readonly passwordResetUseCase: ResetPasswordUseCase,
+    @Inject(I_USER_REPOSITORY)
+    private readonly userRepository: IUserRepository,
   ) {}
-  // registro de usuario
+
+  private setAuthCookies(
+    response: Response,
+    tokens: { accessToken: string; refresh_token: string },
+  ) {
+    response.cookie('access_token', tokens.accessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 15 * 60 * 1000,
+    });
+    response.cookie('refresh_token', tokens.refresh_token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 días
+    });
+  }
+
+  // registro de usuario (auto-loguea al crear la cuenta)
   @Post('register')
   @Public()
-  register(@Body() dto: RegisterUserDto) {
-    return this.registerUseCase.execute(dto);
+  async register(
+    @Body() dto: RegisterUserDto,
+    @Res({ passthrough: true }) response: Response,
+  ) {
+    const result = await this.registerUseCase.execute(dto);
+    this.setAuthCookies(response, result);
+    return {
+      success: result.success,
+      message: result.message,
+      user: result.user,
+    };
+  }
+
+  // verifica si un correo ya está registrado (usado en el checkout de invitado)
+  @Public()
+  @Get('check-email')
+  async checkEmail(@Query('email') email: string) {
+    if (!email) throw new BadRequestException('Email requerido');
+    const existente = await this.userRepository.findByEmail(email);
+    return { available: !existente };
   }
 
   // logeo de usuario + tokens
@@ -41,22 +83,7 @@ export class AuthController {
     @Res({ passthrough: true }) response: Response,
   ) {
     const result = await this.loginUserCase.execute(dto);
-
-    // cokies generadas se envian atravez de headers para el frontend
-    response.cookie('access_token', result.accessToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 15 * 60 * 1000,
-    });
-
-    // implementacion en un caso de uso
-    response.cookie('refresh_token', result.refresh_token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 días
-    });
+    this.setAuthCookies(response, result);
     return {
       mensaje: 'login exitoso',
       user: result.user,

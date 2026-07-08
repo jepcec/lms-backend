@@ -13,6 +13,7 @@ import { NotificationsModule } from './modules/notifications/notifications.modul
 import { join } from 'path';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { PaymentsModule } from './modules/payments/payments.module';
+import { OrdersModule } from './modules/orders/orders.module';
 
 @Module({
   imports: [
@@ -33,6 +34,7 @@ import { PaymentsModule } from './modules/payments/payments.module';
     ShoppingCartModule,
     MarketingModule,
     PaymentsModule,
+    OrdersModule,
     NotificationsModule,
   ],
   controllers: [AppController],

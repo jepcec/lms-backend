@@ -15,21 +15,14 @@ export class CreatePaymentSessionUseCase {
   ) {}
 
   async execute(dto: CreatePaymentIntentDto) {
-    // 1. Log de control para ver exactamente qué le llega al backend en tu consola
-    console.log('📦 [BACKEND] Datos recibidos en la sesión:', dto);
+    const order = await this.prisma.order.findUnique({
+      where: { id: dto.orderId },
+    });
 
-    const dbOrder = await this.prisma.order
-      .findUnique({ where: { id: dto.orderId } })
-      .catch(() => null);
+    if (!order) {
+      throw new BadRequestException('Orden de compra inválida');
+    }
 
-    const order = dbOrder || {
-      id: dto.orderId,
-      total: 99.0 as any,
-      currency: 'PEN' as const,
-      order_number: 'DEMO-' + Math.floor(100000 + Math.random() * 900000),
-    };
-
-    // 2. 🌟 SOLUCIÓN AL FANTASMA: Soportamos tanto camelCase como snake_case para blindar la Demo
     const method = dto.paymentMethod || (dto as any).payment_method;
 
     if (method === 'stripe') {

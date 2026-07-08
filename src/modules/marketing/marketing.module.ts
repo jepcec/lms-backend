@@ -15,19 +15,39 @@ import { CreateEventTypeUseCase } from './application/use-cases/create-event-typ
 import { DeleteEventTypeUseCase } from './application/use-cases/delete-event-type.use-case';
 import { GetEventTypesUseCase } from './application/use-cases/get-event-types.use-case';
 import { UpdateEventTypeUseCase } from './application/use-cases/update-event-type.use-case';
+import { CreateUpcomingLaunchUseCase } from './application/use-cases/create-upcoming-launch.use-case';
+import { GetUpcomingLaunchesUseCase } from './application/use-cases/get-upcoming-launches.use-case';
+import { UpdateUpcomingLaunchUseCase } from './application/use-cases/update-upcoming-launch.use-case';
+import { DeleteUpcomingLaunchUseCase } from './application/use-cases/delete-upcoming-launch.use-case';
+import { CreateStaffMemberUseCase } from './application/use-cases/create-staff-member.use-case';
+import { GetStaffMembersUseCase } from './application/use-cases/get-staff-members.use-case';
+import { UpdateStaffMemberUseCase } from './application/use-cases/update-staff-member.use-case';
+import { DeleteStaffMemberUseCase } from './application/use-cases/delete-staff-member.use-case';
 import { I_PROMOTION_REPOSITORY } from './domain/promotions.repository';
 import { I_SLIDER_REPOSITORY } from './domain/sliders.repository';
 import { I_EVENT_TYPE_REPOSITORY } from './domain/event-types.repository';
+import { I_UPCOMING_LAUNCH_REPOSITORY } from './domain/upcoming-launches.repository';
+import { I_STAFF_MEMBER_REPOSITORY } from './domain/staff-members.repository';
 import { PrismaPromotionRepository } from './infrastructure/database/prisma-promotions.repository';
 import { PrismaSliderRepository } from './infrastructure/database/prisma-sliders.repository';
 import { PrismaEventTypeRepository } from './infrastructure/database/prisma-event-types.repository';
+import { PrismaUpcomingLaunchRepository } from './infrastructure/database/prisma-upcoming-launches.repository';
+import { PrismaStaffMemberRepository } from './infrastructure/database/prisma-staff-members.repository';
 import { PromotionsController } from './infrastructure/routes/promotions.controller';
 import { SlidersController } from './infrastructure/routes/sliders.controller';
 import { EventTypesController } from './infrastructure/routes/event-types.controller';
+import { UpcomingLaunchesController } from './infrastructure/routes/upcoming-launches.controller';
+import { StaffMembersController } from './infrastructure/routes/staff-members.controller';
 
 @Module({
   imports: [StorageModule],
-  controllers: [PromotionsController, SlidersController, EventTypesController],
+  controllers: [
+    PromotionsController,
+    SlidersController,
+    EventTypesController,
+    UpcomingLaunchesController,
+    StaffMembersController,
+  ],
   providers: [
     PrismaService,
     // Promotions Use Cases
@@ -47,6 +67,16 @@ import { EventTypesController } from './infrastructure/routes/event-types.contro
     CreateEventTypeUseCase,
     UpdateEventTypeUseCase,
     DeleteEventTypeUseCase,
+    // UpcomingLaunches Use Cases
+    CreateUpcomingLaunchUseCase,
+    GetUpcomingLaunchesUseCase,
+    UpdateUpcomingLaunchUseCase,
+    DeleteUpcomingLaunchUseCase,
+    // StaffMembers Use Cases
+    CreateStaffMemberUseCase,
+    GetStaffMembersUseCase,
+    UpdateStaffMemberUseCase,
+    DeleteStaffMemberUseCase,
     // Repositories
     {
       provide: I_PROMOTION_REPOSITORY,
@@ -59,6 +89,14 @@ import { EventTypesController } from './infrastructure/routes/event-types.contro
     {
       provide: I_EVENT_TYPE_REPOSITORY,
       useClass: PrismaEventTypeRepository,
+    },
+    {
+      provide: I_UPCOMING_LAUNCH_REPOSITORY,
+      useClass: PrismaUpcomingLaunchRepository,
+    },
+    {
+      provide: I_STAFF_MEMBER_REPOSITORY,
+      useClass: PrismaStaffMemberRepository,
     },
   ],
 })

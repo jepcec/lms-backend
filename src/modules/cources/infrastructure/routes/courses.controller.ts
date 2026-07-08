@@ -90,7 +90,7 @@ export class CoursesController {
   }
 
   @Post()
-  @Roles('admin')
+  @Roles('admin', 'soporte')
   async create(
     @Body() dto: CreateCourseDto,
     @CurrentUser('userId') userId: string,
@@ -99,19 +99,19 @@ export class CoursesController {
   }
 
   @Patch(':id')
-  @Roles('admin')
+  @Roles('admin', 'soporte')
   async update(@Param('id') id: string, @Body() dto: UpdateCourseDto) {
     return this.updateCourse.execute(id, dto);
   }
 
   @Delete(':id')
-  @Roles('admin')
+  @Roles('admin', 'soporte')
   async delete(@Param('id') id: string) {
     return this.deleteCourse.execute(id);
   }
 
   @Post(':id/thumbnail')
-  @Roles('admin')
+  @Roles('admin', 'soporte')
   @UseInterceptors(
     FileInterceptor('thumbnail', {
       storage: memoryStorage(),
@@ -135,7 +135,7 @@ export class CoursesController {
   }
 
   @Post(':id/instructors')
-  @Roles('admin')
+  @Roles('admin', 'soporte')
   async addInstructorHandler(
     @Param('id') id: string,
     @Body() dto: CreateInstructorDto,
@@ -144,7 +144,7 @@ export class CoursesController {
   }
 
   @Delete(':id/instructors/:instructorId')
-  @Roles('admin')
+  @Roles('admin', 'soporte')
   async removeInstructorHandler(
     @Param('id') id: string,
     @Param('instructorId') instructorId: string,

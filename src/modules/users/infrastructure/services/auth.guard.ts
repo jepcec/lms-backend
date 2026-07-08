@@ -23,9 +23,26 @@ export class AuthGuard implements CanActivate {
       context.getHandler(),
       context.getClass(),
     ]);
-    if (isPublic) return true;
 
     const request = context.switchToHttp().getRequest<Request>();
+
+    if (isPublic) {
+      // Auth "suave": si viene una cookie válida igual identificamos al usuario
+      // (útil para rutas públicas como el carrito, que se comportan distinto
+      // si hay sesión), pero nunca bloqueamos la petición por esto.
+      const accessToken = request.cookies?.['access_token'];
+      if (accessToken) {
+        try {
+          const payload = await this.jwtService.verifyAsync(accessToken, {
+            secret: this.configService.get<string>('JWT_SECRET'),
+          });
+          request['user'] = payload;
+        } catch {
+          // token inválido/expirado en una ruta pública: seguimos como invitado
+        }
+      }
+      return true;
+    }
     const response = context.switchToHttp().getResponse<Response>();
 
     const accessToken = request.cookies['access_token'];

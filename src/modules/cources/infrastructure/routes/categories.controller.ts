@@ -43,25 +43,25 @@ export class CategoriesController {
   }
 
   @Post()
-  @Roles('admin')
+  @Roles('admin', 'soporte')
   async create(@Body() dto: CreateCategoriaDto) {
     return this.createCategoria.execute(dto);
   }
 
   @Patch('reorder')
-  @Roles('admin')
+  @Roles('admin', 'soporte')
   async reorder(@Body() dto: ReorderCategoriasDto) {
     return this.reorderCategorias.execute(dto.ids);
   }
 
   @Patch(':id')
-  @Roles('admin')
+  @Roles('admin', 'soporte')
   async update(@Param('id') id: string, @Body() dto: UpdateCategoriaDto) {
     return this.updateCategoria.execute(id, dto);
   }
 
   @Delete(':id')
-  @Roles('admin')
+  @Roles('admin', 'soporte')
   async delete(@Param('id') id: string) {
     return this.deleteCategoria.execute(id);
   }

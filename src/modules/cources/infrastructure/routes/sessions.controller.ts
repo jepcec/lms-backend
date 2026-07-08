@@ -8,6 +8,7 @@ import {
   Param,
 } from '@nestjs/common';
 import { Public } from 'src/modules/auth/decorators/public.decorator';
+import { Roles } from 'src/modules/auth/decorators/roles.decorator';
 import { CreateSessionUseCase } from '../../application/use-cases/create-session.use-case';
 import { UpdateSessionUseCase } from '../../application/use-cases/update-session.use-case';
 import { DeleteSessionUseCase } from '../../application/use-cases/delete-session.use-case';
@@ -37,6 +38,7 @@ export class SessionsController {
   }
 
   @Post('modules/:moduleId/sessions')
+  @Roles('admin', 'soporte')
   async create(
     @Param('moduleId') moduleId: string,
     @Body() dto: CreateSessionDto,
@@ -46,11 +48,13 @@ export class SessionsController {
   }
 
   @Patch('sessions/:id')
+  @Roles('admin', 'soporte')
   async update(@Param('id') id: string, @Body() dto: UpdateSessionDto) {
     return this.updateSession.execute(id, dto);
   }
 
   @Delete('sessions/:id')
+  @Roles('admin', 'soporte')
   async delete(@Param('id') id: string) {
     return this.deleteSession.execute(id);
   }

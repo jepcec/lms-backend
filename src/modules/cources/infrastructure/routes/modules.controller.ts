@@ -8,6 +8,7 @@ import {
   Param,
 } from '@nestjs/common';
 import { Public } from 'src/modules/auth/decorators/public.decorator';
+import { Roles } from 'src/modules/auth/decorators/roles.decorator';
 import { CreateModuleUseCase } from '../../application/use-cases/create-module.use-case';
 import { UpdateModuleUseCase } from '../../application/use-cases/update-module.use-case';
 import { DeleteModuleUseCase } from '../../application/use-cases/delete-module.use-case';
@@ -37,6 +38,7 @@ export class ModulesController {
   }
 
   @Post('courses/:courseId/modules')
+  @Roles('admin', 'soporte')
   async create(
     @Param('courseId') courseId: string,
     @Body() dto: CreateModuleDto,
@@ -46,11 +48,13 @@ export class ModulesController {
   }
 
   @Patch('modules/:id')
+  @Roles('admin', 'soporte')
   async update(@Param('id') id: string, @Body() dto: UpdateModuleDto) {
     return this.updateModule.execute(id, dto);
   }
 
   @Delete('modules/:id')
+  @Roles('admin', 'soporte')
   async delete(@Param('id') id: string) {
     return this.deleteModule.execute(id);
   }

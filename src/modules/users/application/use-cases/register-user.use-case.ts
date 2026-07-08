@@ -6,6 +6,8 @@ import { UserEntity } from '../../domain/user.entity';
 import {
   I_PASSWORD_SERVICE,
   type IPasswordService,
+  I_AUTH_TOKEN_SERVICE,
+  type IAuthTokenService,
 } from '../../domain/services/auth.service';
 import { CryptoTokenService } from '../../infrastructure/services/crypto-token.service';
 import {
@@ -22,12 +24,14 @@ export class RegisterUserUseCase {
     private readonly passwordService: IPasswordService,
     @Inject(I_EMAIL_SERVICE)
     private readonly emailService: IEmailService,
+    @Inject(I_AUTH_TOKEN_SERVICE)
+    private readonly tokenService: IAuthTokenService,
 
     private readonly criptoService: CryptoTokenService,
   ) {}
 
   async execute(dto: RegisterUserDto) {
-    const { first_name, last_name, email, phone, password } = dto;
+    const { first_name, last_name, email, phone, password, country, profession } = dto;
     const usuarioExiste = await this.userRepository.findByEmail(email);
     if (usuarioExiste) {
       throw new Error('Correo ya registrado');
@@ -45,6 +49,8 @@ export class RegisterUserUseCase {
       role: 'estudiante',
       email_verified: false,
       email_verification_token: verificationToken,
+      country: country ?? null,
+      profession: profession ?? null,
     });
 
     console.log('TOKEN: ', nuevoUsuario.emailVerificationToken);
@@ -54,9 +60,21 @@ export class RegisterUserUseCase {
       nuevoUsuario.email,
       verificationToken,
     );
+
+    const accessToken = this.tokenService.generate({
+      userId: nuevoUsuario.id,
+      role: nuevoUsuario.role,
+    });
+    const refreshToken = this.tokenService.generateRefresh({
+      userId: nuevoUsuario.id,
+      role: nuevoUsuario.role,
+    });
+
     return {
       success: true,
       message: 'Email de verificacion enviado',
+      accessToken,
+      refresh_token: refreshToken,
       user: {
         id: nuevoUsuario.id,
         first_name: nuevoUsuario.first_name,

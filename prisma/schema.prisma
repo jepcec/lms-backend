@@ -572,6 +572,32 @@ model Slider {
   @@map("sliders")
 }
 
+model UpcomingLaunch {
+  id               String        @id @default(uuid()) @db.Uuid
+  category_label   String
+  title            String
+  start_date       DateTime
+  image_url        String?
+  image_public_id  String?
+  link_url         String?
+  display_order    Int
+  status           ContentStatus @default(active)
+  created_at       DateTime      @default(now())
+
+  @@map("upcoming_launches")
+}
+
+model StaffMember {
+  id              String        @id @default(uuid()) @db.Uuid
+  image_url       String
+  image_public_id String?
+  display_order   Int
+  status          ContentStatus @default(active)
+  created_at      DateTime      @default(now())
+
+  @@map("staff_members")
+}
+
 // Tabla intermedia N:M Slider ↔ Course
 model SliderCourse {
   slider_id     String @db.Uuid

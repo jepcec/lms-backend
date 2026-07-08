@@ -22,6 +22,7 @@ export interface UserProps {
   password_reset_expires_at?: Date | null;
 
   country?: string | null;
+  profession?: string | null;
   profile_photo_url?: string | null;
   status?: string;
   created_by?: string | null;
@@ -101,6 +102,9 @@ export class UserEntity {
 
   get country() {
     return this.props.country ?? null;
+  }
+  get profession() {
+    return this.props.profession ?? null;
   }
   get profilePhotoUrl() {
     return this.props.profile_photo_url ?? null;
