@@ -32,12 +32,16 @@ FROM node:22-alpine AS builder
 RUN apk add --no-cache python3 make g++ openssl
 WORKDIR /app
 
-# Trae node_modules y el cliente Prisma ya generado desde deps
+# 1) Copia primero el codigo fuente. .dockerignore excluye
+#    node_modules y src/generated, asi que no interfiere.
+COPY . .
+
+# 2) Trae node_modules y el cliente Prisma desde deps AL FINAL,
+#    para que esta sea la ultima escritura sobre esos paths y
+#    los binarios (.bin/nest, etc.) queden intactos en entornos
+#    de build remotos (Coolify).
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=deps /app/src/generated ./src/generated
-
-# Copia el resto del codigo fuente (respeta .dockerignore)
-COPY . .
 
 RUN npm run build
 
