@@ -31,7 +31,15 @@ export class RegisterUserUseCase {
   ) {}
 
   async execute(dto: RegisterUserDto) {
-    const { first_name, last_name, email, phone, password, country, profession } = dto;
+    const {
+      first_name,
+      last_name,
+      email,
+      phone,
+      password,
+      country,
+      profession,
+    } = dto;
     const usuarioExiste = await this.userRepository.findByEmail(email);
     if (usuarioExiste) {
       throw new Error('Correo ya registrado');

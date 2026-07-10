@@ -76,7 +76,9 @@ export class UsersController {
     @UploadedFile() file?: Express.Multer.File,
   ) {
     if (id !== currentUserId && currentRole !== 'admin') {
-      throw new ForbiddenException('No puedes editar el perfil de otro usuario');
+      throw new ForbiddenException(
+        'No puedes editar el perfil de otro usuario',
+      );
     }
 
     // Si el archivo se subió con éxito, guardamos su ruta en el DTO

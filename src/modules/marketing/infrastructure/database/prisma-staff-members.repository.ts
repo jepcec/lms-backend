@@ -22,9 +22,7 @@ export class PrismaStaffMemberRepository implements IStaffMemberRepository {
     return new StaffMemberEntity(m);
   }
 
-  async create(
-    data: Partial<StaffMemberEntity>,
-  ): Promise<StaffMemberEntity> {
+  async create(data: Partial<StaffMemberEntity>): Promise<StaffMemberEntity> {
     const count = await this.prisma.staffMember.count();
     const m = await this.prisma.staffMember.create({
       data: {

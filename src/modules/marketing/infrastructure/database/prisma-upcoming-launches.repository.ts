@@ -5,9 +5,7 @@ import { IUpcomingLaunchRepository } from '../../domain/upcoming-launches.reposi
 import { ContentStatus } from 'src/generated/prisma/enums';
 
 @Injectable()
-export class PrismaUpcomingLaunchRepository
-  implements IUpcomingLaunchRepository
-{
+export class PrismaUpcomingLaunchRepository implements IUpcomingLaunchRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   async findAll(onlyVigentes = false): Promise<UpcomingLaunchEntity[]> {

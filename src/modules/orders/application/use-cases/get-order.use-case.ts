@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { PrismaService } from '../../../../core/database/prisma.service';
 
 @Injectable()
@@ -9,7 +13,9 @@ export class GetOrderUseCase {
     const order = await this.prisma.order.findUnique({
       where: { id },
       include: {
-        order_items: { include: { course: { select: { title: true, thumbnail_url: true } } } },
+        order_items: {
+          include: { course: { select: { title: true, thumbnail_url: true } } },
+        },
       },
     });
 
@@ -35,7 +41,8 @@ export class GetOrderUseCase {
         title: item.course.title,
         thumbnail_url: item.course.thumbnail_url,
         unit_price: Number(item.unit_price),
-        discount_price: item.discount_price !== null ? Number(item.discount_price) : null,
+        discount_price:
+          item.discount_price !== null ? Number(item.discount_price) : null,
         final_price: Number(item.final_price),
       })),
     };

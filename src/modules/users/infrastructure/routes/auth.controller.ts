@@ -37,15 +37,16 @@ export class AuthController {
     response: Response,
     tokens: { accessToken: string; refresh_token: string },
   ) {
+    const secure = process.env.COOKIE_SECURE === 'true';
     response.cookie('access_token', tokens.accessToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure,
       sameSite: 'lax',
       maxAge: 15 * 60 * 1000,
     });
     response.cookie('refresh_token', tokens.refresh_token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure,
       sameSite: 'lax',
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 días
     });
@@ -119,7 +120,7 @@ export class AuthController {
   logout(@Res({ passthrough: true }) response: Response) {
     const cookieOptions = {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: process.env.COOKIE_SECURE === 'true',
       sameSite: 'lax' as const,
       path: '/',
     };

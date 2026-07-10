@@ -38,10 +38,7 @@ export class EnrollmentsController {
   }
 
   @Delete(':id')
-  async delete(
-    @Param('id') id: string,
-    @CurrentUser('userId') userId: string,
-  ) {
+  async delete(@Param('id') id: string, @CurrentUser('userId') userId: string) {
     return this.deleteEnrollment.execute(id, userId);
   }
 }

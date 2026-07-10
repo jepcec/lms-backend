@@ -18,12 +18,7 @@ export interface ImageTransformOptions {
   width?: number;
   height?: number;
   quality?:
-    | 'auto'
-    | 'auto:best'
-    | 'auto:good'
-    | 'auto:eco'
-    | 'auto:low'
-    | number;
+    'auto' | 'auto:best' | 'auto:good' | 'auto:eco' | 'auto:low' | number;
   format?: 'auto' | 'webp' | 'jpg' | 'png' | 'avif';
   crop?: 'fill' | 'fit' | 'scale' | 'thumb';
 }

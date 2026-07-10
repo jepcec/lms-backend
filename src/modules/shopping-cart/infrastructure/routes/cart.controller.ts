@@ -72,8 +72,13 @@ export class CartController {
     @CurrentUser('userId') userId?: string,
   ) {
     if (!userId) {
-      throw new ForbiddenException('Necesitas iniciar sesión para fusionar el carrito');
+      throw new ForbiddenException(
+        'Necesitas iniciar sesión para fusionar el carrito',
+      );
     }
-    return this.mergeCartUC.execute({ userId, sessionToken: data.session_token });
+    return this.mergeCartUC.execute({
+      userId,
+      sessionToken: data.session_token,
+    });
   }
 }
