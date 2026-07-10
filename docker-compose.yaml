@@ -75,7 +75,8 @@ services:
     expose:
       - "4000"   # alcanzable por la red lms-net, NO por el host
     networks:
-      - lms-net
+      lms-net:
+        aliases: lms-backend
 
 # =============================================================
 # Volumenes y redes
