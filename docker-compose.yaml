@@ -9,6 +9,15 @@
 #                        El frontend lo consume por la red lms-net.
 #
 # Orden de deploy con Coolify: ESTE stack primero.
+#
+# Local: levantar ANTES que el frontend (ver Makefile en la raiz
+# de practicas). Si el frontend arranca sin esta red creada,
+# el compose del front falla o queda sin red.
+#
+# Variables: este compose requiere un archivo `.env` en este mismo
+# directorio con al menos: JWT_SECRET, POSTGRES_USER, POSTGRES_PASSWORD,
+# POSTGRES_DB. Se declara explicito con `env_file` para fallar
+# ruidosamente si el archivo falta.
 # =============================================================
 
 services:
@@ -46,6 +55,8 @@ services:
       dockerfile: Dockerfile
     container_name: lms-backend
     restart: unless-stopped
+    env_file:
+      - .env
     environment:
       NODE_ENV: production
       PORT: 4000
