@@ -74,4 +74,4 @@ HEALTHCHECK --interval=30s --timeout=5s --start-period=40s \
   http://localhost:4000/api || exit 1
 
 
-CMD ["node", "dist/main.js"]
+CMD ["node", "dist/src/main.js"]
