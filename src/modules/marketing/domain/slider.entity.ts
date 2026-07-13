@@ -16,6 +16,7 @@ export class SliderEntity {
   position_on_page: SliderPosition;
   display_order: number;
   status: SliderStatus;
+  show_content: boolean;
   courses?: any[];
   created_at: Date;
 

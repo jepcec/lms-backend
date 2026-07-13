@@ -9,5 +9,6 @@ export class CreateSliderDto {
   position_on_page: 'top' | 'middle' | 'bottom';
   display_order?: number;
   status: 'active' | 'inactive';
+  show_content?: boolean;
   course_ids?: string[];
 }

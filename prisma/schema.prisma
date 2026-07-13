@@ -564,6 +564,7 @@ model Slider {
   position_on_page SliderPosition
   display_order    Int
   status           ContentStatus  @default(active)
+  show_content     Boolean        @default(true)
   created_at       DateTime       @default(now())
 
   event_type       EventType?     @relation(fields: [event_type_id], references: [id], onDelete: SetNull)
@@ -585,6 +586,41 @@ model UpcomingLaunch {
   created_at       DateTime      @default(now())
 
   @@map("upcoming_launches")
+}
+
+model Software {
+  id              String        @id @default(uuid()) @db.Uuid
+  name            String
+  image_url       String
+  image_public_id String?
+  display_order   Int
+  status          ContentStatus @default(active)
+  created_at      DateTime      @default(now())
+
+  @@map("softwares")
+}
+
+model ScrollPopup {
+  id               String        @id @default(uuid()) @db.Uuid
+  image_url        String
+  image_public_id  String?
+  destination_url  String?
+  display_order    Int
+  status           ContentStatus @default(active)
+  created_at       DateTime      @default(now())
+
+  @@map("scroll_popups")
+}
+
+model Alliance {
+  id              String        @id @default(uuid()) @db.Uuid
+  image_url       String
+  image_public_id String?
+  display_order   Int
+  status          ContentStatus @default(active)
+  created_at      DateTime      @default(now())
+
+  @@map("alliances")
 }
 
 model StaffMember {

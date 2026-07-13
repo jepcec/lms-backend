@@ -66,6 +66,7 @@ export class PrismaSliderRepository implements ISliderRepository {
         position_on_page: data.position_on_page as SliderPosition,
         display_order: data.display_order ?? count + 1,
         status: (data.status as ContentStatus) ?? ContentStatus.active,
+        show_content: data.show_content ?? true,
         slider_courses: data.course_ids
           ? {
               create: data.course_ids.map((courseId, index) => ({
@@ -105,6 +106,7 @@ export class PrismaSliderRepository implements ISliderRepository {
         position_on_page: rest.position_on_page as SliderPosition,
         display_order: rest.display_order,
         status: rest.status as ContentStatus,
+        show_content: rest.show_content,
         slider_courses: course_ids
           ? {
               deleteMany: {},
