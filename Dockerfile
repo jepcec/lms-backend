@@ -56,6 +56,7 @@ RUN npm ci --omit=dev --ignore-scripts
 
 # 2. Copiar esquema de Prisma y GENERAR el cliente aquí mismo
 COPY --from=builder /app/prisma ./prisma
+COPY prisma.config.ts ./
 RUN npx prisma generate
 
 # 3. Copiar aplicación compilada de NestJS
