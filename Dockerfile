@@ -1,3 +1,4 @@
+
 # =============================================================
 # LMS Backend - NestJS Production Dockerfile
 # =============================================================
@@ -12,9 +13,9 @@ WORKDIR /app
 RUN apk add --no-cache openssl
 
 COPY package*.json ./
+COPY prisma ./prisma 
 
 RUN npm ci
-
 
 # -----------------------------
 # Stage 2: Build
@@ -33,12 +34,8 @@ COPY tsconfig*.json ./
 COPY nest-cli.json ./
 COPY src ./src
 
-# Generar cliente Prisma
 RUN npx prisma generate
-
-# Compilar NestJS
 RUN npm run build
-
 
 # -----------------------------
 # Stage 3: Production
@@ -54,24 +51,24 @@ ENV PORT=4000
 
 COPY package*.json ./
 
-# Instala solamente dependencias necesarias
-RUN npm ci --omit=dev
+# Instala dependencias de producción (Asegúrate de que 'prisma' esté en 'dependencies' y no en 'devDependencies')
+RUN npm ci --omit=dev --ignore-scripts
 
-
-# Copiar aplicación compilada
+COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
+COPY --from=builder /app/node_modules/@prisma/client ./node_modules/@prisma/client
 COPY --from=builder /app/dist ./dist
-
-# Copiar Prisma
 COPY --from=builder /app/prisma ./prisma
 
+USER node
 
 EXPOSE 4000
 
-
-# Healthcheck para Coolify
 HEALTHCHECK --interval=30s --timeout=5s --start-period=40s \
-  CMD wget --no-verbose --tries=1 --spider \
-  http://localhost:4000/api || exit 1
+  CMD wget --no-verbose --tries=1 --spider http://localhost:4000/api || exit 1
 
+# Todo en una sola instrucción CMD:
+# 1. Valida DATABASE_URL
+# 2. Ejecuta migraciones
+# 3. Arranca Node usando exec para el Graceful Shutdown
+CMD ["sh", "-c", "if [ -z \"$DATABASE_URL\" ]; then echo 'FATAL: DATABASE_URL no definida'; exit 1; fi && echo 'Aplicando migraciones...' && npx prisma migrate deploy && echo 'Iniciando NestJS...' && exec node dist/main.js"]
 
-CMD ["npm", "run", "start:prod"]
