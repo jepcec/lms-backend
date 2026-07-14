@@ -61,6 +61,9 @@ RUN npx prisma generate
 # 3. Copiar aplicación compilada de NestJS
 COPY --from=builder /app/dist ./dist
 
+# 4. Cambiar ownership al usuario node para que pueda escribir .env en runtime
+RUN chown -R node:node /app
+
 USER node
 
 EXPOSE 4000
