@@ -51,13 +51,15 @@ ENV PORT=4000
 
 COPY package*.json ./
 
-# Instala dependencias de producción (Asegúrate de que 'prisma' esté en 'dependencies' y no en 'devDependencies')
+# 1. Instala dependencias de producción (Asegúrate de que 'prisma' y '@prisma/client' estén en dependencies en package.json)
 RUN npm ci --omit=dev --ignore-scripts
 
-COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
-COPY --from=builder /app/node_modules/@prisma/client ./node_modules/@prisma/client
-COPY --from=builder /app/dist ./dist
+# 2. Copiar esquema de Prisma y GENERAR el cliente aquí mismo
 COPY --from=builder /app/prisma ./prisma
+RUN npx prisma generate
+
+# 3. Copiar aplicación compilada de NestJS
+COPY --from=builder /app/dist ./dist
 
 USER node
 
@@ -66,9 +68,5 @@ EXPOSE 4000
 HEALTHCHECK --interval=30s --timeout=5s --start-period=40s \
   CMD wget --no-verbose --tries=1 --spider http://localhost:4000/api || exit 1
 
-# Todo en una sola instrucción CMD:
-# 1. Valida DATABASE_URL
-# 2. Ejecuta migraciones
-# 3. Arranca Node usando exec para el Graceful Shutdown
+# Comando único para validar, migrar y ejecutar
 CMD ["sh", "-c", "if [ -z \"$DATABASE_URL\" ]; then echo 'FATAL: DATABASE_URL no definida'; exit 1; fi && echo 'Aplicando migraciones...' && npx prisma migrate deploy && echo 'Iniciando NestJS...' && exec node dist/main.js"]
-
