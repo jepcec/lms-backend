@@ -69,4 +69,4 @@ HEALTHCHECK --interval=30s --timeout=5s --start-period=40s \
   CMD wget --no-verbose --tries=1 --spider http://localhost:4000/api || exit 1
 
 # Comando único para validar, migrar y ejecutar
-CMD ["sh", "-c", "if [ -z \"$DATABASE_URL\" ]; then echo 'FATAL: DATABASE_URL no definida'; exit 1; fi && echo 'Aplicando migraciones...' && npx prisma migrate deploy && echo 'Iniciando NestJS...' && exec node dist/main.js"]
+CMD ["sh", "-c", "if [ -z \"$DATABASE_URL\" ]; then echo 'FATAL: DATABASE_URL no definida'; exit 1; fi && echo 'Aplicando migraciones...' && npx prisma migrate deploy && echo 'Iniciando NestJS...' && exec node dist/src/main.js"]
