@@ -11,6 +11,7 @@
   "scripts": {
     "build": "nest build",
     "db:seed": "npx prisma db seed",
+    "db:seed:admin": "node prisma/seed.admin.js",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
     "start:dev": "nest start --watch",
