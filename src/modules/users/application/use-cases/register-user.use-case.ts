@@ -6,8 +6,6 @@ import { UserEntity } from '../../domain/user.entity';
 import {
   I_PASSWORD_SERVICE,
   type IPasswordService,
-  I_AUTH_TOKEN_SERVICE,
-  type IAuthTokenService,
 } from '../../domain/services/auth.service';
 import { CryptoTokenService } from '../../infrastructure/services/crypto-token.service';
 import {
@@ -24,8 +22,6 @@ export class RegisterUserUseCase {
     private readonly passwordService: IPasswordService,
     @Inject(I_EMAIL_SERVICE)
     private readonly emailService: IEmailService,
-    @Inject(I_AUTH_TOKEN_SERVICE)
-    private readonly tokenService: IAuthTokenService,
 
     private readonly criptoService: CryptoTokenService,
   ) {}
@@ -69,20 +65,9 @@ export class RegisterUserUseCase {
       verificationToken,
     );
 
-    const accessToken = this.tokenService.generate({
-      userId: nuevoUsuario.id,
-      role: nuevoUsuario.role,
-    });
-    const refreshToken = this.tokenService.generateRefresh({
-      userId: nuevoUsuario.id,
-      role: nuevoUsuario.role,
-    });
-
     return {
       success: true,
       message: 'Email de verificacion enviado',
-      accessToken,
-      refresh_token: refreshToken,
       user: {
         id: nuevoUsuario.id,
         first_name: nuevoUsuario.first_name,

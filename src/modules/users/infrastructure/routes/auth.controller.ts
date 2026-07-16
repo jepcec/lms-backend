@@ -42,7 +42,7 @@ export class AuthController {
       httpOnly: true,
       secure,
       sameSite: 'lax',
-      maxAge: 15 * 60 * 1000,
+      maxAge: 5 * 60 * 1000,
     });
     response.cookie('refresh_token', tokens.refresh_token, {
       httpOnly: true,
@@ -52,15 +52,11 @@ export class AuthController {
     });
   }
 
-  // registro de usuario (auto-loguea al crear la cuenta)
+  // registro de usuario (no auto-loguea: el usuario debe verificar su correo primero)
   @Post('register')
   @Public()
-  async register(
-    @Body() dto: RegisterUserDto,
-    @Res({ passthrough: true }) response: Response,
-  ) {
+  async register(@Body() dto: RegisterUserDto) {
     const result = await this.registerUseCase.execute(dto);
-    this.setAuthCookies(response, result);
     return {
       success: result.success,
       message: result.message,

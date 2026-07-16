@@ -6,8 +6,8 @@ export class GetStudentDetailUseCase {
   constructor(private readonly prisma: PrismaService) {}
 
   async execute(userId: string) {
-    const user = await this.prisma.user.findUnique({
-      where: { id: userId },
+    const user = await this.prisma.user.findFirst({
+      where: { id: userId, deleted_at: null },
     });
 
     if (!user) {

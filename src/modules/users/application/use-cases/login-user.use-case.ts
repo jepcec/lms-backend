@@ -1,4 +1,9 @@
-import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  Inject,
+  Injectable,
+  UnauthorizedException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { I_USER_REPOSITORY } from '../../domain/users.repository';
 import type { IUserRepository } from '../../domain/users.repository';
 import {
@@ -31,6 +36,16 @@ export class LoginUserUseCase {
     if (!isPasswordValid)
       throw new UnauthorizedException('Credenciales invalidas');
 
+    if (!userDb.emailVerified) {
+      throw new UnauthorizedException('Debes verificar tu correo electrónico');
+    }
+    if (userDb.isSuspended) {
+      throw new ForbiddenException('Tu cuenta está suspendida');
+    }
+    if (userDb.isDeleted) {
+      throw new UnauthorizedException('Credenciales invalidas');
+    }
+
     // TOKENS  crear - refrescar - verificar
     const token = this.tokenService.generate({
       userId: userDb.id,
@@ -45,7 +60,7 @@ export class LoginUserUseCase {
     return {
       accessToken: token,
       refresh_token: refreshToken,
-      expires_in: 900, //15min
+      expires_in: 300, //5min
       user: {
         id: userDb.id,
         first_name: userDb.first_name,

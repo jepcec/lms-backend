@@ -74,7 +74,7 @@ export class AuthGuard implements CanActivate {
           { userId: payload.userId, role: payload.role },
           {
             secret: this.configService.get<string>('JWT_SECRET'),
-            expiresIn: '15m',
+            expiresIn: '5m',
           },
         );
 
@@ -82,7 +82,7 @@ export class AuthGuard implements CanActivate {
           httpOnly: true,
           secure: process.env.COOKIE_SECURE === 'true',
           sameSite: 'lax',
-          maxAge: 15 * 60 * 1000,
+          maxAge: 5 * 60 * 1000,
         });
 
         request['user'] = payload;
