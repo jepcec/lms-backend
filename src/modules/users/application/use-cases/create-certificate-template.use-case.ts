@@ -26,7 +26,7 @@ export class CreateCertificateTemplateUseCase {
         folder: 'certificate-templates',
       });
       backgroundImageUrl = this.fileStorageService.getUrl(result.publicId, {
-        format: 'webp',
+        format: 'png',
       });
     }
 
@@ -38,7 +38,7 @@ export class CreateCertificateTemplateUseCase {
         folder: 'certificate-templates',
       });
       backImageUrl = this.fileStorageService.getUrl(result.publicId, {
-        format: 'webp',
+        format: 'png',
       });
     }
 

@@ -27,13 +27,12 @@ export class EmitStudentCertificateUseCase {
     if (!template) throw new NotFoundException('Plantilla no encontrada');
 
     if (enrollment.certificate) {
-      // Actualizar tipo/plantilla (admin puede corregir) y marcar PDF como pendiente
+      // Actualizar tipo/plantilla (admin puede corregir)
       const updated = await this.prisma.certificate.update({
         where: { enrollment_id: dto.enrollment_id },
         data: {
           type: dto.type,
           template_id: dto.template_id,
-          pdf_url: null,
         },
       });
       return { id: updated.id, type: updated.type, action: 'updated' };

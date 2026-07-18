@@ -43,7 +43,7 @@ export class UpdateCertificateTemplateUseCase {
       });
       updateData.background_image_url = this.fileStorageService.getUrl(
         result.publicId,
-        { format: 'webp' },
+        { format: 'png' },
       );
     }
 
@@ -56,7 +56,7 @@ export class UpdateCertificateTemplateUseCase {
       });
       updateData.back_image_url = this.fileStorageService.getUrl(
         result.publicId,
-        { format: 'webp' },
+        { format: 'png' },
       );
     }
 

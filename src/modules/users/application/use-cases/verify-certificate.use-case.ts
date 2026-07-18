@@ -31,7 +31,7 @@ export class VerifyCertificateUseCase {
     return {
       verification_code: cert.verification_code,
       type: cert.type,
-      pdf_url: cert.pdf_url,
+      download_url: `/certificates/${cert.id}/download`,
       student_name: `${student.first_name} ${student.last_name}`,
       course_title: course.title,
       issued_at: cert.issued_at,

@@ -56,7 +56,6 @@ export class SetGradeUseCase {
           create: {
             type: type,
             template_id: activeTemplate.id,
-            pdf_url: 'URL_GENERADA_EN_S3_O_PROCESADA', // Aquí iría la lógica de tu servicio de PDF
             // verification_code se genera automáticamente por el default(uuid) en el schema
           },
         },
