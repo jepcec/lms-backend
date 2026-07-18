@@ -10,8 +10,7 @@ import {
   UseInterceptors,
   UploadedFile,
 } from '@nestjs/common';
-import { FileInterceptor } from '@nestjs/platform-express';
-import { memoryStorage } from 'multer';
+import { imageUploadInterceptor } from 'src/modules/storage/infrastructure/upload/image-upload.interceptor';
 import { Public } from '../../../auth/decorators/public.decorator';
 import { Roles } from '../../../auth/decorators/roles.decorator';
 import { CurrentUser } from '../../../auth/decorators/current-user.decorator';
@@ -112,21 +111,7 @@ export class CoursesController {
 
   @Post(':id/thumbnail')
   @Roles('admin', 'soporte')
-  @UseInterceptors(
-    FileInterceptor('thumbnail', {
-      storage: memoryStorage(),
-      fileFilter: (_req, file, callback) => {
-        if (!file.mimetype.match(/\/(jpg|jpeg|png|webp)$/)) {
-          return callback(
-            new Error('Only image files are allowed (jpg, jpeg, png, webp)'),
-            false,
-          );
-        }
-        callback(null, true);
-      },
-      limits: { fileSize: 5 * 1024 * 1024 },
-    }),
-  )
+  @UseInterceptors(imageUploadInterceptor('thumbnail'))
   async uploadThumbnailHandler(
     @Param('id') id: string,
     @UploadedFile() file: Express.Multer.File,
