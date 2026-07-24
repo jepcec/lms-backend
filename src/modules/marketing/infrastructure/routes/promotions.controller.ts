@@ -10,10 +10,8 @@ import {
   UseInterceptors,
   UploadedFile,
 } from '@nestjs/common';
-import { FileInterceptor } from '@nestjs/platform-express';
-import { memoryStorage } from 'multer';
-import type { Express, Request } from 'express';
-import type { FileFilterCallback } from 'multer';
+import type { Express } from 'express';
+import { imageUploadInterceptor } from 'src/modules/storage/infrastructure/upload/image-upload.interceptor';
 import { CreatePromotionDto } from '../../application/dtos/create-promotion.dto';
 import { ReorderPromotionsDto } from '../../application/dtos/reorder-promotions.dto';
 import { UpdatePromotionDto } from '../../application/dtos/update-promotion.dto';
@@ -23,19 +21,6 @@ import { GetPromotionsUseCase } from '../../application/use-cases/get-promotions
 import { ReorderPromotionsUseCase } from '../../application/use-cases/reorder-promotions.use-case';
 import { UpdatePromotionUseCase } from '../../application/use-cases/update-promotion.use-case';
 import { Public } from 'src/modules/auth/decorators/public.decorator';
-
-const imageFileFilter = (
-  _req: Request,
-  file: Express.Multer.File,
-  callback: FileFilterCallback,
-) => {
-  if (!file.mimetype.match(/\/(jpg|jpeg|png|webp)$/)) {
-    return callback(
-      new Error('Only image files are allowed (jpg, jpeg, png, webp)'),
-    );
-  }
-  callback(null, true);
-};
 
 @Controller('promociones')
 export class PromotionsController {
@@ -54,13 +39,7 @@ export class PromotionsController {
   }
 
   @Post()
-  @UseInterceptors(
-    FileInterceptor('image', {
-      storage: memoryStorage(),
-      fileFilter: imageFileFilter,
-      limits: { fileSize: 5 * 1024 * 1024 },
-    }),
-  )
+  @UseInterceptors(imageUploadInterceptor('image'))
   create(
     @Body() dto: CreatePromotionDto,
     @UploadedFile() image?: Express.Multer.File,
@@ -77,13 +56,7 @@ export class PromotionsController {
   }
 
   @Patch(':id')
-  @UseInterceptors(
-    FileInterceptor('image', {
-      storage: memoryStorage(),
-      fileFilter: imageFileFilter,
-      limits: { fileSize: 5 * 1024 * 1024 },
-    }),
-  )
+  @UseInterceptors(imageUploadInterceptor('image'))
   update(
     @Param('id') id: string,
     @Body() dto: UpdatePromotionDto,

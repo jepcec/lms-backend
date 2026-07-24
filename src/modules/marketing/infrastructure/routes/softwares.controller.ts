@@ -10,10 +10,8 @@ import {
   UseInterceptors,
   UploadedFile,
 } from '@nestjs/common';
-import { FileInterceptor } from '@nestjs/platform-express';
-import { memoryStorage } from 'multer';
-import type { Express, Request } from 'express';
-import type { FileFilterCallback } from 'multer';
+import type { Express } from 'express';
+import { imageUploadInterceptor } from 'src/modules/storage/infrastructure/upload/image-upload.interceptor';
 import { CreateSoftwareDto } from '../../application/dtos/create-software.dto';
 import { UpdateSoftwareDto } from '../../application/dtos/update-software.dto';
 import { CreateSoftwareUseCase } from '../../application/use-cases/create-software.use-case';
@@ -22,19 +20,6 @@ import { UpdateSoftwareUseCase } from '../../application/use-cases/update-softwa
 import { DeleteSoftwareUseCase } from '../../application/use-cases/delete-software.use-case';
 import { Public } from 'src/modules/auth/decorators/public.decorator';
 import { Roles } from 'src/modules/auth/decorators/roles.decorator';
-
-const imageFileFilter = (
-  _req: Request,
-  file: Express.Multer.File,
-  callback: FileFilterCallback,
-) => {
-  if (!file.mimetype.match(/\/(jpg|jpeg|png|webp)$/)) {
-    return callback(
-      new Error('Only image files are allowed (jpg, jpeg, png, webp)'),
-    );
-  }
-  callback(null, true);
-};
 
 @Controller('softwares')
 export class SoftwaresController {
@@ -53,13 +38,7 @@ export class SoftwaresController {
 
   @Post()
   @Roles('admin', 'marketing')
-  @UseInterceptors(
-    FileInterceptor('image', {
-      storage: memoryStorage(),
-      fileFilter: imageFileFilter,
-      limits: { fileSize: 5 * 1024 * 1024 },
-    }),
-  )
+  @UseInterceptors(imageUploadInterceptor('image'))
   create(
     @Body() dto: CreateSoftwareDto,
     @UploadedFile() image?: Express.Multer.File,
@@ -70,13 +49,7 @@ export class SoftwaresController {
 
   @Patch(':id')
   @Roles('admin', 'marketing')
-  @UseInterceptors(
-    FileInterceptor('image', {
-      storage: memoryStorage(),
-      fileFilter: imageFileFilter,
-      limits: { fileSize: 5 * 1024 * 1024 },
-    }),
-  )
+  @UseInterceptors(imageUploadInterceptor('image'))
   update(
     @Param('id') id: string,
     @Body() dto: UpdateSoftwareDto,

@@ -10,10 +10,8 @@ import {
   UseInterceptors,
   UploadedFile,
 } from '@nestjs/common';
-import { FileInterceptor } from '@nestjs/platform-express';
-import { memoryStorage } from 'multer';
-import type { Express, Request } from 'express';
-import type { FileFilterCallback } from 'multer';
+import type { Express } from 'express';
+import { imageUploadInterceptor } from 'src/modules/storage/infrastructure/upload/image-upload.interceptor';
 import { CreateStaffMemberDto } from '../../application/dtos/create-staff-member.dto';
 import { UpdateStaffMemberDto } from '../../application/dtos/update-staff-member.dto';
 import { CreateStaffMemberUseCase } from '../../application/use-cases/create-staff-member.use-case';
@@ -22,19 +20,6 @@ import { UpdateStaffMemberUseCase } from '../../application/use-cases/update-sta
 import { DeleteStaffMemberUseCase } from '../../application/use-cases/delete-staff-member.use-case';
 import { Public } from 'src/modules/auth/decorators/public.decorator';
 import { Roles } from 'src/modules/auth/decorators/roles.decorator';
-
-const imageFileFilter = (
-  _req: Request,
-  file: Express.Multer.File,
-  callback: FileFilterCallback,
-) => {
-  if (!file.mimetype.match(/\/(jpg|jpeg|png|webp)$/)) {
-    return callback(
-      new Error('Only image files are allowed (jpg, jpeg, png, webp)'),
-    );
-  }
-  callback(null, true);
-};
 
 @Controller('docentes')
 export class StaffMembersController {
@@ -53,13 +38,7 @@ export class StaffMembersController {
 
   @Post()
   @Roles('admin', 'marketing')
-  @UseInterceptors(
-    FileInterceptor('image', {
-      storage: memoryStorage(),
-      fileFilter: imageFileFilter,
-      limits: { fileSize: 5 * 1024 * 1024 },
-    }),
-  )
+  @UseInterceptors(imageUploadInterceptor('image'))
   create(
     @Body() dto: CreateStaffMemberDto,
     @UploadedFile() image?: Express.Multer.File,
@@ -70,13 +49,7 @@ export class StaffMembersController {
 
   @Patch(':id')
   @Roles('admin', 'marketing')
-  @UseInterceptors(
-    FileInterceptor('image', {
-      storage: memoryStorage(),
-      fileFilter: imageFileFilter,
-      limits: { fileSize: 5 * 1024 * 1024 },
-    }),
-  )
+  @UseInterceptors(imageUploadInterceptor('image'))
   update(
     @Param('id') id: string,
     @Body() dto: UpdateStaffMemberDto,
