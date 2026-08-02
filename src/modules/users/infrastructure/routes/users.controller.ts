@@ -18,6 +18,8 @@ import { extname } from 'path';
 import { GetProfileUseCase } from '../../application/use-cases/get-profile.use-case';
 import { UpdateProfileUseCase } from '../../application/use-cases/update-profile.use-case';
 import { UpdateProfileDto } from '../../application/dtos/update-profile.dto';
+import { ChangePasswordUseCase } from '../../application/use-cases/change-password.use-case';
+import { ChangePasswordDto } from '../../application/dtos/change-password.dto';
 import { DeleteAccountUseCase } from '../../application/use-cases/delete-user.use-case';
 import { Roles } from '../../../auth/decorators/roles.decorator';
 import { Multer } from 'multer';
@@ -39,6 +41,7 @@ export class UsersController {
   constructor(
     private readonly getProfile: GetProfileUseCase,
     private readonly updateProfile: UpdateProfileUseCase,
+    private readonly changePasswordUC: ChangePasswordUseCase,
     private readonly deleteAccount: DeleteAccountUseCase,
 
     private readonly getUsuarioUC: GetUsuarioUseCase,
@@ -88,6 +91,19 @@ export class UsersController {
 
     // Le pasamos el DTO ya modificado al caso de uso
     return this.updateProfile.execute(id, dto);
+  }
+
+  @Patch('me/password')
+  async changePassword(
+    @CurrentUser('userId') userId: string,
+    @Body() dto: ChangePasswordDto,
+  ) {
+    await this.changePasswordUC.execute(
+      userId,
+      dto.current_password,
+      dto.new_password,
+    );
+    return { message: 'Contraseña actualizada correctamente' };
   }
 
   @Roles('admin')

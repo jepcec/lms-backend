@@ -16,7 +16,7 @@ import { CreateMatriculasDto } from '../../application/dtos/create-matriculas.dt
 import { DeleteEnrollmentUseCase } from '../../application/use-cases/delete-enrollment.use-case';
 
 @Controller('enrollments')
-@Roles('admin', 'soporte')
+@Roles('admin', 'soporte', 'coordinador')
 export class EnrollmentsController {
   constructor(
     private readonly listMatriculas: ListMatriculasUseCase,

@@ -40,7 +40,7 @@ export class AdminController {
     private readonly exportDashboardExcel: ExportDashboardExcelUseCase,
   ) {}
 
-  @Roles('admin', 'soporte')
+  @Roles('admin', 'soporte', 'coordinador')
   @Get('usuarios')
   async listUsuariosHandler(@Query() params: ListUsuariosDto) {
     return this.listUsuarios.execute(params);
@@ -103,6 +103,7 @@ export class AdminController {
     return this.getTopEstudiantes.execute(filters);
   }
 
+  @Roles('admin', 'coordinador')
   @Get('cursos/:cursoId/matriculados')
   async matriculadosCursoHandler(
     @Param('cursoId') cursoId: string,
@@ -128,13 +129,13 @@ export class AdminController {
     res.send(buffer);
   }
 
-  @Roles('admin', 'soporte')
+  @Roles('admin', 'soporte', 'coordinador')
   @Get('estudiantes/:userId')
   async studentDetailHandler(@Param('userId') userId: string) {
     return this.getStudentDetail.execute(userId);
   }
 
-  @Roles('admin', 'soporte')
+  @Roles('admin', 'soporte', 'coordinador')
   @Get('estudiantes/:userId/cursos/:courseId/actividad')
   async actividadEstudianteHandler(
     @Param('userId') userId: string,

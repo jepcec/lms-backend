@@ -5,7 +5,12 @@
 // USERMAPER
 // ============================================================================
 
-export type UserRole = 'estudiante' | 'soporte' | 'marketing' | 'admin';
+export type UserRole =
+  | 'estudiante'
+  | 'soporte'
+  | 'marketing'
+  | 'admin'
+  | 'coordinador';
 export interface UserProps {
   id: string;
   first_name: string;

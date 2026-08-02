@@ -40,6 +40,7 @@ import { ResetPasswordUseCase } from './application/use-cases/reset-password.use
 import { VerifyEmailUseCase } from './application/use-cases/verify-email.use-case';
 import { GetProfileUseCase } from './application/use-cases/get-profile.use-case';
 import { UpdateProfileUseCase } from './application/use-cases/update-profile.use-case';
+import { ChangePasswordUseCase } from './application/use-cases/change-password.use-case';
 import { DeleteAccountUseCase } from './application/use-cases/delete-user.use-case';
 import { SetGradeUseCase } from './application/use-cases/set-enrollment-grade.use-case';
 import { GetMyEnrollmentsUseCase } from './application/use-cases/get-my-enrollments.use-case';
@@ -115,6 +116,7 @@ import { ExportDashboardExcelUseCase } from './application/use-cases/export-dash
     VerifyEmailUseCase,
     GetProfileUseCase,
     UpdateProfileUseCase,
+    ChangePasswordUseCase,
     DeleteAccountUseCase,
     SetGradeUseCase,
     GetMyEnrollmentsUseCase,

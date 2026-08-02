@@ -63,6 +63,7 @@ export class RegisterUserUseCase {
     await this.emailService.sendEmailVerification(
       nuevoUsuario.email,
       verificationToken,
+      nuevoUsuario.first_name,
     );
 
     return {

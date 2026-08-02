@@ -22,6 +22,7 @@ enum UserRole {
   soporte
   marketing
   admin
+  coordinador
 }
 
 enum UserStatus {
@@ -487,7 +488,7 @@ model Certificate {
   enrollment_id     String              @unique @db.Uuid
   template_id       String              @db.Uuid
   type              CertificateType
-  verification_code String              @unique @default(uuid())
+  verification_code String?             @unique
   pdf_url           String?
   issued_at         DateTime            @default(now())
 

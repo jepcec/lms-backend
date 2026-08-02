@@ -3,6 +3,7 @@ import {
   NotFoundException,
   BadRequestException,
 } from '@nestjs/common';
+import { randomUUID } from 'crypto';
 import { PrismaService } from '../../../../core/database/prisma.service';
 import { EmitCertificateDto } from '../dtos/emit-certificate.dto';
 
@@ -26,6 +27,7 @@ export class EmitStudentCertificateUseCase {
 
     if (!template) throw new NotFoundException('Plantilla no encontrada');
 
+    // Las constancias no llevan código de verificación (sin QR ni página pública)
     if (enrollment.certificate) {
       // Actualizar tipo/plantilla (admin puede corregir)
       const updated = await this.prisma.certificate.update({
@@ -33,6 +35,10 @@ export class EmitStudentCertificateUseCase {
         data: {
           type: dto.type,
           template_id: dto.template_id,
+          verification_code:
+            dto.type === 'Certificado'
+              ? (enrollment.certificate.verification_code ?? randomUUID())
+              : null,
         },
       });
       return { id: updated.id, type: updated.type, action: 'updated' };
@@ -43,6 +49,7 @@ export class EmitStudentCertificateUseCase {
         enrollment_id: dto.enrollment_id,
         template_id: dto.template_id,
         type: dto.type,
+        verification_code: dto.type === 'Certificado' ? randomUUID() : null,
       },
     });
 

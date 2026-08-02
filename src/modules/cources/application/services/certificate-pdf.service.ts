@@ -61,10 +61,6 @@ export class CertificatePdfService {
     }
 
     const studentName = `${cert.enrollment.student.first_name} ${cert.enrollment.student.last_name}`;
-    const frontendUrl =
-      this.config.get<string>('FRONTEND_URL') ??
-      'https://especializacionesglobal.net';
-    const verifyUrl = `${frontendUrl}/verificar/${cert.verification_code}`;
 
     // 1. Descargar imagen de fondo
     const bgBuffer = await this.fetchImageBuffer(
@@ -121,46 +117,55 @@ export class CertificatePdfService {
       color: rgb(0.08, 0.08, 0.08),
     });
 
-    // ── Página 2: Contraportada (fondo + QR) ──
-    const backPage = pdfDoc.addPage([PAGE_W, PAGE_H]);
+    // ── Página 2: Contraportada (fondo + QR) — solo para Certificados.
+    // Las Constancias no llevan QR ni código de verificación, así que se
+    // entregan como un documento de una sola página (la cara).
+    if (cert.type === 'Certificado') {
+      const backPage = pdfDoc.addPage([PAGE_W, PAGE_H]);
 
-    const backImageUrl = (cert.template as { back_image_url?: string })
-      .back_image_url;
-    if (backImageUrl) {
-      const backBuffer = await this.fetchImageBuffer(backImageUrl);
-      const isBackJpeg = this.isJpeg(backImageUrl, backBuffer);
-      const backImage = isBackJpeg
-        ? await pdfDoc.embedJpg(backBuffer)
-        : await pdfDoc.embedPng(backBuffer);
-      backPage.drawImage(backImage, {
-        x: 0,
-        y: 0,
-        width: PAGE_W,
-        height: PAGE_H,
+      const backImageUrl = (cert.template as { back_image_url?: string })
+        .back_image_url;
+      if (backImageUrl) {
+        const backBuffer = await this.fetchImageBuffer(backImageUrl);
+        const isBackJpeg = this.isJpeg(backImageUrl, backBuffer);
+        const backImage = isBackJpeg
+          ? await pdfDoc.embedJpg(backBuffer)
+          : await pdfDoc.embedPng(backBuffer);
+        backPage.drawImage(backImage, {
+          x: 0,
+          y: 0,
+          width: PAGE_W,
+          height: PAGE_H,
+        });
+      }
+
+      const frontendUrl =
+        this.config.get<string>('FRONTEND_URL') ??
+        'https://especializacionesglobal.net';
+      const verifyUrl = `${frontendUrl}/verificar/${cert.verification_code}`;
+
+      const qrPos = cert.template.qr_position as unknown as NamePosition;
+      const rawQrSize = (cert.template as { qr_size?: number }).qr_size ?? 300;
+      const qrPt = rawQrSize * scaleX;
+
+      const qrPngBuffer = await QRCode.toBuffer(verifyUrl, {
+        type: 'png',
+        width: Math.round(qrPt * 4),
+        margin: 1,
+        color: { dark: '#000000', light: '#ffffff' },
+      });
+      const qrImage = await pdfDoc.embedPng(qrPngBuffer);
+
+      const pdfQrX = qrPos.x * scaleX - qrPt / 2;
+      const pdfQrY = PAGE_H - qrPos.y * scaleY - qrPt / 2;
+
+      backPage.drawImage(qrImage, {
+        x: pdfQrX,
+        y: pdfQrY,
+        width: qrPt,
+        height: qrPt,
       });
     }
-
-    const qrPos = cert.template.qr_position as unknown as NamePosition;
-    const rawQrSize = (cert.template as { qr_size?: number }).qr_size ?? 300;
-    const qrPt = rawQrSize * scaleX;
-
-    const qrPngBuffer = await QRCode.toBuffer(verifyUrl, {
-      type: 'png',
-      width: Math.round(qrPt * 4),
-      margin: 1,
-      color: { dark: '#000000', light: '#ffffff' },
-    });
-    const qrImage = await pdfDoc.embedPng(qrPngBuffer);
-
-    const pdfQrX = qrPos.x * scaleX - qrPt / 2;
-    const pdfQrY = PAGE_H - qrPos.y * scaleY - qrPt / 2;
-
-    backPage.drawImage(qrImage, {
-      x: pdfQrX,
-      y: pdfQrY,
-      width: qrPt,
-      height: qrPt,
-    });
 
     // 6. Serializar y retornar buffer (sin guardar en disco)
     const pdfBytes = await pdfDoc.save();

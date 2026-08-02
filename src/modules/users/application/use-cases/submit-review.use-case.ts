@@ -5,6 +5,7 @@ import {
   ConflictException,
   Logger,
 } from '@nestjs/common';
+import { randomUUID } from 'crypto';
 import { PrismaService } from '../../../../core/database/prisma.service';
 
 export class SubmitReviewDto {
@@ -96,6 +97,7 @@ export class SubmitReviewUseCase {
             enrollment_id: dto.enrollment_id,
             template_id: course.certificate_template_id,
             type: 'Certificado',
+            verification_code: randomUUID(),
             review_id: review.id,
           },
         });

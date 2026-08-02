@@ -4,6 +4,7 @@ import {
   BadRequestException,
   NotFoundException,
 } from '@nestjs/common';
+import { randomUUID } from 'crypto';
 import { PrismaService } from '../../../../core/database/prisma.service';
 import { CertificateType } from '../../../../generated/prisma/client';
 
@@ -56,7 +57,9 @@ export class SetGradeUseCase {
           create: {
             type: type,
             template_id: activeTemplate.id,
-            // verification_code se genera automáticamente por el default(uuid) en el schema
+            // Las constancias no llevan código de verificación (sin QR ni página pública)
+            verification_code:
+              type === CertificateType.Certificado ? randomUUID() : null,
           },
         },
       },
