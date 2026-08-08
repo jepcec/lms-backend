@@ -20,6 +20,8 @@ export class PrismaUserRepository implements IUserRepository {
       passwordHash: dbUser.password_hash,
       role: dbUser.role,
       email_verified: dbUser.email_verified,
+      status: dbUser.status,
+      deleted_at: dbUser.deleted_at,
     });
   }
 
@@ -36,6 +38,8 @@ export class PrismaUserRepository implements IUserRepository {
       passwordHash: dbUser.password_hash,
       role: dbUser.role,
       email_verified: dbUser.email_verified,
+      status: dbUser.status,
+      deleted_at: dbUser.deleted_at,
     });
   }
 
@@ -149,6 +153,8 @@ export class PrismaUserRepository implements IUserRepository {
         phone: user.phone,
         role: user.role,
         password_hash: user.passwordHash,
+        country: user.country,
+        profession: user.profession,
 
         email_verified: user.emailVerified,
         email_verified_at: user.emailVerifiedAt,
@@ -157,12 +163,15 @@ export class PrismaUserRepository implements IUserRepository {
         password_reset_token: user.passwordResetToken,
       },
       create: {
+        id: user.id,
         first_name: user.first_name,
         last_name: user.lastName,
         email: user.email,
         phone: user.phone,
         password_hash: user.passwordHash,
         role: user.role,
+        country: user.country,
+        profession: user.profession,
         email_verified: user.emailVerified,
         email_verified_at: user.emailVerifiedAt,
         email_verification_token: user.emailVerificationToken,

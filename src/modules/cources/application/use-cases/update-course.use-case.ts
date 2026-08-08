@@ -8,6 +8,7 @@ import type {
   CourseLevel,
   CourseCurrency,
   CourseAccessDuration,
+  CertificationMode,
 } from '../../domain/course.entity';
 
 @Injectable()
@@ -55,6 +56,18 @@ export class UpdateCourseUseCase {
       review_count: course.review_count,
       enrolled_count: course.enrolled_count,
       total_duration_minutes: course.total_duration_minutes,
+      academic_hours: dto.academic_hours ?? course.academic_hours,
+      certification_mode:
+        (dto.certification_mode as CertificationMode) ??
+        course.certification_mode,
+      certificate_template_id:
+        dto.certificate_template_id !== undefined
+          ? dto.certificate_template_id
+          : course.certificate_template_id,
+      constancia_template_id:
+        dto.constancia_template_id !== undefined
+          ? dto.constancia_template_id
+          : course.constancia_template_id,
       created_by: course.created_by,
       created_at: course.created_at,
       updated_at: new Date(),

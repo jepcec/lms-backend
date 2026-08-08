@@ -1,4 +1,19 @@
-export type UserRole = 'estudiante' | 'soporte' | 'marketing' | 'admin';
+import { IsIn } from 'class-validator';
+
+export type UserRole =
+  | 'estudiante'
+  | 'soporte'
+  | 'marketing'
+  | 'admin'
+  | 'coordinador';
+
+const USER_ROLES: UserRole[] = [
+  'estudiante',
+  'soporte',
+  'marketing',
+  'admin',
+  'coordinador',
+];
 
 export class CreateUsuarioDto {
   first_name: string;
@@ -6,6 +21,7 @@ export class CreateUsuarioDto {
   email: string;
   phone: string;
   country?: string;
+  @IsIn(USER_ROLES)
   role: UserRole;
   password: string;
 }

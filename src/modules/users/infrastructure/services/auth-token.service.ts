@@ -12,7 +12,7 @@ export class TokenService implements IAuthTokenService {
   ) {}
 
   generate(payload: any): string {
-    return this.jwtService.sign(payload, { expiresIn: '15m' });
+    return this.jwtService.sign(payload, { expiresIn: '5m' });
   }
 
   generateRefresh(payload: { userId: string; role: string }): string {

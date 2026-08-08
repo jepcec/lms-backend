@@ -8,8 +8,18 @@ import { PromotionStatus } from 'src/generated/prisma/enums';
 export class PrismaPromotionRepository implements IPromotionRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async findAll(): Promise<PromotionEntity[]> {
+  async findAll(onlyVigentes = false): Promise<PromotionEntity[]> {
+    const now = new Date();
     const promotions = await this.prisma.promotion.findMany({
+      where: onlyVigentes
+        ? {
+            status: PromotionStatus.active,
+            AND: [
+              { OR: [{ starts_at: null }, { starts_at: { lte: now } }] },
+              { OR: [{ ends_at: null }, { ends_at: { gte: now } }] },
+            ],
+          }
+        : undefined,
       orderBy: { display_order: 'asc' },
     });
     return promotions.map((p) => new PromotionEntity(p as any));

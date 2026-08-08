@@ -1,9 +1,3 @@
-/*
-  Warnings:
-
-  - You are about to drop the `User` table. If the table is not empty, all the data it contains will be lost.
-
-*/
 -- CreateEnum
 CREATE TYPE "UserRole" AS ENUM ('estudiante', 'soporte', 'marketing', 'admin');
 
@@ -15,6 +9,9 @@ CREATE TYPE "CourseLevel" AS ENUM ('principiante', 'intermedio', 'avanzado');
 
 -- CreateEnum
 CREATE TYPE "CourseCurrency" AS ENUM ('USD', 'PEN');
+
+-- CreateEnum
+CREATE TYPE "CertificateType" AS ENUM ('Certificado', 'Constancia');
 
 -- CreateEnum
 CREATE TYPE "CourseAccessDuration" AS ENUM ('one_year', 'lifetime');
@@ -35,7 +32,7 @@ CREATE TYPE "OfflinePaymentMethod" AS ENUM ('transferencia', 'efectivo', 'cortes
 CREATE TYPE "OrderCurrency" AS ENUM ('USD', 'PEN');
 
 -- CreateEnum
-CREATE TYPE "PaymentMethod" AS ENUM ('stripe', 'niubiz');
+CREATE TYPE "PaymentMethod" AS ENUM ('stripe', 'niubiz', 'paypal', 'mercado_pago');
 
 -- CreateEnum
 CREATE TYPE "PaymentStatus" AS ENUM ('pending', 'paid', 'failed', 'refunded');
@@ -60,9 +57,6 @@ CREATE TYPE "PromotionStatus" AS ENUM ('active', 'inactive');
 
 -- CreateEnum
 CREATE TYPE "AuditAction" AS ENUM ('create', 'update', 'delete');
-
--- DropTable
-DROP TABLE "User";
 
 -- CreateTable
 CREATE TABLE "users" (
@@ -113,7 +107,8 @@ CREATE TABLE "courses" (
     "slug" TEXT NOT NULL,
     "tagline" VARCHAR(150) NOT NULL,
     "description" TEXT NOT NULL,
-    "thumbnail_url" TEXT NOT NULL,
+    "thumbnail_url" TEXT,
+    "thumbnail_public_id" TEXT,
     "level" "CourseLevel" NOT NULL,
     "software_tools" TEXT[],
     "price" DECIMAL(10,2) NOT NULL,
@@ -248,6 +243,7 @@ CREATE TABLE "enrollments" (
     "progress_percent" DECIMAL(5,2) NOT NULL DEFAULT 0,
     "completed_at" TIMESTAMP(3),
     "last_accessed_at" TIMESTAMP(3),
+    "final_score" DECIMAL(4,2),
 
     CONSTRAINT "enrollments_pkey" PRIMARY KEY ("id")
 );
@@ -285,9 +281,6 @@ CREATE TABLE "certificate_templates" (
     "name" TEXT NOT NULL,
     "background_image_url" TEXT NOT NULL,
     "student_name_position" JSONB NOT NULL,
-    "course_name_position" JSONB NOT NULL,
-    "dates_position" JSONB NOT NULL,
-    "verification_code_position" JSONB NOT NULL,
     "qr_position" JSONB NOT NULL,
     "font_family" TEXT NOT NULL,
     "font_sizes" JSONB NOT NULL,
@@ -302,7 +295,7 @@ CREATE TABLE "certificates" (
     "id" UUID NOT NULL,
     "enrollment_id" UUID NOT NULL,
     "template_id" UUID NOT NULL,
-    "verification_code" UUID NOT NULL,
+    "type" "CertificateType" NOT NULL,
     "pdf_url" TEXT NOT NULL,
     "issued_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "review_id" UUID,
@@ -338,12 +331,26 @@ CREATE TABLE "audit_logs" (
 );
 
 -- CreateTable
+CREATE TABLE "event_types" (
+    "id" UUID NOT NULL,
+    "name" TEXT NOT NULL,
+    "display_order" INTEGER NOT NULL DEFAULT 0,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "event_types_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "sliders" (
     "id" UUID NOT NULL,
     "title" TEXT NOT NULL,
+    "subtitle" TEXT,
     "type" "SliderType" NOT NULL,
+    "event_type_id" UUID,
     "image_url" TEXT,
+    "image_public_id" TEXT,
     "destination_url" TEXT,
+    "contact_url" TEXT,
     "position_on_page" "SliderPosition" NOT NULL,
     "display_order" INTEGER NOT NULL,
     "status" "ContentStatus" NOT NULL DEFAULT 'active',
@@ -365,7 +372,8 @@ CREATE TABLE "slider_courses" (
 CREATE TABLE "promotions" (
     "id" UUID NOT NULL,
     "title" TEXT NOT NULL,
-    "image_url" TEXT NOT NULL,
+    "image_url" TEXT,
+    "image_public_id" TEXT,
     "destination_url" TEXT,
     "destination_course_id" UUID,
     "display_order" INTEGER NOT NULL,
@@ -402,10 +410,10 @@ CREATE UNIQUE INDEX "reviews_enrollment_id_key" ON "reviews"("enrollment_id");
 CREATE UNIQUE INDEX "certificates_enrollment_id_key" ON "certificates"("enrollment_id");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "certificates_verification_code_key" ON "certificates"("verification_code");
+CREATE UNIQUE INDEX "certificates_review_id_key" ON "certificates"("review_id");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "certificates_review_id_key" ON "certificates"("review_id");
+CREATE UNIQUE INDEX "event_types_name_key" ON "event_types"("name");
 
 -- AddForeignKey
 ALTER TABLE "users" ADD CONSTRAINT "users_created_by_fkey" FOREIGN KEY ("created_by") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
@@ -484,6 +492,9 @@ ALTER TABLE "notifications" ADD CONSTRAINT "notifications_user_id_fkey" FOREIGN 
 
 -- AddForeignKey
 ALTER TABLE "audit_logs" ADD CONSTRAINT "audit_logs_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "sliders" ADD CONSTRAINT "sliders_event_type_id_fkey" FOREIGN KEY ("event_type_id") REFERENCES "event_types"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "slider_courses" ADD CONSTRAINT "slider_courses_slider_id_fkey" FOREIGN KEY ("slider_id") REFERENCES "sliders"("id") ON DELETE CASCADE ON UPDATE CASCADE;

@@ -1,8 +1,9 @@
-import { Injectable, Inject } from '@nestjs/common';
+import { Injectable, Inject, BadRequestException } from '@nestjs/common';
 import { I_SESSION_REPOSITORY } from '../../domain/sessions.repository';
 import type { ISessionRepository } from '../../domain/sessions.repository';
 import { CreateSessionDto } from '../dtos/create-session.dto';
 import { SessionEntity } from '../../domain/session.entity';
+import { YoutubeDurationService } from '../../infrastructure/services/youtube-duration.service';
 
 function extractYoutubeId(url: string): string {
   try {
@@ -20,6 +21,7 @@ export class CreateSessionUseCase {
   constructor(
     @Inject(I_SESSION_REPOSITORY)
     private readonly sessionRepository: ISessionRepository,
+    private readonly youtubeDuration: YoutubeDurationService,
   ) {}
 
   async execute(dto: CreateSessionDto) {
@@ -31,15 +33,27 @@ export class CreateSessionUseCase {
       display_order = existing.length + 1;
     }
 
+    const youtube_video_id =
+      dto.youtube_video_id ?? extractYoutubeId(dto.youtube_url);
+
+    const autoDuration =
+      await this.youtubeDuration.getDurationMinutes(youtube_video_id);
+    const duration_minutes = autoDuration ?? dto.duration_minutes;
+
+    if (!duration_minutes) {
+      throw new BadRequestException(
+        'No se pudo detectar la duración desde YouTube. Ingresa la duración manualmente.',
+      );
+    }
+
     const session = new SessionEntity({
       id: crypto.randomUUID(),
       module_id: dto.module_id,
       title: dto.title,
       description: dto.description ?? null,
       youtube_url: dto.youtube_url,
-      youtube_video_id:
-        dto.youtube_video_id ?? extractYoutubeId(dto.youtube_url),
-      duration_minutes: dto.duration_minutes,
+      youtube_video_id,
+      duration_minutes,
       display_order,
       created_at: new Date(),
     });

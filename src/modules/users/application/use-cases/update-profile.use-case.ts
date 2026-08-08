@@ -23,6 +23,7 @@ export class UpdateProfileUseCase {
     if (dto.last_name !== undefined) data.last_name = dto.last_name;
     if (dto.phone !== undefined) data.phone = dto.phone;
     if (dto.country !== undefined) data.country = dto.country;
+    if (dto.profession !== undefined) data.profession = dto.profession;
 
     // Aquí se mapea la ruta provisional de la foto local
     if (dto.profile_photo_url !== undefined) {
@@ -43,6 +44,7 @@ export class UpdateProfileUseCase {
       email: user.email,
       phone: user.phone,
       country: user.country ?? undefined,
+      profession: user.profession ?? undefined,
       role: user.role,
       profile_photo_url: user.profile_photo_url ?? undefined,
       email_verified: user.email_verified,

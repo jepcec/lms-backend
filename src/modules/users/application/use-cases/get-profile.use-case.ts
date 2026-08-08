@@ -26,6 +26,7 @@ export class GetProfileUseCase {
       email: user.email,
       phone: user.phone,
       country: user.country ?? undefined,
+      profession: user.profession ?? undefined,
       role: user.role,
       profile_photo_url: user.profile_photo_url ?? undefined, // <-- ¡ESTO ASEGURA QUE LLEGUE AL FRONTEND!
       email_verified: user.email_verified,

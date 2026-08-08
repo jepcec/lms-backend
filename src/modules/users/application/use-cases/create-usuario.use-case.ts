@@ -47,8 +47,7 @@ export class CreateUsuarioUseCase {
 
     try {
       await this.emailService.sendAccountCreated(user.email, user.first_name);
-    } catch {
-    }
+    } catch {}
 
     return {
       id: user.id,

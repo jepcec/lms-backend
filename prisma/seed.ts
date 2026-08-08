@@ -190,12 +190,9 @@ async function main() {
       name: 'Plantilla Estándar',
       background_image_url: faker.image.urlPicsumPhotos(),
       student_name_position: { x: 100, y: 200 },
-      course_name_position: { x: 100, y: 300 },
-      dates_position: { x: 100, y: 400 },
-      verification_code_position: { x: 100, y: 500 },
       qr_position: { x: 400, y: 400 },
       font_family: 'Arial',
-      font_sizes: { student_name: 24, course_name: 20, dates: 14, verification_code: 12 },
+      font_sizes: { student_name: 24 },
       is_active: true,
     },
   })
@@ -298,6 +295,87 @@ async function main() {
   }
   console.log(`⭐ ${8} reseñas y ${5} certificados creados`)
 
+  // ── Notifications ────────────────────────────────────────────
+  let notificationCount = 0
+
+  for (let i = 0; i < 10; i++) {
+    const enrollment = enrollments[i]
+    const course = courses[i % courses.length]
+    const student = students[i]
+
+    await prisma.notification.create({
+      data: {
+        user_id: student.id,
+        type: 'matriculacion',
+        title: 'Matrícula confirmada',
+        body: `Te has matriculado exitosamente en "${course.title}"`,
+        redirect_url: `/cursos/${course.slug}`,
+        created_at: faker.date.past({ years: 30/365 }),
+      },
+    })
+    notificationCount++
+
+    if (i < 5) {
+      await prisma.notification.create({
+        data: {
+          user_id: student.id,
+          type: 'certificado',
+          title: 'Certificado disponible',
+          body: `Has obtenido tu certificado en "${course.title}". ¡Felicidades!`,
+          redirect_url: `/certificados/${enrollment.id}`,
+          created_at: faker.date.past({ years: 15/365 }),
+        },
+      })
+      notificationCount++
+    }
+
+    const progress = Number(enrollment.progress_percent)
+    if (progress > 70) {
+      await prisma.notification.create({
+        data: {
+          user_id: student.id,
+          type: 'completado',
+          title: '¡Casi terminas!',
+          body: `Has completado más del 70% del curso "${course.title}". ¡Sigue así!`,
+          redirect_url: `/cursos/${course.slug}/aprender`,
+          created_at: faker.date.past({ years: 7/365 }),
+        },
+      })
+      notificationCount++
+    }
+
+    if (progress < 30) {
+      await prisma.notification.create({
+        data: {
+          user_id: student.id,
+          type: 'recordatorio',
+          title: 'No te detengas',
+          body: `Hace días que no accedes a "${course.title}". ¡Retoma tu aprendizaje!`,
+          redirect_url: `/cursos/${course.slug}/aprender`,
+          created_at: faker.date.past({ years: 3/365 }),
+        },
+      })
+      notificationCount++
+    }
+  }
+
+  for (const course of courses) {
+    for (let i = 0; i < 3; i++) {
+      await prisma.notification.create({
+        data: {
+          user_id: students[i].id,
+          type: 'nuevo_curso',
+          title: 'Nuevo curso disponible',
+          body: `Explora "${course.title}" - ${course.tagline}`,
+          redirect_url: `/cursos/${course.slug}`,
+          created_at: faker.date.past({ years: 10/365 }),
+        },
+      })
+      notificationCount++
+    }
+  }
+  console.log(`🔔 ${notificationCount} notificaciones creadas`)
+
   // ── Slider ────────────────────────────────────────────────────
   const slider = await prisma.slider.create({
     data: {
@@ -333,21 +411,6 @@ async function main() {
     },
   })
   console.log(`🏷️ 1 promoción creada`)
-
-  // ── Notification ─────────────────────────────────────────────
-  for (let i = 0; i < 5; i++) {
-    await prisma.notification.create({
-      data: {
-        user_id: students[i].id,
-        type: faker.helpers.arrayElement(['nuevo_curso', 'completado', 'recordatorio', 'matriculacion', 'certificado'] as const),
-        title: faker.lorem.words(3),
-        body: faker.lorem.sentence(),
-        is_read: faker.datatype.boolean(),
-        redirect_url: faker.internet.url(),
-      },
-    })
-  }
-  console.log(`🔔 ${5} notificaciones creadas`)
 
   // ── AuditLog ─────────────────────────────────────────────────
   for (let i = 0; i < 5; i++) {

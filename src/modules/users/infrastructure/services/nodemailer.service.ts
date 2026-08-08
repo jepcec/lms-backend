@@ -2,6 +2,11 @@ import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { IEmailService } from '../../domain/services/email.service';
 import * as nodemailer from 'nodemailer';
 import { ConfigService } from '@nestjs/config';
+import {
+  getVerificationTemplate,
+  getRecoveryTemplate,
+  getAccountCreatedTemplate,
+} from './email-templates';
 
 @Injectable()
 export class NodemailerEmailService implements IEmailService {
@@ -22,34 +27,49 @@ export class NodemailerEmailService implements IEmailService {
     });
   }
 
-  async sendEmailVerification(email: string, token: string): Promise<void> {
+  async sendEmailVerification(
+    email: string,
+    token: string,
+    firstName?: string,
+  ): Promise<void> {
     const baseUrl = this.configService.get<string>('URL_FRONTEND');
     const verificationUrl = `${baseUrl}/auth/verify-email?token=${token}`;
-    const res = await this.send({
+    await this.send({
       to: email,
-      subject: 'verifica tu cuenta',
-      html: this.getVerificationTemplate(verificationUrl),
+      subject: 'Verifica tu cuenta',
+      html: getVerificationTemplate(this.logoUrl, verificationUrl, firstName),
     });
-    return res;
   }
 
-  async sendPasswordRecovery(email: string, token: string): Promise<void> {
+  async sendPasswordRecovery(
+    email: string,
+    token: string,
+    firstName?: string,
+  ): Promise<void> {
     const baseUrl = this.configService.get<string>('URL_FRONTEND');
     const recoveryUrl = `${baseUrl}/auth/reset-password?token=${token}`;
 
     await this.send({
       to: email,
-      subject: 'Recuperacion de contrase;a',
-      html: this.getRecoveryTemplate(recoveryUrl),
+      subject: 'Recuperación de contraseña',
+      html: getRecoveryTemplate(this.logoUrl, recoveryUrl, firstName),
     });
   }
 
   async sendAccountCreated(email: string, firstName: string): Promise<void> {
+    const baseUrl = this.configService.get<string>('URL_FRONTEND');
+    const loginUrl = `${baseUrl}/auth/login`;
+
     await this.send({
       to: email,
       subject: 'Tu cuenta ha sido creada',
-      html: this.getAccountCreatedTemplate(firstName),
+      html: getAccountCreatedTemplate(this.logoUrl, firstName, loginUrl),
     });
+  }
+
+  private get logoUrl(): string {
+    const baseUrl = this.configService.get<string>('URL_FRONTEND');
+    return `${baseUrl}/Logo_escuela_global.png`;
   }
 
   private async send(options: { to: string; subject: string; html: string }) {
@@ -61,37 +81,5 @@ export class NodemailerEmailService implements IEmailService {
     } catch (error) {
       throw new InternalServerErrorException('Error al enviar el correo');
     }
-  }
-  private getVerificationTemplate(url: string): string {
-    return `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; border: 1px solid #eee; padding: 20px;">
-        <h2 style="color: #333;">¡Bienvenido!</h2>
-        <p>Gracias por registrarte. Para completar tu perfil, por favor verifica tu correo haciendo clic en el siguiente botón:</p>
-        <a href="${url}" style="display: inline-block; padding: 10px 20px; background-color: #007bff; color: white; text-decoration: none; border-radius: 5px;">Verificar Correo</a>
-        <p style="margin-top: 20px; font-size: 0.8em; color: #777;">Este enlace expirará en 24 horas.</p>
-      </div>
-    `;
-  }
-
-  private getRecoveryTemplate(url: string): string {
-    return `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; border: 1px solid #eee; padding: 20px;">
-        <h2 style="color: #333;">Recuperación de Contraseña</h2>
-        <p>Has solicitado restablecer tu contraseña. Haz clic en el botón de abajo para continuar:</p>
-        <a href="${url}" style="display: inline-block; padding: 10px 20px; background-color: #dc3545; color: white; text-decoration: none; border-radius: 5px;">Restablecer Contraseña</a>
-        <p style="margin-top: 20px; font-size: 0.8em; color: #777;">Si no solicitaste este cambio, puedes ignorar este correo.</p>
-      </div>
-    `;
-  }
-
-  private getAccountCreatedTemplate(firstName: string): string {
-    return `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; border: 1px solid #eee; padding: 20px;">
-        <h2 style="color: #333;">¡Bienvenido, ${firstName}!</h2>
-        <p>Se ha creado una cuenta para ti en nuestra plataforma.</p>
-        <p>Puedes iniciar sesión usando tus credenciales.</p>
-        <p style="margin-top: 20px; font-size: 0.8em; color: #777;">Si no esperabas este correo, por favor contacta al soporte.</p>
-      </div>
-    `;
   }
 }

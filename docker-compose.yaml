@@ -1,0 +1,105 @@
+# =============================================================
+# lms-backend — docker-compose (Coolify / produccion + local)
+# =============================================================
+# Stack independiente para Coolify. Crea la red `lms-net` que
+# usa el frontend (otro stack) para comunicarse internamente.
+#
+# Comunicacion interna:  http://lms-backend:4000
+# Comunicacion externa:  NO expone puertos (solo red Docker).
+#                        El frontend lo consume por la red lms-net.
+#
+# Orden de deploy con Coolify: ESTE stack primero.
+#
+# Local: levantar ANTES que el frontend (ver Makefile en la raiz
+# de practicas). Si el frontend arranca sin esta red creada,
+# el compose del front falla o queda sin red.
+#
+# Variables: este compose requiere un archivo `.env` en este mismo
+# directorio con al menos: JWT_SECRET, POSTGRES_USER, POSTGRES_PASSWORD,
+# POSTGRES_DB. Se declara explicito con `env_file` para fallar
+# ruidosamente si el archivo falta.
+# =============================================================
+
+services:
+  # -----------------------------------------------------------
+  # PostgreSQL
+  # -----------------------------------------------------------
+  postgres:
+    image: postgres:16-alpine
+    container_name: lms-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-lms_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-lms_db}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - lms-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-lms_user} -d ${POSTGRES_DB:-lms_db}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 5s
+
+  # -----------------------------------------------------------
+  # Backend (NestJS)
+  # -----------------------------------------------------------
+  # Nombre de servicio = `backend`. Es alcanzable desde el
+  # frontend como `http://lms-backend:4000` (gracias al
+  # `container_name` de abajo, Docker resuelve el nombre).
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: lms-backend
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      NODE_ENV: production
+      PORT: 4000
+      # Apunta al servicio `postgres` dentro de esta red
+      DATABASE_URL: postgresql://${POSTGRES_USER:-lms_user}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-lms_db}
+      # Auth / CORS
+      JWT_SECRET: ${JWT_SECRET}
+      URL_FRONTEND: ${URL_FRONTEND}
+      FRONTEND_URL: ${FRONTEND_URL}
+      # Cookies seguras (true solo cuando hay HTTPS)
+      COOKIE_SECURE: ${COOKIE_SECURE:-false}
+      # Storage
+      STORAGE_DRIVER: ${STORAGE_DRIVER:-cloudinary}
+      CLOUDINARY_CLOUD_NAME: ${CLOUDINARY_CLOUD_NAME:-}
+      CLOUDINARY_API_KEY: ${CLOUDINARY_API_KEY:-}
+      CLOUDINARY_API_SECRET: ${CLOUDINARY_API_SECRET:-}
+      # SMTP
+      SMTP_HOST: ${SMTP_HOST}
+      SMTP_PORT: ${SMTP_PORT}
+      SMTP_USER: ${SMTP_USER}
+      SMTP_PASS: ${SMTP_PASS}
+      # YouTube Data API v3
+      YOUTUBE_API_KEY: ${YOUTUBE_API_KEY:-}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    expose:
+      - "4000"   # alcanzable por la red lms-net, NO por el host
+    networks:
+      lms-net:
+        aliases: 
+        - lms-backend
+
+# =============================================================
+# Volumenes y redes
+# =============================================================
+volumes:
+  pgdata:
+    name: lms_pgdata
+
+# Red con nombre fijo para que el stack del frontend pueda unirse.
+# Este stack la CREA; el frontend la declara como `external: true`.
+networks:
+  lms-net:
+    name: lms-net
+    driver: bridge

@@ -29,4 +29,5 @@ export class CreateCourseDto {
   outcomes: string[];
   status: CourseStatus;
   instructors?: InstructorInput[];
+  academic_hours?: number;
 }

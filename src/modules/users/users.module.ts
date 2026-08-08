@@ -2,6 +2,7 @@
 import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { StorageModule } from '../storage/storage.module';
 
 // Repositories & Services Interfaces
 import { I_USER_REPOSITORY } from './domain/users.repository';
@@ -25,6 +26,11 @@ import { AuthController } from './infrastructure/routes/auth.controller';
 import { StudentController } from './infrastructure/routes/student.controller';
 import { AdminController } from './infrastructure/routes/admin.controller';
 import { EnrollmentsController } from './infrastructure/routes/enrollments.controller';
+import { CertificateTemplatesController } from './infrastructure/routes/certificate-templates.controller';
+import { CertificatesController } from './infrastructure/routes/certificates.controller';
+import { PublicCertificatesController } from './infrastructure/routes/public-certificates.controller';
+import { ReviewsController } from './infrastructure/routes/reviews.controller';
+import { SubmitReviewUseCase } from './application/use-cases/submit-review.use-case';
 
 // Use Cases
 import { LoginUserUseCase } from './application/use-cases/login-user.use-case';
@@ -34,6 +40,7 @@ import { ResetPasswordUseCase } from './application/use-cases/reset-password.use
 import { VerifyEmailUseCase } from './application/use-cases/verify-email.use-case';
 import { GetProfileUseCase } from './application/use-cases/get-profile.use-case';
 import { UpdateProfileUseCase } from './application/use-cases/update-profile.use-case';
+import { ChangePasswordUseCase } from './application/use-cases/change-password.use-case';
 import { DeleteAccountUseCase } from './application/use-cases/delete-user.use-case';
 import { SetGradeUseCase } from './application/use-cases/set-enrollment-grade.use-case';
 import { GetMyEnrollmentsUseCase } from './application/use-cases/get-my-enrollments.use-case';
@@ -59,6 +66,21 @@ import { ActivateUsuarioUseCase } from './application/use-cases/activate-usuario
 import { ListMatriculasUseCase } from './application/use-cases/list-matriculas.use-case';
 import { CreateMatriculasUseCase } from './application/use-cases/create-matriculas.use-case';
 import { BuscarUsuariosUseCase } from './application/use-cases/buscar-usuarios.use-case';
+import { ListCertificateTemplatesUseCase } from './application/use-cases/list-certificate-templates.use-case';
+import { GetCertificateTemplateUseCase } from './application/use-cases/get-certificate-template.use-case';
+import { CreateCertificateTemplateUseCase } from './application/use-cases/create-certificate-template.use-case';
+import { UpdateCertificateTemplateUseCase } from './application/use-cases/update-certificate-template.use-case';
+import { ActivateCertificateTemplateUseCase } from './application/use-cases/activate-certificate-template.use-case';
+import { DeleteCertificateTemplateUseCase } from './application/use-cases/delete-certificate-template.use-case';
+import { GetMyCertificatesUseCase } from './application/use-cases/get-my-certificates.use-case';
+import { GetCertificateUseCase } from './application/use-cases/get-certificate.use-case';
+import { GetStudentCertificateUseCase } from './application/use-cases/get-student-certificate.use-case';
+import { VerifyCertificateUseCase } from './application/use-cases/verify-certificate.use-case';
+import { CertificatePdfService } from '../cources/application/services/certificate-pdf.service';
+import { GetStudentDetailUseCase } from './application/use-cases/get-student-detail.use-case';
+import { DeleteEnrollmentUseCase } from './application/use-cases/delete-enrollment.use-case';
+import { ExportMatriculadosCursoExcelUseCase } from './application/use-cases/export-matriculados-curso-excel.use-case';
+import { ExportDashboardExcelUseCase } from './application/use-cases/export-dashboard-excel.use-case';
 
 @Module({
   imports: [
@@ -71,6 +93,7 @@ import { BuscarUsuariosUseCase } from './application/use-cases/buscar-usuarios.u
       }),
     }),
     ConfigModule,
+    StorageModule,
   ],
   controllers: [
     UsersController,
@@ -78,6 +101,10 @@ import { BuscarUsuariosUseCase } from './application/use-cases/buscar-usuarios.u
     StudentController,
     AdminController,
     EnrollmentsController,
+    CertificateTemplatesController,
+    CertificatesController,
+    PublicCertificatesController,
+    ReviewsController,
   ],
   providers: [
     PrismaService,
@@ -89,6 +116,7 @@ import { BuscarUsuariosUseCase } from './application/use-cases/buscar-usuarios.u
     VerifyEmailUseCase,
     GetProfileUseCase,
     UpdateProfileUseCase,
+    ChangePasswordUseCase,
     DeleteAccountUseCase,
     SetGradeUseCase,
     GetMyEnrollmentsUseCase,
@@ -114,6 +142,22 @@ import { BuscarUsuariosUseCase } from './application/use-cases/buscar-usuarios.u
     ListMatriculasUseCase,
     CreateMatriculasUseCase,
     BuscarUsuariosUseCase,
+    ListCertificateTemplatesUseCase,
+    GetCertificateTemplateUseCase,
+    CreateCertificateTemplateUseCase,
+    UpdateCertificateTemplateUseCase,
+    ActivateCertificateTemplateUseCase,
+    DeleteCertificateTemplateUseCase,
+    GetMyCertificatesUseCase,
+    GetCertificateUseCase,
+    GetStudentCertificateUseCase,
+    VerifyCertificateUseCase,
+    CertificatePdfService,
+    SubmitReviewUseCase,
+    GetStudentDetailUseCase,
+    DeleteEnrollmentUseCase,
+    ExportMatriculadosCursoExcelUseCase,
+    ExportDashboardExcelUseCase,
     CryptoTokenService,
     // Interface Mappings
     { provide: I_USER_REPOSITORY, useClass: PrismaUserRepository },

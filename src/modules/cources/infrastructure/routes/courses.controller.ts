@@ -10,8 +10,7 @@ import {
   UseInterceptors,
   UploadedFile,
 } from '@nestjs/common';
-import { FileInterceptor } from '@nestjs/platform-express';
-import { memoryStorage } from 'multer';
+import { imageUploadInterceptor } from 'src/modules/storage/infrastructure/upload/image-upload.interceptor';
 import { Public } from '../../../auth/decorators/public.decorator';
 import { Roles } from '../../../auth/decorators/roles.decorator';
 import { CurrentUser } from '../../../auth/decorators/current-user.decorator';
@@ -90,7 +89,7 @@ export class CoursesController {
   }
 
   @Post()
-  @Roles('admin')
+  @Roles('admin', 'soporte')
   async create(
     @Body() dto: CreateCourseDto,
     @CurrentUser('userId') userId: string,
@@ -99,33 +98,20 @@ export class CoursesController {
   }
 
   @Patch(':id')
-  @Roles('admin')
+  @Roles('admin', 'soporte')
   async update(@Param('id') id: string, @Body() dto: UpdateCourseDto) {
     return this.updateCourse.execute(id, dto);
   }
 
   @Delete(':id')
-  @Roles('admin')
+  @Roles('admin', 'soporte')
   async delete(@Param('id') id: string) {
     return this.deleteCourse.execute(id);
   }
 
   @Post(':id/thumbnail')
-  @Roles('admin')
-  @UseInterceptors(
-    FileInterceptor('thumbnail', {
-      storage: memoryStorage(),
-      fileFilter: (_req, file, callback) => {
-        if (!file.mimetype.match(/\/(jpg|jpeg|png|webp)$/)) {
-          return callback(
-            new Error('Only image files are allowed (jpg, jpeg, png, webp)'), false
-          );
-        }
-        callback(null, true);
-      },
-      limits: { fileSize: 5 * 1024 * 1024 },
-    }),
-  )
+  @Roles('admin', 'soporte')
+  @UseInterceptors(imageUploadInterceptor('thumbnail'))
   async uploadThumbnailHandler(
     @Param('id') id: string,
     @UploadedFile() file: Express.Multer.File,
@@ -134,7 +120,7 @@ export class CoursesController {
   }
 
   @Post(':id/instructors')
-  @Roles('admin')
+  @Roles('admin', 'soporte')
   async addInstructorHandler(
     @Param('id') id: string,
     @Body() dto: CreateInstructorDto,
@@ -143,7 +129,7 @@ export class CoursesController {
   }
 
   @Delete(':id/instructors/:instructorId')
-  @Roles('admin')
+  @Roles('admin', 'soporte')
   async removeInstructorHandler(
     @Param('id') id: string,
     @Param('instructorId') instructorId: string,

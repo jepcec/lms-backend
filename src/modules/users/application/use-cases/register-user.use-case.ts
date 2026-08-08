@@ -27,7 +27,15 @@ export class RegisterUserUseCase {
   ) {}
 
   async execute(dto: RegisterUserDto) {
-    const { first_name, last_name, email, phone, password } = dto;
+    const {
+      first_name,
+      last_name,
+      email,
+      phone,
+      password,
+      country,
+      profession,
+    } = dto;
     const usuarioExiste = await this.userRepository.findByEmail(email);
     if (usuarioExiste) {
       throw new Error('Correo ya registrado');
@@ -45,6 +53,8 @@ export class RegisterUserUseCase {
       role: 'estudiante',
       email_verified: false,
       email_verification_token: verificationToken,
+      country: country ?? null,
+      profession: profession ?? null,
     });
 
     console.log('TOKEN: ', nuevoUsuario.emailVerificationToken);
@@ -53,7 +63,9 @@ export class RegisterUserUseCase {
     await this.emailService.sendEmailVerification(
       nuevoUsuario.email,
       verificationToken,
+      nuevoUsuario.first_name,
     );
+
     return {
       success: true,
       message: 'Email de verificacion enviado',

@@ -27,6 +27,10 @@ export class RequestPasswordResetUseCase {
     user.passwordResetToken = token;
     user.passwordResetExpiresAt = expiredAt;
     await this.userRepository.save(user);
-    await this.emailService.sendPasswordRecovery(user.email, token);
+    await this.emailService.sendPasswordRecovery(
+      user.email,
+      token,
+      user.first_name,
+    );
   }
 }

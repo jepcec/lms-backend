@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from 'src/core/database/prisma.service';
+import { PrismaService } from '../../../../../src/core/database/prisma.service';
 import { CursoParams } from '../dtos/curso-params.dto';
 
 @Injectable()
@@ -136,6 +136,7 @@ export class ListCatalogUseCase {
         review_count: course.review_count,
         enrolled_count: course.enrolled_count,
         total_duration_minutes: course.total_duration_minutes,
+        academic_hours: course.academic_hours,
         instructors: course.instructors,
         created_by: course.created_by,
         created_at: course.created_at.toISOString(),

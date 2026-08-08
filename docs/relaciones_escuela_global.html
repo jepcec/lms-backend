@@ -1,0 +1,222 @@
+
+<style>
+.rel-section { margin-bottom: 24px; }
+.rel-section-title { font-size: 13px; font-weight: 500; color: var(--color-text-secondary); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 0.5px solid var(--color-border-tertiary); }
+.rel-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.rel-table th { text-align: left; font-weight: 500; font-size: 11px; color: var(--color-text-secondary); padding: 6px 10px; background: var(--color-background-secondary); border-bottom: 0.5px solid var(--color-border-tertiary); }
+.rel-table td { padding: 8px 10px; border-bottom: 0.5px solid var(--color-border-tertiary); vertical-align: top; line-height: 1.5; }
+.rel-table tr:last-child td { border-bottom: none; }
+.e1 { color: #185FA5; font-weight: 500; white-space: nowrap; }
+.e2 { color: #0F6E56; font-weight: 500; white-space: nowrap; }
+.card-badge { display: inline-block; font-size: 11px; background: var(--color-background-secondary); border: 0.5px solid var(--color-border-tertiary); border-radius: 4px; padding: 1px 6px; font-family: var(--font-mono); color: var(--color-text-primary); white-space: nowrap; }
+.verb { color: var(--color-text-secondary); font-style: italic; }
+.note { font-size: 11px; color: var(--color-text-tertiary); margin-top: 2px; }
+</style>
+
+<div style="padding: 16px 0;">
+
+<div class="rel-section">
+  <div class="rel-section-title">Usuarios y acceso</div>
+  <table class="rel-table">
+    <tr><th>Entidad A</th><th>Cardinalidad</th><th>Entidad B</th><th>Verbo / Descripción</th></tr>
+    <tr>
+      <td><span class="e1">User</span></td>
+      <td><span class="card-badge">1 — N</span></td>
+      <td><span class="e2">User</span></td>
+      <td><span class="verb">crea a</span> (soporte/admin crea cuentas)<div class="note">created_by FK autorreferencial</div></td>
+    </tr>
+  </table>
+</div>
+
+<div class="rel-section">
+  <div class="rel-section-title">Estructura del catálogo</div>
+  <table class="rel-table">
+    <tr><th>Entidad A</th><th>Cardinalidad</th><th>Entidad B</th><th>Verbo / Descripción</th></tr>
+    <tr>
+      <td><span class="e1">Category</span></td>
+      <td><span class="card-badge">1 — N</span></td>
+      <td><span class="e2">Course</span></td>
+      <td><span class="verb">agrupa</span><div class="note">Una categoría tiene muchos cursos; un curso pertenece a una categoría</div></td>
+    </tr>
+    <tr>
+      <td><span class="e1">Course</span></td>
+      <td><span class="card-badge">1 — N</span></td>
+      <td><span class="e2">Instructor</span></td>
+      <td><span class="verb">es dictado por</span><div class="note">Un curso puede tener múltiples docentes; el docente está embebido en el curso</div></td>
+    </tr>
+    <tr>
+      <td><span class="e1">Course</span></td>
+      <td><span class="card-badge">1 — N</span></td>
+      <td><span class="e2">Module</span></td>
+      <td><span class="verb">contiene</span><div class="note">Ordenados por display_order, con drag-and-drop</div></td>
+    </tr>
+    <tr>
+      <td><span class="e1">Module</span></td>
+      <td><span class="card-badge">1 — N</span></td>
+      <td><span class="e2">Session</span></td>
+      <td><span class="verb">agrupa</span><div class="note">Sesiones ordenadas dentro de cada módulo</div></td>
+    </tr>
+    <tr>
+      <td><span class="e1">Session</span></td>
+      <td><span class="card-badge">1 — N</span></td>
+      <td><span class="e2">Material</span></td>
+      <td><span class="verb">tiene adjunto</span><div class="note">Links a Google Drive; no archivos subidos directamente</div></td>
+    </tr>
+    <tr>
+      <td><span class="e1">User</span></td>
+      <td><span class="card-badge">1 — N</span></td>
+      <td><span class="e2">Course</span></td>
+      <td><span class="verb">creó</span><div class="note">Auditoría: created_by FK del usuario soporte/admin que dio de alta el curso</div></td>
+    </tr>
+  </table>
+</div>
+
+<div class="rel-section">
+  <div class="rel-section-title">Compras y matriculación</div>
+  <table class="rel-table">
+    <tr><th>Entidad A</th><th>Cardinalidad</th><th>Entidad B</th><th>Verbo / Descripción</th></tr>
+    <tr>
+      <td><span class="e1">User</span></td>
+      <td><span class="card-badge">1 — N</span></td>
+      <td><span class="e2">CartItem</span></td>
+      <td><span class="verb">agrega al carrito</span><div class="note">Persistido en BD (logueado) o localStorage vinculado por session_token (invitado)</div></td>
+    </tr>
+    <tr>
+      <td><span class="e1">Course</span></td>
+      <td><span class="card-badge">1 — N</span></td>
+      <td><span class="e2">CartItem</span></td>
+      <td><span class="verb">es agregado en</span></td>
+    </tr>
+    <tr>
+      <td><span class="e1">User</span></td>
+      <td><span class="card-badge">1 — N</span></td>
+      <td><span class="e2">Order</span></td>
+      <td><span class="verb">realiza</span><div class="note">Solo usuarios autenticados; pago vía Stripe o NIUBIZ</div></td>
+    </tr>
+    <tr>
+      <td><span class="e1">Order</span></td>
+      <td><span class="card-badge">1 — N</span></td>
+      <td><span class="e2">OrderItem</span></td>
+      <td><span class="verb">contiene</span><div class="note">Snapshot de precios al momento de compra</div></td>
+    </tr>
+    <tr>
+      <td><span class="e1">Course</span></td>
+      <td><span class="card-badge">1 — N</span></td>
+      <td><span class="e2">OrderItem</span></td>
+      <td><span class="verb">es comprado en</span></td>
+    </tr>
+    <tr>
+      <td><span class="e1">User</span></td>
+      <td><span class="card-badge">N — M</span></td>
+      <td><span class="e2">Course</span></td>
+      <td><span class="verb">se matricula en</span><div class="note">Tabla intermedia: Enrollment. Un estudiante puede estar en muchos cursos; un curso tiene muchos estudiantes</div></td>
+    </tr>
+    <tr>
+      <td><span class="e1">Order</span></td>
+      <td><span class="card-badge">1 — N</span></td>
+      <td><span class="e2">Enrollment</span></td>
+      <td><span class="verb">genera</span><div class="note">Al pago exitoso se crean los enrollments. Matriculación manual no genera Order</div></td>
+    </tr>
+    <tr>
+      <td><span class="e1">User</span><span style="font-size:11px;color:var(--color-text-tertiary)"> (soporte)</span></td>
+      <td><span class="card-badge">1 — N</span></td>
+      <td><span class="e2">Enrollment</span></td>
+      <td><span class="verb">matricula manualmente a</span><div class="note">enrolled_by FK; registro del operador que hizo la matriculación</div></td>
+    </tr>
+  </table>
+</div>
+
+<div class="rel-section">
+  <div class="rel-section-title">Progreso del estudiante</div>
+  <table class="rel-table">
+    <tr><th>Entidad A</th><th>Cardinalidad</th><th>Entidad B</th><th>Verbo / Descripción</th></tr>
+    <tr>
+      <td><span class="e1">Enrollment</span></td>
+      <td><span class="card-badge">1 — N</span></td>
+      <td><span class="e2">LessonProgress</span></td>
+      <td><span class="verb">registra progreso en</span><div class="note">Un registro por cada sesión que el estudiante inicia. Tracking cada 30s con YouTube API</div></td>
+    </tr>
+    <tr>
+      <td><span class="e1">Session</span></td>
+      <td><span class="card-badge">1 — N</span></td>
+      <td><span class="e2">LessonProgress</span></td>
+      <td><span class="verb">es rastreada por</span><div class="note">Auto-completado al 90% del video</div></td>
+    </tr>
+  </table>
+</div>
+
+<div class="rel-section">
+  <div class="rel-section-title">Certificados y reseñas</div>
+  <table class="rel-table">
+    <tr><th>Entidad A</th><th>Cardinalidad</th><th>Entidad B</th><th>Verbo / Descripción</th></tr>
+    <tr>
+      <td><span class="e1">Enrollment</span></td>
+      <td><span class="card-badge">1 — 1</span></td>
+      <td><span class="e2">Review</span></td>
+      <td><span class="verb">habilita</span><div class="note">Solo una reseña por enrollment; obligatoria para obtener certificado</div></td>
+    </tr>
+    <tr>
+      <td><span class="e1">User</span></td>
+      <td><span class="card-badge">1 — N</span></td>
+      <td><span class="e2">Review</span></td>
+      <td><span class="verb">escribe</span><div class="note">Un estudiante puede tener reseñas en múltiples cursos, una por curso</div></td>
+    </tr>
+    <tr>
+      <td><span class="e1">Course</span></td>
+      <td><span class="card-badge">1 — N</span></td>
+      <td><span class="e2">Review</span></td>
+      <td><span class="verb">recibe</span><div class="note">avg_rating y review_count se recalculan en Course</div></td>
+    </tr>
+    <tr>
+      <td><span class="e1">Review</span></td>
+      <td><span class="card-badge">1 — 1</span></td>
+      <td><span class="e2">Certificate</span></td>
+      <td><span class="verb">desencadena generación de</span><div class="note">Al crearse la reseña se genera automáticamente el certificado PDF en S3</div></td>
+    </tr>
+    <tr>
+      <td><span class="e1">Enrollment</span></td>
+      <td><span class="card-badge">1 — 1</span></td>
+      <td><span class="e2">Certificate</span></td>
+      <td><span class="verb">tiene asignado</span></td>
+    </tr>
+    <tr>
+      <td><span class="e1">CertificateTemplate</span></td>
+      <td><span class="card-badge">1 — N</span></td>
+      <td><span class="e2">Certificate</span></td>
+      <td><span class="verb">define el diseño de</span><div class="note">Solo una plantilla activa a la vez; todos los nuevos certificados usan la activa</div></td>
+    </tr>
+  </table>
+</div>
+
+<div class="rel-section">
+  <div class="rel-section-title">Notificaciones, marketing y auditoría</div>
+  <table class="rel-table">
+    <tr><th>Entidad A</th><th>Cardinalidad</th><th>Entidad B</th><th>Verbo / Descripción</th></tr>
+    <tr>
+      <td><span class="e1">User</span></td>
+      <td><span class="card-badge">1 — N</span></td>
+      <td><span class="e2">Notification</span></td>
+      <td><span class="verb">recibe</span><div class="note">In-app y por email; recordatorio si no hay avances en 7 días</div></td>
+    </tr>
+    <tr>
+      <td><span class="e1">Slider</span></td>
+      <td><span class="card-badge">N — M</span></td>
+      <td><span class="e2">Course</span></td>
+      <td><span class="verb">destaca</span><div class="note">Tabla intermedia: SliderCourse. Un slider tipo "cursos" puede incluir hasta 10 cursos</div></td>
+    </tr>
+    <tr>
+      <td><span class="e1">Promotion</span></td>
+      <td><span class="card-badge">N — 1</span></td>
+      <td><span class="e2">Course</span></td>
+      <td><span class="verb">enlaza opcionalmente a</span><div class="note">destination_course_id nullable; puede enlazar a URL externa en su lugar</div></td>
+    </tr>
+    <tr>
+      <td><span class="e1">User</span></td>
+      <td><span class="card-badge">1 — N</span></td>
+      <td><span class="e2">AuditLog</span></td>
+      <td><span class="verb">genera entradas en</span><div class="note">Registra quién editó qué y cuándo en cursos y otras entidades críticas</div></td>
+    </tr>
+  </table>
+</div>
+
+</div>
