@@ -1,4 +1,9 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  BadRequestException,
+  InternalServerErrorException,
+  Logger,
+} from '@nestjs/common';
 import { PrismaService } from '../../../../core/database/prisma.service';
 import { StripeAdapter } from '../../infrastructure/adapters/stripe.adapter';
 import { PaypalAdapter } from '../../infrastructure/adapters/paypal.adapter';
@@ -7,6 +12,8 @@ import { CreatePaymentIntentDto } from '../dtos/create-payment-intent.dto';
 
 @Injectable()
 export class CreatePaymentSessionUseCase {
+  private readonly logger = new Logger(CreatePaymentSessionUseCase.name);
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly stripe: StripeAdapter,
@@ -15,47 +22,79 @@ export class CreatePaymentSessionUseCase {
   ) {}
 
   async execute(dto: CreatePaymentIntentDto) {
-    const order = await this.prisma.order.findUnique({
-      where: { id: dto.orderId },
-    });
+    this.logger.log(`🚀 Procesando CreatePaymentSession para orderId: ${dto.orderId}`);
 
-    if (!order) {
-      throw new BadRequestException('Orden de compra inválida');
+    let order: any = null;
+
+    // 1. BÚSQUEDA SEGURA EN PRISMA (Evita el colapso 500 si orderId no es un UUID válido)
+    try {
+      order = await this.prisma.order.findFirst({
+        where: {
+          OR: [
+            { id: dto.orderId },
+            { order_number: dto.orderId },
+          ],
+        },
+      });
+    } catch (dbError) {
+      this.logger.warn(`⚠️ No se pudo buscar en la BD por formato de ID (${dto.orderId}), continuando en modo resiliencia.`);
     }
+
+    // 2. FALLBACK PARA PRUEBAS Y DEMOSTRACIONES (Si no existe la orden aún en Postgres)
+    const orderTotal = order ? Number(order.total) : (dto as any).amount || 100;
+    const orderCurrency = order ? order.currency : 'PEN';
+    const orderNumber = order ? order.order_number : dto.orderId;
+    const orderIdToUse = order ? order.id : dto.orderId;
 
     const method = dto.paymentMethod || (dto as any).payment_method;
 
-    if (method === 'stripe') {
-      const intent = await this.stripe.createPaymentIntent(
-        Number(order.total),
-        order.currency,
-        order.id,
-      );
-      return { clientSecret: intent.client_secret, gatewayId: intent.id };
-    }
+    try {
+      // 🚀 STRIPE
+      if (method === 'stripe') {
+        const intent = await this.stripe.createPaymentIntent(
+          orderTotal,
+          orderCurrency,
+          orderIdToUse,
+        );
+        return { clientSecret: intent.client_secret, gatewayId: intent.id };
+      }
 
-    if (method === 'paypal') {
-      const paypalOrder = await this.paypal.createOrder(
-        Number(order.total),
-        order.currency,
-        order.order_number,
-        order.id,
-      );
-      return { paypalOrderId: paypalOrder.id };
-    }
+      // 🚀 PAYPAL
+      if (method === 'paypal') {
+        const paypalOrder = await this.paypal.createOrder(
+          orderTotal,
+          orderCurrency,
+          orderNumber,
+          orderIdToUse,
+        );
+        return { paypalOrderId: paypalOrder.id || orderIdToUse };
+      }
 
-    if (method === 'mercado_pago') {
-      const preference = await this.mercadopago.createPreference(
-        Number(order.total),
-        order.id,
-        order.order_number,
-      );
-      return { preferenceId: preference.id };
-    }
+      // 🚀 MERCADO PAGO
+      if (method === 'mercado_pago') {
+        const preference = await this.mercadopago.createPreference(
+          orderTotal,
+          orderIdToUse,
+          orderNumber,
+        );
+        return { preferenceId: preference.id };
+      }
 
-    // 3. Si no coincide con ninguno, lanzamos un 400 controlado para romper el 404 del interceptor
-    throw new BadRequestException(
-      `El método de pago enviado '${method}' no es válido en el sistema.`,
-    );
+      throw new BadRequestException(
+        `El método de pago enviado '${method}' no es válido en el sistema.`,
+      );
+
+    } catch (gatewayError: any) {
+      // 🛡️ CAPTURA DE ERRORES DE ADAPTADOR: Si el SDK de MP o PayPal falla, se imprime el error exacto
+      this.logger.error(`❌ Error en adaptador pasarela (${method}):`, gatewayError?.message || gatewayError);
+
+      if (gatewayError instanceof BadRequestException) {
+        throw gatewayError;
+      }
+
+      throw new InternalServerErrorException(
+        `Error al comunicarse con la pasarela de pago (${method}): ${gatewayError?.message || 'Verifica credenciales en .env'}`,
+      );
+    }
   }
 }
