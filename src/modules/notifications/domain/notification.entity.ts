@@ -15,6 +15,7 @@ export class NotificationEntity {
   body: string;
   is_read: boolean;
   redirect_url?: string | null;
+  image_url?: string | null;
   created_at: Date;
 
   constructor(partial: Partial<NotificationEntity>) {

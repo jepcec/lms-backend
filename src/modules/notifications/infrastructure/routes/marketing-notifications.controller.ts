@@ -1,4 +1,14 @@
-import { Controller, Get, Post, Query, Body } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Query,
+  Body,
+  UseInterceptors,
+  UploadedFile,
+} from '@nestjs/common';
+import type { Express } from 'express';
+import { imageUploadInterceptor } from 'src/modules/storage/infrastructure/upload/image-upload.interceptor';
 import { GetMarketingRecipientsUseCase } from '../../application/use-cases/get-marketing-recipients.use-case';
 import { SendMarketingNotificationUseCase } from '../../application/use-cases/send-marketing-notification.use-case';
 import {
@@ -22,7 +32,12 @@ export class MarketingNotificationsController {
 
   @Post('send')
   @Roles('admin', 'marketing')
-  async send(@Body() data: SendNotificationDto) {
+  @UseInterceptors(imageUploadInterceptor('image'))
+  async send(
+    @Body() data: SendNotificationDto,
+    @UploadedFile() image?: Express.Multer.File,
+  ) {
+    if (image) data.image = image;
     return this.sendNotificationUseCase.execute(data);
   }
 }

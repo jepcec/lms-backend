@@ -6,6 +6,7 @@ import {
   MaxLength,
 } from 'class-validator';
 import { Transform } from 'class-transformer';
+import type { Express } from 'express';
 
 export class GetRecipientsDto {
   @IsOptional()
@@ -48,6 +49,8 @@ export class SendNotificationDto {
   @IsArray()
   @IsString({ each: true })
   user_ids?: string[];
+
+  image?: Express.Multer.File;
 }
 
 export interface NotificationRecipient {

@@ -50,6 +50,7 @@ export class PrismaNotificationRepository implements INotificationRepository {
         title: data.title!,
         body: data.body!,
         redirect_url: data.redirect_url,
+        image_url: data.image_url,
       },
     });
     return new NotificationEntity(notification);
@@ -65,6 +66,7 @@ export class PrismaNotificationRepository implements INotificationRepository {
         title: n.title!,
         body: n.body!,
         redirect_url: n.redirect_url,
+        image_url: n.image_url,
       })),
     });
     return result.count;

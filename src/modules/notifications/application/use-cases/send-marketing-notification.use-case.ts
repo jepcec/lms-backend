@@ -4,6 +4,10 @@ import {
   I_NOTIFICATION_REPOSITORY,
   type INotificationRepository,
 } from '../../domain/notification.repository';
+import {
+  I_FILE_STORAGE_SERVICE,
+  type IFileStorageService,
+} from '../../../storage/domain/file-storage.interface';
 import type { SendNotificationDto } from '../dtos/marketing-notification.dto';
 import type { NotificationEntity } from '../../domain/notification.entity';
 
@@ -13,12 +17,20 @@ export class SendMarketingNotificationUseCase {
     private readonly prisma: PrismaService,
     @Inject(I_NOTIFICATION_REPOSITORY)
     private readonly notificationRepository: INotificationRepository,
+    @Inject(I_FILE_STORAGE_SERVICE)
+    private readonly fileStorageService: IFileStorageService,
   ) {}
 
   async execute(
     data: SendNotificationDto,
   ): Promise<{ success: boolean; sent: number }> {
-    const { title, body, redirect_url, audience, course_id, user_ids } = data;
+    const { title, body, redirect_url, audience, course_id } = data;
+
+    const userIds = Array.isArray(data.user_ids)
+      ? data.user_ids
+      : data.user_ids
+        ? [data.user_ids]
+        : undefined;
 
     let userIdList: string[] = [];
 
@@ -35,17 +47,30 @@ export class SendMarketingNotificationUseCase {
         userIdList = await this.getEnrolledUserIds(course_id);
         break;
       case 'users':
-        if (!user_ids || user_ids.length === 0) {
+        if (!userIds || userIds.length === 0) {
           throw new BadRequestException(
             'user_ids are required when audience is "users"',
           );
         }
-        userIdList = user_ids;
+        userIdList = userIds;
         break;
     }
 
     if (userIdList.length === 0) {
       return { success: true, sent: 0 };
+    }
+
+    let imageUrl: string | undefined;
+    if (data.image) {
+      const result = await this.fileStorageService.upload({
+        buffer: data.image.buffer,
+        originalName: data.image.originalname,
+        mimetype: data.image.mimetype,
+        folder: 'notifications',
+      });
+      imageUrl = this.fileStorageService.getUrl(result.publicId, {
+        format: 'webp',
+      });
     }
 
     const notifications: Partial<NotificationEntity>[] = userIdList.map(
@@ -55,6 +80,7 @@ export class SendMarketingNotificationUseCase {
         title,
         body,
         redirect_url,
+        image_url: imageUrl,
       }),
     );
 
