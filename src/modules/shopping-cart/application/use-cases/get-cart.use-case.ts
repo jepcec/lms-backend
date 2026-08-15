@@ -22,6 +22,7 @@ export class GetCartUseCase {
           select: {
             id: true,
             title: true,
+            slug: true,
             thumbnail_url: true,
             price: true,
             discount_price: true,
@@ -42,6 +43,7 @@ export class GetCartUseCase {
         cartItemId: item.id,
         courseId: item.course.id,
         title: item.course.title,
+        slug: item.course.slug,
         thumbnail: item.course.thumbnail_url,
         price: item.course.price,
         discountPrice: item.course.discount_price,
