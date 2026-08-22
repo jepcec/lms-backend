@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { extname, join } from 'path';
+import { dirname, extname, join } from 'path';
 import { existsSync, mkdirSync, unlinkSync, writeFileSync } from 'fs';
 import { IFileStorageService } from '../../domain/file-storage.interface';
 import {
@@ -14,24 +14,26 @@ export class LocalStorageService implements IFileStorageService {
 
   async upload(file: UploadFileOptions): Promise<UploadFileResult> {
     const folder = file.folder ?? 'misc';
-    const destDir = join(this.basePath, folder);
+
+    const publicId = file.key
+      ? `${file.key}${extname(file.originalName)}`
+      : `${folder}/${Date.now()}-${Math.round(Math.random() * 1e9)}${extname(file.originalName)}`;
+
+    const filePath = join(this.basePath, publicId);
+    const destDir = dirname(filePath);
 
     if (!existsSync(destDir)) {
       mkdirSync(destDir, { recursive: true });
     }
 
-    const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
-    const filename = `${uniqueSuffix}${extname(file.originalName)}`;
-    const filePath = join(destDir, filename);
-
     writeFileSync(filePath, file.buffer);
 
-    const url = `/uploads/${folder}/${filename}`;
+    const url = `/uploads/${publicId}`;
 
     return {
       url,
       secureUrl: url,
-      publicId: `${folder}/${filename}`,
+      publicId,
       mimetype: file.mimetype,
       originalName: file.originalName,
       size: file.buffer.length,

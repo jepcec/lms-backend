@@ -21,6 +21,15 @@ interface FontSizes {
   [key: string]: number | undefined;
 }
 
+interface TemplateLike {
+  background_image_url: string;
+  back_image_url?: string | null;
+  student_name_position: unknown;
+  qr_position: unknown;
+  qr_size?: number | null;
+  font_family: string;
+}
+
 export interface CertificatePdfResult {
   buffer: Buffer;
   filename: string;
@@ -62,12 +71,72 @@ export class CertificatePdfService {
 
     const studentName = `${cert.enrollment.student.first_name} ${cert.enrollment.student.last_name}`;
 
-    // 1. Descargar imagen de fondo
-    const bgBuffer = await this.fetchImageBuffer(
-      cert.template.background_image_url,
+    const buffer = await this.renderDocument(
+      studentName,
+      cert.template,
+      cert.type === 'Certificado' ? cert.verification_code : null,
     );
 
-    // 2. Crear documento PDF en A4 apaisado (2 páginas: cara + contraportada)
+    return {
+      buffer,
+      filename: `certificado-${studentName.replace(/\s+/g, '-')}.pdf`,
+    };
+  }
+
+  async generateModuleCertificateBuffer(
+    moduleCertificateId: string,
+    userId?: string,
+  ): Promise<CertificatePdfResult> {
+    const cert = await this.prisma.moduleCertificate.findUnique({
+      where: { id: moduleCertificateId },
+      include: {
+        template: true,
+        module: { select: { title: true } },
+        enrollment: {
+          include: {
+            student: { select: { first_name: true, last_name: true } },
+          },
+        },
+      },
+    });
+
+    if (!cert) throw new NotFoundException('Certificado de módulo no encontrado');
+
+    if (userId && cert.enrollment.user_id !== userId) {
+      throw new ForbiddenException(
+        'No tienes permiso para descargar este certificado',
+      );
+    }
+
+    const studentName = `${cert.enrollment.student.first_name} ${cert.enrollment.student.last_name}`;
+
+    const buffer = await this.renderDocument(
+      studentName,
+      cert.template,
+      cert.verification_code,
+    );
+
+    return {
+      buffer,
+      filename: `certificado-modulo-${studentName.replace(/\s+/g, '-')}.pdf`,
+    };
+  }
+
+  // ── Renderizado compartido ───────────────────────────────────────────────────
+
+  /**
+   * Dibuja el PDF a partir de una plantilla: cara con el nombre del
+   * estudiante, y —solo si hay `verificationCode`— una segunda página con la
+   * contraportada y el QR de verificación. Un `verificationCode` nulo (caso
+   * de las Constancias) produce un documento de una sola página.
+   */
+  private async renderDocument(
+    studentName: string,
+    template: TemplateLike,
+    verificationCode: string | null,
+  ): Promise<Buffer> {
+    const bgBuffer = await this.fetchImageBuffer(template.background_image_url);
+
     // El editor de plantillas usa espacio virtual 3508×2480 (A4 a 300 DPI).
     // El PDF usa puntos tipográficos: A4 apaisado = 841.9×595.3 pt.
     const CERT_W = 3508;
@@ -80,16 +149,15 @@ export class CertificatePdfService {
     // ── Página 1: Cara (fondo + nombre del estudiante) ──
     const frontPage = pdfDoc.addPage([PAGE_W, PAGE_H]);
 
-    const isJpeg = this.isJpeg(cert.template.background_image_url, bgBuffer);
+    const isJpeg = this.isJpeg(template.background_image_url, bgBuffer);
     const bgImage = isJpeg
       ? await pdfDoc.embedJpg(bgBuffer)
       : await pdfDoc.embedPng(bgBuffer);
 
     frontPage.drawImage(bgImage, { x: 0, y: 0, width: PAGE_W, height: PAGE_H });
 
-    const namePos = cert.template
-      .student_name_position as unknown as NamePosition;
-    const fontSizes = cert.template.font_sizes as FontSizes;
+    const namePos = template.student_name_position as unknown as NamePosition;
+    const fontSizes = (template as { font_sizes?: FontSizes }).font_sizes;
     const rawFontSize = fontSizes?.student_name ?? 200;
 
     const scaleX = PAGE_W / CERT_W;
@@ -97,7 +165,7 @@ export class CertificatePdfService {
     const fontSize = rawFontSize * scaleX;
 
     const font = await pdfDoc.embedFont(
-      this.mapToStandardFont(cert.template.font_family),
+      this.mapToStandardFont(template.font_family),
     );
     const nameWidth = font.widthOfTextAtSize(studentName, fontSize);
     const nameHeight = font.heightAtSize(fontSize);
@@ -117,17 +185,15 @@ export class CertificatePdfService {
       color: rgb(0.08, 0.08, 0.08),
     });
 
-    // ── Página 2: Contraportada (fondo + QR) — solo para Certificados.
-    // Las Constancias no llevan QR ni código de verificación, así que se
-    // entregan como un documento de una sola página (la cara).
-    if (cert.type === 'Certificado') {
+    // ── Página 2: Contraportada (fondo + QR) — solo si hay código de
+    // verificación. Las Constancias no llevan QR y se entregan como un
+    // documento de una sola página.
+    if (verificationCode) {
       const backPage = pdfDoc.addPage([PAGE_W, PAGE_H]);
 
-      const backImageUrl = (cert.template as { back_image_url?: string })
-        .back_image_url;
-      if (backImageUrl) {
-        const backBuffer = await this.fetchImageBuffer(backImageUrl);
-        const isBackJpeg = this.isJpeg(backImageUrl, backBuffer);
+      if (template.back_image_url) {
+        const backBuffer = await this.fetchImageBuffer(template.back_image_url);
+        const isBackJpeg = this.isJpeg(template.back_image_url, backBuffer);
         const backImage = isBackJpeg
           ? await pdfDoc.embedJpg(backBuffer)
           : await pdfDoc.embedPng(backBuffer);
@@ -142,10 +208,10 @@ export class CertificatePdfService {
       const frontendUrl =
         this.config.get<string>('FRONTEND_URL') ??
         'https://especializacionesglobal.net';
-      const verifyUrl = `${frontendUrl}/verificar/${cert.verification_code}`;
+      const verifyUrl = `${frontendUrl}/verificar/${verificationCode}`;
 
-      const qrPos = cert.template.qr_position as unknown as NamePosition;
-      const rawQrSize = (cert.template as { qr_size?: number }).qr_size ?? 300;
+      const qrPos = template.qr_position as unknown as NamePosition;
+      const rawQrSize = template.qr_size ?? 300;
       const qrPt = rawQrSize * scaleX;
 
       const qrPngBuffer = await QRCode.toBuffer(verifyUrl, {
@@ -167,11 +233,8 @@ export class CertificatePdfService {
       });
     }
 
-    // 6. Serializar y retornar buffer (sin guardar en disco)
     const pdfBytes = await pdfDoc.save();
-    const filename = `certificado-${studentName.replace(/\s+/g, '-')}.pdf`;
-
-    return { buffer: Buffer.from(pdfBytes), filename };
+    return Buffer.from(pdfBytes);
   }
 
   // ── Helpers ────────────────────────────────────────────────────────────────

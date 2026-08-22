@@ -16,6 +16,7 @@ export class PrismaModuleRepository implements IModuleRepository {
       title: module.title,
       description: module.description,
       display_order: module.display_order,
+      certificate_template_id: module.certificate_template_id,
       created_at: module.created_at,
     });
   }
@@ -33,6 +34,7 @@ export class PrismaModuleRepository implements IModuleRepository {
           title: m.title,
           description: m.description,
           display_order: m.display_order,
+          certificate_template_id: m.certificate_template_id,
           created_at: m.created_at,
         }),
     );
@@ -45,6 +47,7 @@ export class PrismaModuleRepository implements IModuleRepository {
         title: module.title,
         description: module.description,
         display_order: module.display_order,
+        certificate_template_id: module.certificate_template_id,
       },
       create: {
         id: module.id,
@@ -52,6 +55,7 @@ export class PrismaModuleRepository implements IModuleRepository {
         title: module.title,
         description: module.description,
         display_order: module.display_order,
+        certificate_template_id: module.certificate_template_id,
       },
     });
   }

@@ -20,12 +20,16 @@ export class CloudinaryService implements IFileStorageService {
 
   async upload(file: UploadFileOptions): Promise<UploadFileResult> {
     try {
-      const folder = file.folder ? `lms/${file.folder}` : 'lms';
+      const publicId = file.key
+        ? `lms/${file.key}`
+        : `${file.folder ? `lms/${file.folder}` : 'lms'}/${Date.now()}-${Math.round(Math.random() * 1e9)}`;
+
       const result = await cloudinary.uploader.upload(
         `data:${file.mimetype};base64,${file.buffer.toString('base64')}`,
         {
-          folder,
-          public_id: `${Date.now()}-${Math.round(Math.random() * 1e9)}`,
+          public_id: publicId,
+          overwrite: !!file.key,
+          invalidate: !!file.key,
           resource_type: 'auto',
         },
       );

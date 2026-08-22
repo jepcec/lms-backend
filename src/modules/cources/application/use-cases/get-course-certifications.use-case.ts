@@ -9,7 +9,12 @@ export class GetCourseCertificationsUseCase {
     const course = await this.prisma.course.findUnique({
       where: { id: courseId, deleted_at: null },
       include: {
-        modules: { orderBy: { display_order: 'asc' } },
+        modules: {
+          orderBy: { display_order: 'asc' },
+          include: {
+            certificate_template: { select: { id: true, name: true } },
+          },
+        },
         certificate_template: { select: { id: true, name: true } },
         constancia_template: { select: { id: true, name: true } },
       },
@@ -25,6 +30,7 @@ export class GetCourseCertificationsUseCase {
         },
         module_grades: true,
         certificate: { select: { id: true, type: true, issued_at: true } },
+        module_certificates: { select: { module_id: true } },
       },
       orderBy: { enrolled_at: 'asc' },
     });
@@ -33,6 +39,11 @@ export class GetCourseCertificationsUseCase {
       const gradesMap: Record<string, number> = {};
       for (const mg of enrollment.module_grades) {
         gradesMap[mg.module_id] = Number(mg.grade);
+      }
+
+      const moduleCertificates: Record<string, boolean> = {};
+      for (const mc of enrollment.module_certificates) {
+        moduleCertificates[mc.module_id] = true;
       }
 
       return {
@@ -45,6 +56,7 @@ export class GetCourseCertificationsUseCase {
           ? Number(enrollment.average_grade)
           : null,
         module_grades: gradesMap,
+        module_certificates: moduleCertificates,
         certificate_type: enrollment.certificate?.type ?? null,
         certificate_issued_at: enrollment.certificate?.issued_at ?? null,
         progress_percent: Number(enrollment.progress_percent),
@@ -61,6 +73,7 @@ export class GetCourseCertificationsUseCase {
         id: m.id,
         title: m.title,
         display_order: m.display_order,
+        certificate_template: m.certificate_template,
       })),
       students,
     };
