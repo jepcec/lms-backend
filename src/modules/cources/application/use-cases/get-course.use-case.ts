@@ -31,12 +31,15 @@ export class GetCourseUseCase {
       thumbnail_url: course.thumbnail_url,
       level: course.level,
       software_tools: course.software_tools,
-      price: Number(course.price),
-      discount_price: course.discount_price
-        ? Number(course.discount_price)
+      price_pen: Number(course.price_pen),
+      discount_price_pen: course.discount_price_pen
+        ? Number(course.discount_price_pen)
         : undefined,
-      currency: course.currency,
-      access_duration: course.access_duration,
+      price_usd: Number(course.price_usd),
+      discount_price_usd: course.discount_price_usd
+        ? Number(course.discount_price_usd)
+        : undefined,
+      access_duration_months: course.access_duration_months,
       prerequisites: course.prerequisites,
       outcomes: course.outcomes,
       status: course.status,
@@ -79,12 +82,15 @@ export class GetCourseUseCase {
       thumbnail_url: course.thumbnail_url,
       level: course.level,
       software_tools: course.software_tools,
-      price: Number(course.price),
-      discount_price: course.discount_price
-        ? Number(course.discount_price)
+      price_pen: Number(course.price_pen),
+      discount_price_pen: course.discount_price_pen
+        ? Number(course.discount_price_pen)
         : undefined,
-      currency: course.currency,
-      access_duration: course.access_duration,
+      price_usd: Number(course.price_usd),
+      discount_price_usd: course.discount_price_usd
+        ? Number(course.discount_price_usd)
+        : undefined,
+      access_duration_months: course.access_duration_months,
       prerequisites: course.prerequisites,
       outcomes: course.outcomes,
       status: course.status,

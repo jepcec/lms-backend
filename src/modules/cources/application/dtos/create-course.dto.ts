@@ -1,9 +1,4 @@
-import {
-  CourseLevel,
-  CourseCurrency,
-  CourseAccessDuration,
-  CourseStatus,
-} from '../../domain/course.entity';
+import { CourseLevel, CourseStatus } from '../../domain/course.entity';
 
 export interface InstructorInput {
   full_name: string;
@@ -21,10 +16,11 @@ export class CreateCourseDto {
   thumbnail_url?: string;
   level: CourseLevel;
   software_tools: string[];
-  price: number;
-  discount_price?: number;
-  currency: CourseCurrency;
-  access_duration: CourseAccessDuration;
+  price_pen: number;
+  discount_price_pen?: number;
+  price_usd: number;
+  discount_price_usd?: number;
+  access_duration_months: number;
   prerequisites: string[];
   outcomes: string[];
   status: CourseStatus;

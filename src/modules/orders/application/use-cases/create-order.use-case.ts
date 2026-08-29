@@ -23,14 +23,14 @@ export class CreateOrderUseCase {
       throw new BadRequestException('El carrito está vacío');
     }
 
-    const currency = cartItems[0].course.currency;
+    const currency = 'PEN' as const;
 
     let subtotal = 0;
     const itemsData = cartItems.map((item) => {
-      const unitPrice = Number(item.course.price);
+      const unitPrice = Number(item.course.price_pen);
       const discountPrice =
-        item.course.discount_price !== null
-          ? Number(item.course.discount_price)
+        item.course.discount_price_pen !== null
+          ? Number(item.course.discount_price_pen)
           : null;
       const finalPrice = discountPrice ?? unitPrice;
       subtotal += finalPrice;

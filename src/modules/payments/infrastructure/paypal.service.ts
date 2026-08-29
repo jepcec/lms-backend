@@ -71,8 +71,8 @@ export class PaypalService {
           },
         ],
         application_context: {
-          return_url: `${process.env.FRONTEND_URL}/checkout/success`,
-          cancel_url: `${process.env.FRONTEND_URL}/checkout/cancel`,
+          return_url: `${process.env.URL_FRONTEND}/checkout/success`,
+          cancel_url: `${process.env.URL_FRONTEND}/checkout/cancel`,
         },
       }),
     });
@@ -123,7 +123,11 @@ export class PaypalService {
 
     const order = await this.prisma.order.findFirst({
       where: { gateway_transaction_id: paypalOrderId },
-      include: { order_items: true },
+      include: {
+        order_items: {
+          include: { course: { select: { access_duration_months: true } } },
+        },
+      },
     });
 
     if (!order) {
@@ -154,6 +158,11 @@ export class PaypalService {
         });
 
         if (!existing) {
+          const accessExpiresAt = new Date();
+          accessExpiresAt.setMonth(
+            accessExpiresAt.getMonth() + item.course.access_duration_months,
+          );
+
           const enrollment = await tx.enrollment.create({
             data: {
               user_id: order.user_id,
@@ -161,6 +170,7 @@ export class PaypalService {
               order_id: order.id,
               enrollment_type: 'online',
               progress_percent: 0,
+              access_expires_at: accessExpiresAt,
             },
             include: { course: { select: { title: true, slug: true } } },
           });

@@ -7,10 +7,11 @@ export class UpdateCourseDto {
   thumbnail_url?: string;
   level?: string;
   software_tools?: string[];
-  price?: number;
-  discount_price?: number | null;
-  currency?: string;
-  access_duration?: string;
+  price_pen?: number;
+  discount_price_pen?: number | null;
+  price_usd?: number;
+  discount_price_usd?: number | null;
+  access_duration_months?: number;
   prerequisites?: string[];
   outcomes?: string[];
   status?: string;

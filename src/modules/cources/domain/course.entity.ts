@@ -1,6 +1,4 @@
 export type CourseLevel = 'principiante' | 'intermedio' | 'avanzado';
-export type CourseCurrency = 'USD' | 'PEN';
-export type CourseAccessDuration = 'one_year' | 'lifetime';
 export type CourseStatus = 'draft' | 'published' | 'archived';
 export type CertificationMode = 'auto' | 'manual';
 
@@ -15,10 +13,11 @@ export interface CourseProps {
   thumbnail_public_id?: string | null;
   level: CourseLevel;
   software_tools: string[];
-  price: number;
-  discount_price?: number | null;
-  currency: CourseCurrency;
-  access_duration: CourseAccessDuration;
+  price_pen: number;
+  discount_price_pen?: number | null;
+  price_usd: number;
+  discount_price_usd?: number | null;
+  access_duration_months: number;
   prerequisites: string[];
   outcomes: string[];
   status: CourseStatus;
@@ -74,17 +73,20 @@ export class CourseEntity {
   get software_tools() {
     return this.props.software_tools;
   }
-  get price() {
-    return this.props.price;
+  get price_pen() {
+    return this.props.price_pen;
   }
-  get discount_price() {
-    return this.props.discount_price ?? null;
+  get discount_price_pen() {
+    return this.props.discount_price_pen ?? null;
   }
-  get currency() {
-    return this.props.currency;
+  get price_usd() {
+    return this.props.price_usd;
   }
-  get access_duration() {
-    return this.props.access_duration;
+  get discount_price_usd() {
+    return this.props.discount_price_usd ?? null;
+  }
+  get access_duration_months() {
+    return this.props.access_duration_months;
   }
   get prerequisites() {
     return this.props.prerequisites;
@@ -135,14 +137,27 @@ export class CourseEntity {
     return this.props.deleted_at ?? null;
   }
 
-  get hasDiscount() {
+  get hasDiscountPen() {
     return (
-      this.props.discount_price !== null &&
-      this.props.discount_price !== undefined
+      this.props.discount_price_pen !== null &&
+      this.props.discount_price_pen !== undefined
     );
   }
-  get finalPrice() {
-    return this.hasDiscount ? this.props.discount_price! : this.props.price;
+  get finalPricePen() {
+    return this.hasDiscountPen
+      ? this.props.discount_price_pen!
+      : this.props.price_pen;
+  }
+  get hasDiscountUsd() {
+    return (
+      this.props.discount_price_usd !== null &&
+      this.props.discount_price_usd !== undefined
+    );
+  }
+  get finalPriceUsd() {
+    return this.hasDiscountUsd
+      ? this.props.discount_price_usd!
+      : this.props.price_usd;
   }
 
   toJSON() {
@@ -157,10 +172,13 @@ export class CourseEntity {
       thumbnail_public_id: this.thumbnail_public_id,
       level: this.level,
       software_tools: this.software_tools,
-      price: this.price,
-      discount_price: this.discount_price,
-      currency: this.currency,
-      access_duration: this.access_duration,
+      price_pen: this.price_pen,
+      discount_price_pen: this.discount_price_pen,
+      final_price_pen: this.finalPricePen,
+      price_usd: this.price_usd,
+      discount_price_usd: this.discount_price_usd,
+      final_price_usd: this.finalPriceUsd,
+      access_duration_months: this.access_duration_months,
       prerequisites: this.prerequisites,
       outcomes: this.outcomes,
       status: this.status,

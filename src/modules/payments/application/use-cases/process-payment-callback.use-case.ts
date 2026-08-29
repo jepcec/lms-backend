@@ -133,7 +133,11 @@ export class ProcessPaymentCallbackUseCase {
           gateway_transaction_id: gatewayId,
           payment_method: method as any,
         },
-        include: { order_items: true },
+        include: {
+          order_items: {
+            include: { course: { select: { access_duration_months: true } } },
+          },
+        },
       });
 
       const enrolled: { course_id: string; title: string; slug: string }[] = [];
@@ -149,6 +153,11 @@ export class ProcessPaymentCallbackUseCase {
         });
 
         if (!existingEnrollment) {
+          const accessExpiresAt = new Date();
+          accessExpiresAt.setMonth(
+            accessExpiresAt.getMonth() + item.course.access_duration_months,
+          );
+
           const enrollment = await tx.enrollment.create({
             data: {
               user_id: order.user_id,
@@ -156,6 +165,7 @@ export class ProcessPaymentCallbackUseCase {
               order_id: order.id,
               enrollment_type: 'online',
               progress_percent: 0,
+              access_expires_at: accessExpiresAt,
             },
             include: { course: { select: { title: true, slug: true } } },
           });
