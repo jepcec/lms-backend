@@ -266,16 +266,19 @@ model Instructor {
 // =============================================================
 
 model Module {
-  id            String    @id @default(uuid()) @db.Uuid
-  course_id     String    @db.Uuid
-  title         String
-  description   String?
-  display_order Int
-  created_at    DateTime  @default(now())
+  id                      String    @id @default(uuid()) @db.Uuid
+  course_id               String    @db.Uuid
+  title                   String
+  description             String?
+  display_order           Int
+  certificate_template_id String?   @db.Uuid
+  created_at              DateTime  @default(now())
 
-  course        Course                  @relation(fields: [course_id], references: [id], onDelete: Cascade)
-  sessions      Session[]
-  module_grades EnrollmentModuleGrade[]
+  course               Course                  @relation(fields: [course_id], references: [id], onDelete: Cascade)
+  certificate_template CertificateTemplate?    @relation("ModuleCertificateTemplate", fields: [certificate_template_id], references: [id])
+  sessions             Session[]
+  module_grades        EnrollmentModuleGrade[]
+  module_certificates  ModuleCertificate[]
 
   @@map("modules")
 }
@@ -397,6 +400,7 @@ model Enrollment {
   module_grades          EnrollmentModuleGrade[]
   review                 Review?
   certificate            Certificate?
+  module_certificates    ModuleCertificate[]
 
   @@unique([user_id, course_id])
   @@map("enrollments")
@@ -459,7 +463,9 @@ model CertificateTemplate {
   id                    String   @id @default(uuid()) @db.Uuid
   name                  String
   background_image_url  String
+  background_image_public_id String?  // id real en el storage (para poder borrar el archivo)
   back_image_url        String?  // imagen de contraportada
+  back_image_public_id  String?  // id real en el storage (para poder borrar el archivo)
   student_name_position Json     // { x: number, y: number }
   qr_position           Json     // { x: number, y: number }
   qr_size               Int      @default(300) // unidades del espacio virtual 3508×2480
@@ -469,8 +475,10 @@ model CertificateTemplate {
   created_at            DateTime @default(now())
 
   certificates          Certificate[]
+  module_certificates   ModuleCertificate[]
   courses               Course[]      @relation("CourseCertificateTemplate")
   constancia_courses    Course[]      @relation("CourseConstanciaTemplate")
+  modules               Module[]      @relation("ModuleCertificateTemplate")
 
   @@map("certificate_templates")
 }
@@ -491,6 +499,23 @@ model Certificate {
   review            Review?             @relation(fields: [review_id], references: [id])
 
   @@map("certificates")
+}
+
+model ModuleCertificate {
+  id                String              @id @default(uuid()) @db.Uuid
+  enrollment_id     String              @db.Uuid
+  module_id         String              @db.Uuid
+  template_id       String              @db.Uuid
+  verification_code String              @unique
+  pdf_url           String?
+  issued_at         DateTime            @default(now())
+
+  enrollment        Enrollment          @relation(fields: [enrollment_id], references: [id], onDelete: Cascade)
+  module            Module              @relation(fields: [module_id], references: [id], onDelete: Cascade)
+  template          CertificateTemplate @relation(fields: [template_id], references: [id])
+
+  @@unique([enrollment_id, module_id])
+  @@map("module_certificates")
 }
 
 

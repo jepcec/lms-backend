@@ -16,7 +16,6 @@ import { ListCertificateTemplatesUseCase } from '../../application/use-cases/lis
 import { GetCertificateTemplateUseCase } from '../../application/use-cases/get-certificate-template.use-case';
 import { CreateCertificateTemplateUseCase } from '../../application/use-cases/create-certificate-template.use-case';
 import { UpdateCertificateTemplateUseCase } from '../../application/use-cases/update-certificate-template.use-case';
-import { ActivateCertificateTemplateUseCase } from '../../application/use-cases/activate-certificate-template.use-case';
 import { DeleteCertificateTemplateUseCase } from '../../application/use-cases/delete-certificate-template.use-case';
 import { CreateCertificateTemplateDto } from '../../application/dtos/create-certificate-template.dto';
 import { UpdateCertificateTemplateDto } from '../../application/dtos/update-certificate-template.dto';
@@ -43,7 +42,6 @@ export class CertificateTemplatesController {
     private readonly getUseCase: GetCertificateTemplateUseCase,
     private readonly createUseCase: CreateCertificateTemplateUseCase,
     private readonly updateUseCase: UpdateCertificateTemplateUseCase,
-    private readonly activateUseCase: ActivateCertificateTemplateUseCase,
     private readonly deleteUseCase: DeleteCertificateTemplateUseCase,
   ) {}
 
@@ -112,11 +110,6 @@ export class CertificateTemplatesController {
       dto.background_image = files.background_image[0];
     if (files?.back_image?.[0]) dto.back_image = files.back_image[0];
     return this.updateUseCase.execute(id, dto);
-  }
-
-  @Post(':id/activate')
-  activate(@Param('id') id: string) {
-    return this.activateUseCase.execute(id);
   }
 
   @Delete(':id')

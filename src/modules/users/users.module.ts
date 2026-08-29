@@ -43,7 +43,6 @@ import { GetProfileUseCase } from './application/use-cases/get-profile.use-case'
 import { UpdateProfileUseCase } from './application/use-cases/update-profile.use-case';
 import { ChangePasswordUseCase } from './application/use-cases/change-password.use-case';
 import { DeleteAccountUseCase } from './application/use-cases/delete-user.use-case';
-import { SetGradeUseCase } from './application/use-cases/set-enrollment-grade.use-case';
 import { GetMyEnrollmentsUseCase } from './application/use-cases/get-my-enrollments.use-case';
 import { GetCourseContentUseCase } from './application/use-cases/get-course-content.use-case';
 import { GetCourseProgressUseCase } from './application/use-cases/get-course-progress.use-case';
@@ -71,11 +70,11 @@ import { ListCertificateTemplatesUseCase } from './application/use-cases/list-ce
 import { GetCertificateTemplateUseCase } from './application/use-cases/get-certificate-template.use-case';
 import { CreateCertificateTemplateUseCase } from './application/use-cases/create-certificate-template.use-case';
 import { UpdateCertificateTemplateUseCase } from './application/use-cases/update-certificate-template.use-case';
-import { ActivateCertificateTemplateUseCase } from './application/use-cases/activate-certificate-template.use-case';
 import { DeleteCertificateTemplateUseCase } from './application/use-cases/delete-certificate-template.use-case';
 import { GetMyCertificatesUseCase } from './application/use-cases/get-my-certificates.use-case';
 import { GetCertificateUseCase } from './application/use-cases/get-certificate.use-case';
 import { GetStudentCertificateUseCase } from './application/use-cases/get-student-certificate.use-case';
+import { GetStudentModuleCertificateUseCase } from './application/use-cases/get-student-module-certificate.use-case';
 import { VerifyCertificateUseCase } from './application/use-cases/verify-certificate.use-case';
 import { CertificatePdfService } from '../cources/application/services/certificate-pdf.service';
 import { GetStudentDetailUseCase } from './application/use-cases/get-student-detail.use-case';
@@ -118,7 +117,6 @@ import { ExportDashboardExcelUseCase } from './application/use-cases/export-dash
     UpdateProfileUseCase,
     ChangePasswordUseCase,
     DeleteAccountUseCase,
-    SetGradeUseCase,
     GetMyEnrollmentsUseCase,
     GetCourseContentUseCase,
     GetCourseProgressUseCase,
@@ -146,11 +144,11 @@ import { ExportDashboardExcelUseCase } from './application/use-cases/export-dash
     GetCertificateTemplateUseCase,
     CreateCertificateTemplateUseCase,
     UpdateCertificateTemplateUseCase,
-    ActivateCertificateTemplateUseCase,
     DeleteCertificateTemplateUseCase,
     GetMyCertificatesUseCase,
     GetCertificateUseCase,
     GetStudentCertificateUseCase,
+    GetStudentModuleCertificateUseCase,
     VerifyCertificateUseCase,
     CertificatePdfService,
     SubmitReviewUseCase,

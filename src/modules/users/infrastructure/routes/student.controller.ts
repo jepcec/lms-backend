@@ -14,6 +14,7 @@ import { GetCourseProgressUseCase } from '../../application/use-cases/get-course
 import { UpdateSessionProgressUseCase } from '../../application/use-cases/update-session-progress.use-case';
 import { GetMyCertificatesUseCase } from '../../application/use-cases/get-my-certificates.use-case';
 import { GetStudentCertificateUseCase } from '../../application/use-cases/get-student-certificate.use-case';
+import { GetStudentModuleCertificateUseCase } from '../../application/use-cases/get-student-module-certificate.use-case';
 // 🚀 CAMBIO 1: Importamos el PrismaService (Verifica la ruta relativa de tus carpetas si es necesario)
 import { PrismaService } from '../../../../core/database/prisma.service';
 
@@ -27,6 +28,7 @@ export class StudentController {
     private readonly updateSessionProgress: UpdateSessionProgressUseCase,
     private readonly getMyCertificates: GetMyCertificatesUseCase,
     private readonly getStudentCertificate: GetStudentCertificateUseCase,
+    private readonly getStudentModuleCertificate: GetStudentModuleCertificateUseCase,
     // 🚀 CAMBIO 2: Inyectamos Prisma en el constructor para tener acceso directo a la BD
     private readonly prisma: PrismaService,
   ) {}
@@ -98,6 +100,14 @@ export class StudentController {
   @Get('certificates')
   getMyCertificatesHandler(@CurrentUser('userId') userId: string) {
     return this.getMyCertificates.execute(userId);
+  }
+
+  @Get('certificates/module/:id')
+  getStudentModuleCertificateHandler(
+    @CurrentUser('userId') userId: string,
+    @Param('id', ParseUUIDPipe) id: string,
+  ) {
+    return this.getStudentModuleCertificate.execute(id, userId);
   }
 
   @Get('certificates/:enrollmentId')

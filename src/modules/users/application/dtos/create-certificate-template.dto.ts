@@ -1,9 +1,23 @@
-import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { IsIn, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import type { CertificateTemplateOwnerType } from '../use-cases/certificate-template-key.util';
+
+const OWNER_TYPES: CertificateTemplateOwnerType[] = [
+  'course_certificado',
+  'course_constancia',
+  'module',
+];
 
 export class CreateCertificateTemplateDto {
   @IsString()
   @IsNotEmpty()
   name: string;
+
+  @IsIn(OWNER_TYPES)
+  owner_type: CertificateTemplateOwnerType;
+
+  @IsString()
+  @IsNotEmpty()
+  owner_id: string;
 
   @IsOptional()
   background_image?: Express.Multer.File;

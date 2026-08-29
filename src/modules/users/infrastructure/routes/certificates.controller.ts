@@ -20,6 +20,23 @@ export class CertificatesController {
     return this.getMyCertificatesUseCase.execute(userId);
   }
 
+  @Get('module/:id/download')
+  async downloadModuleCertificate(
+    @Param('id') id: string,
+    @CurrentUser('userId') userId: string,
+    @Res() res: any,
+  ) {
+    const response = res as Response;
+    const { buffer, filename } =
+      await this.pdfService.generateModuleCertificateBuffer(id, userId);
+    response.set({
+      'Content-Type': 'application/pdf',
+      'Content-Disposition': `attachment; filename="${filename}"`,
+      'Content-Length': buffer.length,
+    });
+    response.end(buffer);
+  }
+
   @Get(':id')
   getCertificate(@Param('id') id: string) {
     return this.getCertificateUseCase.execute(id);

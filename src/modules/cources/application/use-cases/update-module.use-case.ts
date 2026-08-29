@@ -22,6 +22,10 @@ export class UpdateModuleUseCase {
       description:
         dto.description !== undefined ? dto.description : existing.description,
       display_order: dto.display_order ?? existing.display_order,
+      certificate_template_id:
+        dto.certificate_template_id !== undefined
+          ? dto.certificate_template_id
+          : existing.certificate_template_id,
       created_at: existing.created_at,
     });
     await this.moduleRepository.save(updated);

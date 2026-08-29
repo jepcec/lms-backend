@@ -4,6 +4,7 @@ export interface ModuleProps {
   title: string;
   description?: string | null;
   display_order: number;
+  certificate_template_id?: string | null;
   created_at: Date;
 }
 
@@ -28,6 +29,9 @@ export class ModuleEntity {
   }
   get display_order() {
     return this.props.display_order;
+  }
+  get certificate_template_id() {
+    return this.props.certificate_template_id ?? null;
   }
   get created_at() {
     return this.props.created_at;
