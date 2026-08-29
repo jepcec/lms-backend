@@ -8,4 +8,5 @@ export class RegisterUserDto {
   password: string;
   country?: string;
   profession?: string;
+  turnstileToken?: string;
 }
