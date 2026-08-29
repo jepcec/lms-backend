@@ -40,10 +40,12 @@ import { PaymentsV2Module } from './modules/payments-v2/payments-v2.module';
         autoLogging: {
           ignore: (req) => req.url === '/api/health',
         },
-        transport:
-          process.env.NODE_ENV === 'production'
-            ? undefined
-            : { target: 'pino-pretty', options: { singleLine: true } },
+        // Sin `transport`: siempre JSON plano a stdout. "pino-pretty" es
+        // devDependency (no viaja a la imagen de producción) — usarlo como
+        // transport in-process rompía el arranque si NODE_ENV no llegaba en
+        // runtime exactamente como "production" (ej. overrides de la
+        // plataforma de despliegue). Para logs legibles en local, ver el
+        // pipe a pino-pretty en el script "start:dev" de package.json.
       },
     }),
     DatabaseModule,
