@@ -140,7 +140,7 @@ export class CertificatePdfService {
       }
 
       const frontendUrl =
-        this.config.get<string>('FRONTEND_URL') ??
+        this.config.get<string>('URL_FRONTEND') ??
         'https://especializacionesglobal.net';
       const verifyUrl = `${frontendUrl}/verificar/${cert.verification_code}`;
 
