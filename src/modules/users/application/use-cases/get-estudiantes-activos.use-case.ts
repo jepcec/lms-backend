@@ -17,28 +17,32 @@ export class GetEstudiantesActivosUseCase {
       where: { role: 'estudiante', status: 'active' },
     });
 
-    const result: Array<{ mes: string; activos: number; inactivos: number }> =
-      [];
+    // Antes: un `await` de enrollment.count() por mes, secuencial (12+
+    // round-trips uno detrás del otro para un rango de 1 año). Ahora se piden
+    // todos los meses en paralelo — mismo resultado, un solo round-trip
+    // conjunto en vez de N. Promise.all conserva el orden del array de entrada.
+    const result = await Promise.all(
+      meses.map(async (mes) => {
+        const [year, month] = mes.split('-').map(Number);
+        const monthStart = new Date(year, month - 1, 1);
+        const monthEnd = new Date(year, month, 0, 23, 59, 59, 999);
 
-    for (const mes of meses) {
-      const [year, month] = mes.split('-').map(Number);
-      const monthStart = new Date(year, month - 1, 1);
-      const monthEnd = new Date(year, month, 0, 23, 59, 59, 999);
+        const activos = await this.prisma.enrollment.count({
+          where: {
+            last_accessed_at: { gte: monthStart, lte: monthEnd },
+          },
+        });
 
-      const activos = await this.prisma.enrollment.count({
-        where: {
-          last_accessed_at: { gte: monthStart, lte: monthEnd },
-        },
-      });
+        const activosClamped =
+          activos > totalEstudiantes ? totalEstudiantes : activos;
 
-      result.push({
-        mes,
-        activos: activos > totalEstudiantes ? totalEstudiantes : activos,
-        inactivos:
-          totalEstudiantes -
-          (activos > totalEstudiantes ? totalEstudiantes : activos),
-      });
-    }
+        return {
+          mes,
+          activos: activosClamped,
+          inactivos: totalEstudiantes - activosClamped,
+        };
+      }),
+    );
 
     return result;
   }

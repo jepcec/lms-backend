@@ -1,6 +1,5 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { PrismaService } from '../../core/database/prisma.service';
 import { MercadoPagoController } from './mercadopago/infrastructure/routes/mercadopago.controller';
 import { MercadoPagoWebhookController } from './mercadopago/infrastructure/routes/mercadopago-webhook.controller';
 import { MercadoPagoSdkAdapter } from './mercadopago/infrastructure/adapters/mercadopago-sdk.adapter';
@@ -12,7 +11,6 @@ import { HandleMercadoPagoWebhookUseCase } from './mercadopago/application/use-c
   imports: [ConfigModule],
   controllers: [MercadoPagoController, MercadoPagoWebhookController],
   providers: [
-    PrismaService,
     MercadoPagoSdkAdapter,
     CreateMercadoPagoPreferenceUseCase,
     ProcessMercadoPagoBrickPaymentUseCase,

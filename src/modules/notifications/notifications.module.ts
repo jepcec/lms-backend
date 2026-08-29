@@ -1,5 +1,4 @@
 import { Module } from '@nestjs/common';
-import { PrismaService } from '../../../src/core/database/prisma.service';
 import { StorageModule } from '../storage/storage.module';
 import { NotificationsController } from './infrastructure/routes/notifications.controller';
 import { MarketingNotificationsController } from './infrastructure/routes/marketing-notifications.controller';
@@ -17,7 +16,6 @@ import { NotificationsListener } from './infrastructure/listeners/notifications.
   imports: [StorageModule],
   controllers: [NotificationsController, MarketingNotificationsController],
   providers: [
-    PrismaService,
     GetNotificationsUseCase,
     MarkReadUseCase,
     MarkAllReadUseCase,

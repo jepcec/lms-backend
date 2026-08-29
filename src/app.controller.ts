@@ -11,11 +11,5 @@ export class AppController {
   getHello(): string {
     return this.appService.getHello();
   }
-
-  @Get('health-db')
-  @Public()
-  async HealtDb(): Promise<{}> {
-    return this.appService.getTestDb();
-  }
 }
 //hola mundo

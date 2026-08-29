@@ -14,11 +14,12 @@ import { I_EMAIL_SERVICE } from './domain/services/email.service';
 
 // Infrastructure Implementations
 import { PrismaUserRepository } from './infrastructure/database/prisma-users.repository';
-import { PrismaService } from '../../core/database/prisma.service';
 import { PasswordService } from './infrastructure/services/auth-password.service';
 import { TokenService } from './infrastructure/services/auth-token.service';
 import { NodemailerEmailService } from './infrastructure/services/nodemailer.service';
 import { CryptoTokenService } from './infrastructure/services/crypto-token.service';
+import { TurnstileService } from './infrastructure/services/turnstile.service';
+import { TurnstileGuard } from './infrastructure/guards/turnstile.guard';
 
 // Controllers
 import { UsersController } from './infrastructure/routes/users.controller';
@@ -107,7 +108,6 @@ import { ExportDashboardExcelUseCase } from './application/use-cases/export-dash
     ReviewsController,
   ],
   providers: [
-    PrismaService,
     // Use Cases
     LoginUserUseCase,
     RegisterUserUseCase,
@@ -159,6 +159,8 @@ import { ExportDashboardExcelUseCase } from './application/use-cases/export-dash
     ExportMatriculadosCursoExcelUseCase,
     ExportDashboardExcelUseCase,
     CryptoTokenService,
+    TurnstileService,
+    TurnstileGuard,
     // Interface Mappings
     { provide: I_USER_REPOSITORY, useClass: PrismaUserRepository },
     { provide: I_PASSWORD_SERVICE, useClass: PasswordService },
