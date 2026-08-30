@@ -1,7 +1,7 @@
 export class CreateSliderDto {
   title: string;
   subtitle?: string;
-  type: 'courses' | 'banner';
+  type: 'courses' | 'banner' | 'catalog';
   event_type_id?: string | null;
   image_url?: string;
   destination_url?: string;

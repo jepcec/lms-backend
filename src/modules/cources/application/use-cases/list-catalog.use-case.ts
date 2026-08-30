@@ -17,10 +17,14 @@ export class ListCatalogUseCase {
     };
 
     if (params.search) {
-      where.OR = [
-        { title: { contains: params.search, mode: 'insensitive' } },
-        { tagline: { contains: params.search, mode: 'insensitive' } },
-      ];
+      // unaccent() para que "jose", "José" y "JOSÉ" encuentren lo mismo (mode: 'insensitive'
+      // de Prisma ya cubre mayúsculas/minúsculas, pero no tildes/diacríticos).
+      const matches = await this.prisma.$queryRaw<{ id: string }[]>`
+        SELECT id FROM courses
+        WHERE unaccent(title) ILIKE unaccent(${'%' + params.search + '%'})
+           OR unaccent(tagline) ILIKE unaccent(${'%' + params.search + '%'})
+      `;
+      where.id = { in: matches.map((c) => c.id) };
     }
 
     if (params.categoria_id) {
