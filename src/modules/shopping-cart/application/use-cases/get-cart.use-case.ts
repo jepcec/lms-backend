@@ -10,13 +10,18 @@ export class GetCartUseCase {
   constructor(private readonly prisma: PrismaService) {}
 
   async execute(filter: { userId?: string; token?: string }) {
+    // Sin userId ni token no hay carrito que identificar: devolver vacío.
+    // (antes esto armaba `OR: [{ user_id: undefined }, { session_token: undefined }]`,
+    // que Prisma no interpreta como "sin resultados" sino como una condición
+    // sin filtro real, devolviendo carritos de otros usuarios/invitados)
+    if (!filter.userId && !filter.token) {
+      return { items: [], totalCount: 0, subtotal: 0, currency: 'USD' };
+    }
+
     const items = await this.prisma.cartItem.findMany({
-      where: {
-        OR: [
-          { user_id: filter.userId ?? undefined },
-          { session_token: filter.token ?? undefined },
-        ],
-      },
+      where: filter.userId
+        ? { user_id: filter.userId }
+        : { session_token: filter.token },
       include: {
         course: {
           select: {

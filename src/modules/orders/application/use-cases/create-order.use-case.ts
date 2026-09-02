@@ -2,7 +2,7 @@ import { Injectable, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../../../../core/database/prisma.service';
 
 export interface CreateOrderDto {
-  payment_method: 'stripe' | 'paypal' | 'mercado_pago';
+  payment_method: 'stripe' | 'paypal' | 'mercado_pago' | 'culqi';
   dni_ruc?: string;
 }
 
@@ -24,6 +24,18 @@ export class CreateOrderUseCase {
     }
 
     const currency = cartItems[0].course.currency;
+
+    // Respaldo defensivo: AddItemUseCase ya bloquea mezclar monedas al
+    // agregar, pero una orden nunca debe cobrarse en la moneda equivocada
+    // para alguno de sus cursos si esa regla llegara a fallar.
+    const hasMixedCurrencies = cartItems.some(
+      (item) => item.course.currency !== currency,
+    );
+    if (hasMixedCurrencies) {
+      throw new BadRequestException(
+        'Tu carrito tiene cursos en distintas monedas. Vacíalo y agrégalos de nuevo en una sola moneda.',
+      );
+    }
 
     let subtotal = 0;
     const itemsData = cartItems.map((item) => {

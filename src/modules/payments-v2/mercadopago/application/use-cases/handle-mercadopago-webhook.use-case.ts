@@ -1,9 +1,9 @@
 import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 import { PrismaService } from '../../../../../core/database/prisma.service';
 import { PaymentStatus } from '../../../../../generated/prisma/enums';
+import { ConfirmOrderAndEnrollUseCase } from '../../../../orders/application/use-cases/confirm-order-and-enroll.use-case';
 import { MercadoPagoSdkAdapter } from '../../infrastructure/adapters/mercadopago-sdk.adapter';
 import { MercadoPagoWebhookDto } from '../dtos/mercadopago-webhook.dto';
-import { ProcessMercadoPagoBrickPaymentUseCase } from './process-mercadopago-brick-payment.use-case';
 
 @Injectable()
 export class HandleMercadoPagoWebhookUseCase {
@@ -12,7 +12,7 @@ export class HandleMercadoPagoWebhookUseCase {
   constructor(
     private readonly prisma: PrismaService,
     private readonly mpAdapter: MercadoPagoSdkAdapter,
-    private readonly processBrickPaymentUC: ProcessMercadoPagoBrickPaymentUseCase,
+    private readonly confirmOrderAndEnrollUC: ConfirmOrderAndEnrollUseCase,
   ) {}
 
   async execute(
@@ -60,11 +60,7 @@ export class HandleMercadoPagoWebhookUseCase {
     }
 
     if (payment.status === 'approved') {
-      await this.processBrickPaymentUC.confirmOrderAndEnroll(
-        order.id,
-        String(payment.id),
-        'mercado_pago',
-      );
+      await this.confirmOrderAndEnrollUC.execute(order.id, String(payment.id), 'mercado_pago');
     }
 
     return { received: true };
