@@ -93,11 +93,11 @@ async function main() {
 
   // ── Courses ──────────────────────────────────────────────────
   const rawCourses = [
-    { title: 'React desde Cero', slug: 'react-desde-cero', tagline: 'Aprende React paso a paso', level: 'principiante' as const, price: 49.99, currency: 'USD' as const, access_duration: 'lifetime' as const, published: true, catIdx: 0 },
-    { title: 'Node.js Avanzado', slug: 'nodejs-avanzado', tagline: 'Domina Node.js en producción', level: 'avanzado' as const, price: 79.99, currency: 'USD' as const, access_duration: 'lifetime' as const, published: false, catIdx: 0 },
-    { title: 'Python para Data Science', slug: 'python-data-science', tagline: 'Introducción al análisis de datos', level: 'principiante' as const, price: 59.99, currency: 'USD' as const, access_duration: 'one_year' as const, published: true, catIdx: 1 },
-    { title: 'Figma para UX/UI', slug: 'figma-ux-ui', tagline: 'Diseña interfaces modernas', level: 'intermedio' as const, price: 39.99, currency: 'PEN' as const, access_duration: 'lifetime' as const, published: false, catIdx: 2 },
-    { title: 'SEO Avanzado', slug: 'seo-avanzado', tagline: 'Posiciona tu sitio web', level: 'intermedio' as const, price: 44.99, currency: 'USD' as const, access_duration: 'one_year' as const, published: true, catIdx: 3 },
+    { title: 'React desde Cero', slug: 'react-desde-cero', tagline: 'Aprende React paso a paso', level: 'principiante' as const, price_pen: 187.46, price_usd: 49.99, access_duration_months: 999, published: true, catIdx: 0 },
+    { title: 'Node.js Avanzado', slug: 'nodejs-avanzado', tagline: 'Domina Node.js en producción', level: 'avanzado' as const, price_pen: 299.96, price_usd: 79.99, access_duration_months: 999, published: false, catIdx: 0 },
+    { title: 'Python para Data Science', slug: 'python-data-science', tagline: 'Introducción al análisis de datos', level: 'principiante' as const, price_pen: 224.96, price_usd: 59.99, access_duration_months: 12, published: true, catIdx: 1 },
+    { title: 'Figma para UX/UI', slug: 'figma-ux-ui', tagline: 'Diseña interfaces modernas', level: 'intermedio' as const, price_pen: 149.96, price_usd: 39.99, access_duration_months: 999, published: false, catIdx: 2 },
+    { title: 'SEO Avanzado', slug: 'seo-avanzado', tagline: 'Posiciona tu sitio web', level: 'intermedio' as const, price_pen: 168.71, price_usd: 44.99, access_duration_months: 12, published: true, catIdx: 3 },
   ]
   const courses: Awaited<ReturnType<typeof prisma.course.create>>[] = []
   for (const rc of rawCourses) {
@@ -111,9 +111,9 @@ async function main() {
         thumbnail_url: faker.image.urlPicsumPhotos(),
         level: rc.level,
         software_tools: faker.helpers.arrayElements(['Git', 'Docker', 'VS Code', 'Postman', 'Figma', 'Webpack', 'Jest'], 3),
-        price: rc.price,
-        currency: rc.currency,
-        access_duration: rc.access_duration,
+        price_pen: rc.price_pen,
+        price_usd: rc.price_usd,
+        access_duration_months: rc.access_duration_months,
         prerequisites: ['Conocimientos básicos de programación', 'Manejo de terminal'],
         outcomes: ['Crear proyectos reales', 'Certificación oficial'],
         status: rc.published ? 'published' : 'draft',
@@ -206,9 +206,9 @@ async function main() {
       data: {
         user_id: student.id,
         order_number: `ORD-${String(i + 1).padStart(5, '0')}`,
-        subtotal: course.price,
-        total: course.price,
-        currency: course.currency === 'USD' ? 'USD' : 'PEN',
+        subtotal: course.price_pen,
+        total: course.price_pen,
+        currency: 'PEN',
         payment_method: faker.helpers.arrayElement(['stripe', 'niubiz'] as const),
         payment_status: 'paid',
         gateway_transaction_id: faker.string.alphanumeric(24),
@@ -224,8 +224,8 @@ async function main() {
       data: {
         order_id: order.id,
         course_id: course.id,
-        unit_price: course.price,
-        final_price: course.price,
+        unit_price: course.price_pen,
+        final_price: course.price_pen,
       },
     })
   }

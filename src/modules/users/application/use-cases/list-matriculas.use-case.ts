@@ -83,6 +83,7 @@ export class ListMatriculasUseCase {
         course: enrollment.course,
         order_id: enrollment.order_id,
         enrolled_at: enrollment.enrolled_at.toISOString(),
+        access_expires_at: enrollment.access_expires_at?.toISOString() ?? null,
         enrollment_type: enrollment.enrollment_type,
         offline_payment_method: enrollment.offline_payment_method,
         offline_amount: enrollment.offline_amount

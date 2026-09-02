@@ -17,10 +17,14 @@ export class ListCatalogUseCase {
     };
 
     if (params.search) {
-      where.OR = [
-        { title: { contains: params.search, mode: 'insensitive' } },
-        { tagline: { contains: params.search, mode: 'insensitive' } },
-      ];
+      // unaccent() para que "jose", "José" y "JOSÉ" encuentren lo mismo (mode: 'insensitive'
+      // de Prisma ya cubre mayúsculas/minúsculas, pero no tildes/diacríticos).
+      const matches = await this.prisma.$queryRaw<{ id: string }[]>`
+        SELECT id FROM courses
+        WHERE unaccent(title) ILIKE unaccent(${'%' + params.search + '%'})
+           OR unaccent(tagline) ILIKE unaccent(${'%' + params.search + '%'})
+      `;
+      where.id = { in: matches.map((c) => c.id) };
     }
 
     if (params.categoria_id) {
@@ -50,12 +54,12 @@ export class ListCatalogUseCase {
     }
 
     if (params.min_price !== undefined || params.max_price !== undefined) {
-      where.price = {};
+      where.price_pen = {};
       if (params.min_price !== undefined) {
-        where.price.gte = Number(params.min_price);
+        where.price_pen.gte = Number(params.min_price);
       }
       if (params.max_price !== undefined) {
-        where.price.lte = Number(params.max_price);
+        where.price_pen.lte = Number(params.max_price);
       }
     }
 
@@ -84,10 +88,10 @@ export class ListCatalogUseCase {
           orderBy = { published_at: { sort: 'desc', nulls: 'last' } };
           break;
         case 'price_asc':
-          orderBy = { price: 'asc' };
+          orderBy = { price_pen: 'asc' };
           break;
         case 'price_desc':
-          orderBy = { price: 'desc' };
+          orderBy = { price_pen: 'desc' };
           break;
       }
     }
@@ -122,12 +126,15 @@ export class ListCatalogUseCase {
         thumbnail_url: course.thumbnail_url,
         level: course.level,
         software_tools: course.software_tools,
-        price: Number(course.price),
-        discount_price: course.discount_price
-          ? Number(course.discount_price)
+        price_pen: Number(course.price_pen),
+        discount_price_pen: course.discount_price_pen
+          ? Number(course.discount_price_pen)
           : undefined,
-        currency: course.currency,
-        access_duration: course.access_duration,
+        price_usd: Number(course.price_usd),
+        discount_price_usd: course.discount_price_usd
+          ? Number(course.discount_price_usd)
+          : undefined,
+        access_duration_months: course.access_duration_months,
         prerequisites: course.prerequisites,
         outcomes: course.outcomes,
         status: course.status,

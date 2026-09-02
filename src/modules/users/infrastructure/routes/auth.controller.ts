@@ -6,6 +6,7 @@ import {
   Res,
   Get,
   BadRequestException,
+  UseGuards,
 } from '@nestjs/common';
 import { RegisterUserUseCase } from '../../application/use-cases/register-user.use-case';
 import { RegisterUserDto } from '../../application/dtos/register-user.dto';
@@ -19,6 +20,12 @@ import { Public } from 'src/modules/auth/decorators/public.decorator';
 import { I_USER_REPOSITORY } from '../../domain/users.repository';
 import type { IUserRepository } from '../../domain/users.repository';
 import { Inject } from '@nestjs/common';
+import { Throttle } from '@nestjs/throttler';
+import { TurnstileGuard } from '../guards/turnstile.guard';
+
+// Límite más estricto que el global (100/60s) para las rutas de auth más
+// sensibles a fuerza bruta / spam — defensa en profundidad junto a Turnstile.
+const AUTH_THROTTLE = { default: { limit: 10, ttl: 60_000 } };
 
 @Controller('auth')
 @Public()
@@ -55,6 +62,8 @@ export class AuthController {
   // registro de usuario (no auto-loguea: el usuario debe verificar su correo primero)
   @Post('register')
   @Public()
+  @UseGuards(TurnstileGuard)
+  @Throttle(AUTH_THROTTLE)
   async register(@Body() dto: RegisterUserDto) {
     const result = await this.registerUseCase.execute(dto);
     return {
@@ -75,6 +84,8 @@ export class AuthController {
 
   // logeo de usuario + tokens
   @Post('login')
+  @UseGuards(TurnstileGuard)
+  @Throttle(AUTH_THROTTLE)
   async login(
     @Body() dto: LoginUserDto,
     @Res({ passthrough: true }) response: Response,
@@ -99,7 +110,12 @@ export class AuthController {
   // recuperacion de password, cuando presiona me olvide
   // Evitar el spam con Throtleguard
   @Post('forgot-password')
-  async forgotPassword(@Body('email') email: string) {
+  @UseGuards(TurnstileGuard)
+  @Throttle(AUTH_THROTTLE)
+  async forgotPassword(
+    @Body('email') email: string,
+    @Body('turnstileToken') turnstileToken: string,
+  ) {
     await this.requestPasswordReset.execute(email);
     return { mensaje: 'Se envio correo para recuperacion' };
   }
@@ -107,7 +123,12 @@ export class AuthController {
   // resetear password
   // refactorizar parametros
   @Post('reset-password')
-  async resetPassword(@Body() body: { password: string; token: string }) {
+  @UseGuards(TurnstileGuard)
+  @Throttle(AUTH_THROTTLE)
+  async resetPassword(
+    @Body()
+    body: { password: string; token: string; turnstileToken: string },
+  ) {
     await this.passwordResetUseCase.execute(body.password, body.token);
     return { mensaje: 'Contrase;a actualizada correctamente' };
   }

@@ -13,7 +13,6 @@ import { ModulesController } from './infrastructure/routes/modules.controller';
 import { SessionsController } from './infrastructure/routes/sessions.controller';
 import { MaterialsController } from './infrastructure/routes/materials.controller';
 import { CategoriesController } from './infrastructure/routes/categories.controller';
-import { PrismaService } from 'src/core/database/prisma.service';
 import { StorageModule } from '../storage/storage.module';
 import { CreateCourseUseCase } from './application/use-cases/create-course.use-case';
 import { GetCourseUseCase } from './application/use-cases/get-course.use-case';
@@ -63,7 +62,6 @@ import { EmitStudentCertificateUseCase } from './application/use-cases/emit-stud
     CertificationsController,
   ],
   providers: [
-    PrismaService,
     CreateCourseUseCase,
     GetCourseUseCase,
     GetAllCoursesUseCase,

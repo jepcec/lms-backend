@@ -18,6 +18,10 @@ export class GetCourseProgressUseCase {
       throw new ForbiddenException('No estás matriculado en este curso');
     }
 
+    if (enrollment.access_expires_at && enrollment.access_expires_at < new Date()) {
+      throw new ForbiddenException('Tu acceso a este curso ha vencido');
+    }
+
     return {
       enrollment: {
         id: enrollment.id,

@@ -48,7 +48,7 @@ export class GetAllCoursesUseCase {
       const priceFilter: Record<string, number> = {};
       if (params.min_price) priceFilter.gte = Number(params.min_price);
       if (params.max_price) priceFilter.lte = Number(params.max_price);
-      where.price = priceFilter;
+      where.price_pen = priceFilter;
     }
 
     // Filtro por duración (en horas → convertir a minutos)
@@ -90,10 +90,10 @@ export class GetAllCoursesUseCase {
         orderBy = { created_at: DESC };
         break;
       case 'price_asc':
-        orderBy = { price: ASC };
+        orderBy = { price_pen: ASC };
         break;
       case 'price_desc':
-        orderBy = { price: DESC };
+        orderBy = { price_pen: DESC };
         break;
     }
 
@@ -123,12 +123,15 @@ export class GetAllCoursesUseCase {
         thumbnail_url: course.thumbnail_url,
         level: course.level,
         software_tools: course.software_tools,
-        price: Number(course.price),
-        discount_price: course.discount_price
-          ? Number(course.discount_price)
+        price_pen: Number(course.price_pen),
+        discount_price_pen: course.discount_price_pen
+          ? Number(course.discount_price_pen)
           : undefined,
-        currency: course.currency,
-        access_duration: course.access_duration,
+        price_usd: Number(course.price_usd),
+        discount_price_usd: course.discount_price_usd
+          ? Number(course.discount_price_usd)
+          : undefined,
+        access_duration_months: course.access_duration_months,
         prerequisites: course.prerequisites,
         outcomes: course.outcomes,
         status: course.status,

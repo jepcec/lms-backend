@@ -37,11 +37,6 @@ enum CourseLevel {
   avanzado
 }
 
-enum CourseCurrency {
-  USD
-  PEN
-}
-
 enum CertificateType {
   Certificado    // Certificado (Nota >= 14)
   Constancia     // Constancia (Nota < 14)
@@ -50,11 +45,6 @@ enum CertificateType {
 enum CertificationMode {
   auto    // 100% progreso + reseña → certificado automático
   manual  // Admin carga notas por módulo y emite manualmente
-}
-
-enum CourseAccessDuration {
-  one_year  // Mapea "1_year" (nombre reservado)
-  lifetime
 }
 
 enum CourseStatus {
@@ -120,6 +110,7 @@ enum NotificationType {
 enum SliderType {
   courses
   banner
+  catalog
 }
 
 enum SliderPosition {
@@ -219,10 +210,11 @@ model Course {
   thumbnail_public_id    String?
   level                  CourseLevel
   software_tools         String[]
-  price                  Decimal              @db.Decimal(10, 2)
-  discount_price         Decimal?             @db.Decimal(10, 2)
-  currency               CourseCurrency
-  access_duration        CourseAccessDuration
+  price_pen              Decimal              @db.Decimal(10, 2)
+  discount_price_pen     Decimal?             @db.Decimal(10, 2)
+  price_usd              Decimal              @db.Decimal(10, 2)
+  discount_price_usd     Decimal?             @db.Decimal(10, 2)
+  access_duration_months Int
   prerequisites          String[]
   outcomes               String[]
   status                 CourseStatus         @default(draft)
@@ -390,6 +382,7 @@ model Enrollment {
   course_id              String                @db.Uuid
   order_id               String?               @db.Uuid
   enrolled_at            DateTime              @default(now())
+  access_expires_at      DateTime?
   enrollment_type        EnrollmentType
   offline_payment_method OfflinePaymentMethod?
   offline_amount         Decimal?              @db.Decimal(10, 2)

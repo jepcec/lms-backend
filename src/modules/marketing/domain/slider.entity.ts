@@ -1,4 +1,4 @@
-export type SliderType = 'courses' | 'banner';
+export type SliderType = 'courses' | 'banner' | 'catalog';
 export type SliderPosition = 'top' | 'middle' | 'bottom';
 export type SliderStatus = 'active' | 'inactive';
 

@@ -3,7 +3,7 @@ import { CreateSliderDto } from './create-slider.dto';
 export class UpdateSliderDto implements Partial<CreateSliderDto> {
   title?: string;
   subtitle?: string;
-  type?: 'courses' | 'banner';
+  type?: 'courses' | 'banner' | 'catalog';
   image_url?: string;
   destination_url?: string;
   contact_url?: string;

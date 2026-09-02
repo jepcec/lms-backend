@@ -48,6 +48,10 @@ export class UpdateSessionProgressUseCase {
       throw new ForbiddenException('No estás matriculado en este curso');
     }
 
+    if (enrollment.access_expires_at && enrollment.access_expires_at < new Date()) {
+      throw new ForbiddenException('Tu acceso a este curso ha vencido');
+    }
+
     const totalDurationSeconds = session.duration_minutes * 60;
     const completed =
       forceComplete || watchedSeconds >= totalDurationSeconds * 0.9;

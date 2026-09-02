@@ -29,7 +29,7 @@ export class CreateMatriculasUseCase {
         id: { in: dto.course_ids },
         deleted_at: null,
       },
-      select: { id: true },
+      select: { id: true, access_duration_months: true },
     });
 
     if (validCourses.length === 0) {
@@ -37,6 +37,9 @@ export class CreateMatriculasUseCase {
     }
 
     const validCourseIds = validCourses.map((c) => c.id);
+    const courseMonthsMap = new Map(
+      validCourses.map((c) => [c.id, c.access_duration_months]),
+    );
 
     const existingEnrollments = await this.prisma.enrollment.findMany({
       where: {
@@ -58,8 +61,12 @@ export class CreateMatriculasUseCase {
     }
 
     const created = await this.prisma.$transaction(
-      toCreate.map((courseId) =>
-        this.prisma.enrollment.create({
+      toCreate.map((courseId) => {
+        const months = dto.access_months ?? courseMonthsMap.get(courseId)!;
+        const accessExpiresAt = new Date();
+        accessExpiresAt.setMonth(accessExpiresAt.getMonth() + months);
+
+        return this.prisma.enrollment.create({
           data: {
             user_id: dto.user_id,
             course_id: courseId,
@@ -67,6 +74,7 @@ export class CreateMatriculasUseCase {
             offline_payment_method: dto.offline_payment_method,
             offline_amount: dto.offline_amount,
             internal_notes: dto.internal_notes,
+            access_expires_at: accessExpiresAt,
           },
           include: {
             student: {
@@ -97,8 +105,8 @@ export class CreateMatriculasUseCase {
               },
             },
           },
-        }),
-      ),
+        });
+      }),
     );
 
     // Actualizar enrolled_count en cada curso matriculado
@@ -160,6 +168,7 @@ export class CreateMatriculasUseCase {
         course_id: enrollment.course_id,
         course: enrollment.course,
         enrolled_at: enrollment.enrolled_at.toISOString(),
+        access_expires_at: enrollment.access_expires_at?.toISOString() ?? null,
         enrollment_type: enrollment.enrollment_type,
         offline_payment_method: enrollment.offline_payment_method,
         offline_amount: enrollment.offline_amount

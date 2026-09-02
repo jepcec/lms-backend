@@ -13,21 +13,11 @@ export class MergeCartUseCase {
     const { userId, sessionToken } = data;
 
     const [guestItems, userItems] = await Promise.all([
-      this.prisma.cartItem.findMany({
-        where: { session_token: sessionToken },
-        include: { course: { select: { currency: true } } },
-      }),
-      this.prisma.cartItem.findMany({
-        where: { user_id: userId },
-        include: { course: { select: { currency: true } } },
-      }),
+      this.prisma.cartItem.findMany({ where: { session_token: sessionToken } }),
+      this.prisma.cartItem.findMany({ where: { user_id: userId } }),
     ]);
 
     const userCourseIds = new Set(userItems.map((i) => i.course_id));
-    // El carrito no puede mezclar monedas: si el usuario ya tiene cursos en
-    // una moneda, cualquier ítem de invitado en otra moneda se queda tal
-    // cual (no se pierde, solo no se fusiona) en vez de romper esa regla.
-    const targetCurrency = userItems[0]?.course.currency ?? guestItems[0]?.course.currency;
 
     // 2. Usamos el tipo PrismaPromise para que $transaction lo acepte
     // Esto quita el error de "not assignable to parameter of type 'never'"
@@ -39,8 +29,6 @@ export class MergeCartUseCase {
         operations.push(
           this.prisma.cartItem.delete({ where: { id: guestItem.id } }),
         );
-      } else if (targetCurrency && guestItem.course.currency !== targetCurrency) {
-        continue;
       } else {
         // RF-021: Si es nuevo, lo vinculamos al usuario logueado
         operations.push(

@@ -29,9 +29,10 @@ export class GetCartUseCase {
             title: true,
             slug: true,
             thumbnail_url: true,
-            price: true,
-            discount_price: true,
-            currency: true,
+            price_pen: true,
+            discount_price_pen: true,
+            price_usd: true,
+            discount_price_usd: true,
           },
         },
       },
@@ -41,7 +42,8 @@ export class GetCartUseCase {
     let subtotal = new Decimal(0);
 
     const formattedItems = items.map((item) => {
-      const priceToCharge = item.course.discount_price || item.course.price;
+      const priceToCharge =
+        item.course.discount_price_pen || item.course.price_pen;
       subtotal = subtotal.add(priceToCharge);
 
       return {
@@ -50,10 +52,12 @@ export class GetCartUseCase {
         title: item.course.title,
         slug: item.course.slug,
         thumbnail: item.course.thumbnail_url,
-        price: item.course.price,
-        discountPrice: item.course.discount_price,
+        price: item.course.price_pen,
+        discountPrice: item.course.discount_price_pen,
         finalPrice: priceToCharge,
-        currency: item.course.currency,
+        currency: 'PEN' as const,
+        priceUsd: item.course.price_usd,
+        discountPriceUsd: item.course.discount_price_usd,
       };
     });
 
@@ -61,7 +65,7 @@ export class GetCartUseCase {
       items: formattedItems,
       totalCount: formattedItems.length,
       subtotal: subtotal.toNumber(), // Convertimos al final para el JSON
-      currency: formattedItems[0]?.currency || 'USD',
+      currency: 'PEN' as const,
     };
   }
 }

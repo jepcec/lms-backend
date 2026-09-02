@@ -6,8 +6,6 @@ import { CourseEntity } from '../../domain/course.entity';
 import type {
   CourseStatus,
   CourseLevel,
-  CourseCurrency,
-  CourseAccessDuration,
   CertificationMode,
 } from '../../domain/course.entity';
 
@@ -40,14 +38,18 @@ export class UpdateCourseUseCase {
       thumbnail_public_id: course.thumbnail_public_id,
       level: (dto.level as CourseLevel) ?? course.level,
       software_tools: dto.software_tools ?? course.software_tools,
-      price: dto.price ?? course.price,
-      discount_price:
-        dto.discount_price !== undefined
-          ? dto.discount_price
-          : course.discount_price,
-      currency: (dto.currency as CourseCurrency) ?? course.currency,
-      access_duration:
-        (dto.access_duration as CourseAccessDuration) ?? course.access_duration,
+      price_pen: dto.price_pen ?? course.price_pen,
+      discount_price_pen:
+        dto.discount_price_pen !== undefined
+          ? dto.discount_price_pen
+          : course.discount_price_pen,
+      price_usd: dto.price_usd ?? course.price_usd,
+      discount_price_usd:
+        dto.discount_price_usd !== undefined
+          ? dto.discount_price_usd
+          : course.discount_price_usd,
+      access_duration_months:
+        dto.access_duration_months ?? course.access_duration_months,
       prerequisites: dto.prerequisites ?? course.prerequisites,
       outcomes: dto.outcomes ?? course.outcomes,
       status: (dto.status as CourseStatus) ?? course.status,
