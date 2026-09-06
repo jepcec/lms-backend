@@ -15,6 +15,8 @@ export class SubmitReviewDto {
   comment: string;
 }
 
+const PASSING_GRADE = 14;
+
 @Injectable()
 export class SubmitReviewUseCase {
   private readonly logger = new Logger(SubmitReviewUseCase.name);
@@ -33,6 +35,7 @@ export class SubmitReviewUseCase {
           select: {
             certification_mode: true,
             certificate_template_id: true,
+            constancia_template_id: true,
           },
         },
       },
@@ -83,30 +86,45 @@ export class SubmitReviewUseCase {
       },
     });
 
-    // Generar certificado automático (solo en modo auto y con plantilla configurada)
+    // Generar certificado automático (solo en modo auto y con plantilla configurada).
+    // La nota decide el tipo: sin nota importada para el curso se asume
+    // aprobado (no todos los cursos "auto" usan la importación de notas por
+    // Excel), y con nota registrada se respeta el mínimo aprobatorio — igual
+    // que ya se hace para los certificados de módulo. Una Constancia nunca
+    // lleva verification_code (sin QR ni página pública de verificación).
     let certificate_available = false;
     const { course } = enrollment;
 
-    if (
-      course.certification_mode === 'auto' &&
-      course.certificate_template_id
-    ) {
-      try {
-        await this.prisma.certificate.create({
-          data: {
-            enrollment_id: dto.enrollment_id,
-            template_id: course.certificate_template_id,
-            type: 'Certificado',
-            verification_code: randomUUID(),
-            review_id: review.id,
-          },
-        });
-        certificate_available = true;
-      } catch (err) {
-        // Si el certificado ya existe, no es error fatal
-        this.logger.warn(
-          `No se pudo crear certificado para enrollment ${dto.enrollment_id}: ${(err as Error)?.message}`,
-        );
+    if (course.certification_mode === 'auto') {
+      const grade = enrollment.average_grade
+        ? Number(enrollment.average_grade)
+        : null;
+      const passed = grade === null || grade >= PASSING_GRADE;
+      const type: 'Certificado' | 'Constancia' = passed
+        ? 'Certificado'
+        : 'Constancia';
+      const templateId = passed
+        ? course.certificate_template_id
+        : course.constancia_template_id;
+
+      if (templateId) {
+        try {
+          await this.prisma.certificate.create({
+            data: {
+              enrollment_id: dto.enrollment_id,
+              template_id: templateId,
+              type,
+              verification_code: passed ? randomUUID() : null,
+              review_id: review.id,
+            },
+          });
+          certificate_available = true;
+        } catch (err) {
+          // Si el certificado ya existe, no es error fatal
+          this.logger.warn(
+            `No se pudo crear certificado para enrollment ${dto.enrollment_id}: ${(err as Error)?.message}`,
+          );
+        }
       }
     }
 

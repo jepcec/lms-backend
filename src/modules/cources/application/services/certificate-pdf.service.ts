@@ -61,7 +61,9 @@ export class CertificatePdfService {
       },
     });
 
-    if (!cert) throw new NotFoundException('Certificado no encontrado');
+    if (!cert || cert.revoked_at) {
+      throw new NotFoundException('Certificado no encontrado');
+    }
 
     if (userId && cert.enrollment.user_id !== userId) {
       throw new ForbiddenException(
@@ -100,7 +102,9 @@ export class CertificatePdfService {
       },
     });
 
-    if (!cert) throw new NotFoundException('Certificado de módulo no encontrado');
+    if (!cert || cert.revoked_at) {
+      throw new NotFoundException('Certificado de módulo no encontrado');
+    }
 
     if (userId && cert.enrollment.user_id !== userId) {
       throw new ForbiddenException(

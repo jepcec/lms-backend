@@ -6,8 +6,8 @@ export class VerifyCertificateUseCase {
   constructor(private readonly prisma: PrismaService) {}
 
   async execute(code: string) {
-    const cert = await this.prisma.certificate.findUnique({
-      where: { verification_code: code },
+    const cert = await this.prisma.certificate.findFirst({
+      where: { verification_code: code, revoked_at: null },
       include: {
         template: true,
         enrollment: {
@@ -51,8 +51,8 @@ export class VerifyCertificateUseCase {
       };
     }
 
-    const moduleCert = await this.prisma.moduleCertificate.findUnique({
-      where: { verification_code: code },
+    const moduleCert = await this.prisma.moduleCertificate.findFirst({
+      where: { verification_code: code, revoked_at: null },
       include: {
         template: true,
         module: { select: { title: true } },

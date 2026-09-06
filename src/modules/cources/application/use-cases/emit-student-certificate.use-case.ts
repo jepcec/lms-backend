@@ -33,12 +33,16 @@ export class EmitStudentCertificateUseCase {
     let result: { id: string; type: string; action: string };
 
     if (enrollment.certificate) {
-      // Actualizar tipo/plantilla (admin puede corregir)
+      // Actualizar tipo/plantilla (admin puede corregir), y reactivar si venía
+      // revocado. Reutiliza siempre el verification_code existente en vez de
+      // generar uno nuevo: si el estudiante ya descargó un PDF con el QR
+      // anterior, ese QR debe seguir siendo válido tras la reasignación.
       const updated = await this.prisma.certificate.update({
         where: { enrollment_id: dto.enrollment_id },
         data: {
           type: dto.type,
           template_id: dto.template_id,
+          revoked_at: null,
           verification_code:
             dto.type === 'Certificado'
               ? (enrollment.certificate.verification_code ?? randomUUID())
@@ -61,9 +65,11 @@ export class EmitStudentCertificateUseCase {
     if (dto.type === 'Certificado') {
       await this.issueEligibleModuleCertificates(courseId, dto.enrollment_id);
     } else {
-      // La Constancia anula cualquier certificado de módulo ya emitido.
-      await this.prisma.moduleCertificate.deleteMany({
-        where: { enrollment_id: dto.enrollment_id },
+      // La Constancia anula (revoca) cualquier certificado de módulo ya
+      // emitido, sin perder su verification_code por si se vuelve a habilitar.
+      await this.prisma.moduleCertificate.updateMany({
+        where: { enrollment_id: dto.enrollment_id, revoked_at: null },
+        data: { revoked_at: new Date() },
       });
     }
 
@@ -77,19 +83,24 @@ export class EmitStudentCertificateUseCase {
     });
 
     if (!enrollment) throw new NotFoundException('Matrícula no encontrada');
-    if (!enrollment.certificate) {
+    if (!enrollment.certificate || enrollment.certificate.revoked_at) {
       throw new BadRequestException(
         'Este estudiante no tiene certificado asignado',
       );
     }
 
-    await this.prisma.certificate.delete({
+    // Revocación lógica, no borrado: conserva el verification_code para que,
+    // si más adelante se reasigna la misma certificación, el QR de cualquier
+    // PDF ya descargado por el estudiante siga siendo válido.
+    await this.prisma.certificate.update({
       where: { enrollment_id: enrollmentId },
+      data: { revoked_at: new Date() },
     });
 
     // Los certificados de módulo son un derivado del certificado de curso.
-    await this.prisma.moduleCertificate.deleteMany({
-      where: { enrollment_id: enrollmentId },
+    await this.prisma.moduleCertificate.updateMany({
+      where: { enrollment_id: enrollmentId, revoked_at: null },
+      data: { revoked_at: new Date() },
     });
 
     return { success: true };
@@ -132,6 +143,10 @@ export class EmitStudentCertificateUseCase {
         },
         update: {
           template_id: module.certificate_template_id as string,
+          // Reactiva el certificado de módulo si había quedado revocado
+          // (p.ej. porque el curso pasó por Constancia y volvió a Certificado),
+          // reutilizando su verification_code existente.
+          revoked_at: null,
         },
         create: {
           enrollment_id: enrollmentId,

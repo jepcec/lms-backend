@@ -6,8 +6,8 @@ export class GetCertificateUseCase {
   constructor(private readonly prisma: PrismaService) {}
 
   async execute(id: string) {
-    const certificate = await this.prisma.certificate.findUnique({
-      where: { id },
+    const certificate = await this.prisma.certificate.findFirst({
+      where: { id, revoked_at: null },
       include: {
         enrollment: {
           include: {

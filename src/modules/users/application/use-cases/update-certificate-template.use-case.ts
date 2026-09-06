@@ -1,4 +1,9 @@
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from '../../../../core/database/prisma.service';
 import {
   I_FILE_STORAGE_SERVICE,
@@ -43,6 +48,14 @@ export class UpdateCertificateTemplateUseCase {
       owner = { type: 'course_constancia', id: template.constancia_courses[0].id };
     } else if (template.modules[0]) {
       owner = { type: 'module', id: template.modules[0].id };
+    }
+
+    // Una Constancia es de un solo lado: no lleva contraportada ni QR de
+    // verificación (regla de negocio — ver CertificatePdfService).
+    if (owner?.type === 'course_constancia' && dto.back_image) {
+      throw new BadRequestException(
+        'Las plantillas de Constancia no llevan contraportada',
+      );
     }
 
     const updateData: Record<string, unknown> = {};

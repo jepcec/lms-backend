@@ -29,8 +29,13 @@ export class GetCourseCertificationsUseCase {
           select: { id: true, first_name: true, last_name: true, email: true },
         },
         module_grades: true,
-        certificate: { select: { id: true, type: true, issued_at: true } },
-        module_certificates: { select: { module_id: true } },
+        certificate: {
+          select: { id: true, type: true, issued_at: true, revoked_at: true },
+        },
+        module_certificates: {
+          where: { revoked_at: null },
+          select: { module_id: true },
+        },
       },
       orderBy: { enrolled_at: 'asc' },
     });
@@ -46,6 +51,12 @@ export class GetCourseCertificationsUseCase {
         moduleCertificates[mc.module_id] = true;
       }
 
+      // Un certificado revocado se trata como si no existiera: el admin debe
+      // poder volver a asignarlo igual que si nunca se hubiera emitido.
+      const activeCertificate = enrollment.certificate?.revoked_at
+        ? null
+        : enrollment.certificate;
+
       return {
         enrollment_id: enrollment.id,
         user_id: enrollment.student.id,
@@ -57,8 +68,8 @@ export class GetCourseCertificationsUseCase {
           : null,
         module_grades: gradesMap,
         module_certificates: moduleCertificates,
-        certificate_type: enrollment.certificate?.type ?? null,
-        certificate_issued_at: enrollment.certificate?.issued_at ?? null,
+        certificate_type: activeCertificate?.type ?? null,
+        certificate_issued_at: activeCertificate?.issued_at ?? null,
         progress_percent: Number(enrollment.progress_percent),
       };
     });

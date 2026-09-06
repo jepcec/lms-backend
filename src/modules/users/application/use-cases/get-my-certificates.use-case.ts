@@ -8,7 +8,7 @@ export class GetMyCertificatesUseCase {
   async execute(userId: string) {
     const [certificates, moduleCertificates] = await Promise.all([
       this.prisma.certificate.findMany({
-        where: { enrollment: { user_id: userId } },
+        where: { enrollment: { user_id: userId }, revoked_at: null },
         include: {
           enrollment: {
             include: { course: { select: { title: true } } },
@@ -17,7 +17,7 @@ export class GetMyCertificatesUseCase {
         orderBy: { issued_at: 'desc' },
       }),
       this.prisma.moduleCertificate.findMany({
-        where: { enrollment: { user_id: userId } },
+        where: { enrollment: { user_id: userId }, revoked_at: null },
         include: {
           enrollment: {
             include: { course: { select: { title: true } } },

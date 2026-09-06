@@ -493,6 +493,12 @@ model Certificate {
   verification_code String?             @unique
   pdf_url           String?
   issued_at         DateTime            @default(now())
+  // Revocación lógica: al "quitar" una certificación no se borra la fila (eso
+  // perdería el verification_code y rompería el QR de un PDF ya entregado).
+  // Se marca revoked_at y se trata como inexistente en toda lectura pública o
+  // del estudiante; al reasignar la misma certificación se limpia este campo
+  // y se reutiliza el mismo verification_code.
+  revoked_at        DateTime?
 
   review_id         String?             @unique @db.Uuid
 
@@ -511,6 +517,8 @@ model ModuleCertificate {
   verification_code String              @unique
   pdf_url           String?
   issued_at         DateTime            @default(now())
+  // Mismo mecanismo de revocación lógica que Certificate.revoked_at.
+  revoked_at        DateTime?
 
   enrollment        Enrollment          @relation(fields: [enrollment_id], references: [id], onDelete: Cascade)
   module            Module              @relation(fields: [module_id], references: [id], onDelete: Cascade)

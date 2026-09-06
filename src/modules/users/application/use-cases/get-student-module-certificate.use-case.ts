@@ -6,8 +6,8 @@ export class GetStudentModuleCertificateUseCase {
   constructor(private readonly prisma: PrismaService) {}
 
   async execute(moduleCertificateId: string, userId: string) {
-    const cert = await this.prisma.moduleCertificate.findUnique({
-      where: { id: moduleCertificateId },
+    const cert = await this.prisma.moduleCertificate.findFirst({
+      where: { id: moduleCertificateId, revoked_at: null },
       include: {
         module: { select: { title: true } },
         enrollment: {
