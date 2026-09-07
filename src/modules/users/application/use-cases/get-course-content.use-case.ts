@@ -18,6 +18,10 @@ export class GetCourseContentUseCase {
       throw new ForbiddenException('No estás matriculado en este curso');
     }
 
+    if (enrollment.suspended_at) {
+      throw new ForbiddenException('Tu acceso a este curso ha sido suspendido');
+    }
+
     if (enrollment.access_expires_at && enrollment.access_expires_at < new Date()) {
       throw new ForbiddenException('Tu acceso a este curso ha vencido');
     }

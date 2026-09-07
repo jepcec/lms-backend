@@ -32,12 +32,17 @@ export class GetMatriculadosCursoUseCase {
       };
     }
 
-    if (params.status === 'activo') {
+    if (params.status === 'suspendido') {
+      where.suspended_at = { not: null };
+    } else if (params.status === 'activo') {
       where.completed_at = null;
+      where.suspended_at = null;
     } else if (params.status === 'completado') {
       where.completed_at = { not: null };
+      where.suspended_at = null;
     } else if (params.status === 'inactivo') {
       where.progress_percent = 0;
+      where.suspended_at = null;
     }
 
     if (params.enrollment_type) {
@@ -74,11 +79,14 @@ export class GetMatriculadosCursoUseCase {
         enrolled_at: enrollment.enrolled_at.toISOString(),
         progress_percent: enrollment.progress_percent.toNumber(),
         last_accessed_at: enrollment.last_accessed_at?.toISOString(),
-        status: enrollment.completed_at
-          ? 'completado'
-          : enrollment.progress_percent.toNumber() === 0
-            ? 'inactivo'
-            : 'activo',
+        suspended_at: enrollment.suspended_at?.toISOString() ?? null,
+        status: enrollment.suspended_at
+          ? 'suspendido'
+          : enrollment.completed_at
+            ? 'completado'
+            : enrollment.progress_percent.toNumber() === 0
+              ? 'inactivo'
+              : 'activo',
         enrollment_type: enrollment.enrollment_type,
         offline_payment_method: enrollment.offline_payment_method ?? undefined,
       })),

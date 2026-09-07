@@ -393,6 +393,7 @@ model Enrollment {
   last_accessed_at       DateTime?
   final_score            Decimal?              @db.Decimal(4, 2)
   average_grade          Decimal?              @db.Decimal(4, 2)
+  suspended_at           DateTime?
 
   student                User                  @relation("StudentEnrollments", fields: [user_id], references: [id])
   course                 Course                @relation(fields: [course_id], references: [id])

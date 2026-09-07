@@ -2,6 +2,7 @@ import {
   Controller,
   Get,
   Post,
+  Patch,
   Delete,
   Body,
   Query,
@@ -14,6 +15,8 @@ import { CreateMatriculasUseCase } from '../../application/use-cases/create-matr
 import { MatriculasParams } from '../../application/dtos/matriculas-params.dto';
 import { CreateMatriculasDto } from '../../application/dtos/create-matriculas.dto';
 import { DeleteEnrollmentUseCase } from '../../application/use-cases/delete-enrollment.use-case';
+import { SuspendEnrollmentUseCase } from '../../application/use-cases/suspend-enrollment.use-case';
+import { ReactivateEnrollmentUseCase } from '../../application/use-cases/reactivate-enrollment.use-case';
 
 @Controller('enrollments')
 @Roles('admin', 'soporte', 'coordinador')
@@ -22,6 +25,8 @@ export class EnrollmentsController {
     private readonly listMatriculas: ListMatriculasUseCase,
     private readonly createMatriculas: CreateMatriculasUseCase,
     private readonly deleteEnrollment: DeleteEnrollmentUseCase,
+    private readonly suspendEnrollment: SuspendEnrollmentUseCase,
+    private readonly reactivateEnrollment: ReactivateEnrollmentUseCase,
   ) {}
 
   @Get()
@@ -40,5 +45,18 @@ export class EnrollmentsController {
   @Delete(':id')
   async delete(@Param('id') id: string, @CurrentUser('userId') userId: string) {
     return this.deleteEnrollment.execute(id, userId);
+  }
+
+  @Patch(':id/suspender')
+  async suspend(@Param('id') id: string, @CurrentUser('userId') userId: string) {
+    return this.suspendEnrollment.execute(id, userId);
+  }
+
+  @Patch(':id/reactivar')
+  async reactivate(
+    @Param('id') id: string,
+    @CurrentUser('userId') userId: string,
+  ) {
+    return this.reactivateEnrollment.execute(id, userId);
   }
 }
