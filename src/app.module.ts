@@ -40,6 +40,19 @@ import { PaymentsV2Module } from './modules/payments-v2/payments-v2.module';
         autoLogging: {
           ignore: (req) => req.url === '/api/health',
         },
+        // Log de request/response reducido a lo esencial: el objeto req/res
+        // completo de pino-http (headers, query, params, ips...) hacía cada
+        // línea enorme e ilegible, sobre todo en dev. Con esto cada request
+        // deja una sola línea corta tipo "GET /api/courses 200 - 12ms".
+        customProps: () => ({ context: 'HTTP' }),
+        serializers: {
+          req: () => undefined,
+          res: () => undefined,
+        },
+        customSuccessMessage: (req, res, responseTime) =>
+          `${req.method} ${req.url} ${res.statusCode} - ${responseTime}ms`,
+        customErrorMessage: (req, res, err) =>
+          `${req.method} ${req.url} ${res.statusCode} - ${err.message}`,
         // Sin `transport`: siempre JSON plano a stdout. "pino-pretty" es
         // devDependency (no viaja a la imagen de producción) — usarlo como
         // transport in-process rompía el arranque si NODE_ENV no llegaba en
