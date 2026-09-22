@@ -34,6 +34,8 @@ import { CertificatesController } from './infrastructure/routes/certificates.con
 import { PublicCertificatesController } from './infrastructure/routes/public-certificates.controller';
 import { ReviewsController } from './infrastructure/routes/reviews.controller';
 import { SubmitReviewUseCase } from './application/use-cases/submit-review.use-case';
+import { ListReviewsUseCase } from './application/use-cases/list-reviews.use-case';
+import { UpdateReviewStatusUseCase } from './application/use-cases/update-review-status.use-case';
 
 // Use Cases
 import { LoginUserUseCase } from './application/use-cases/login-user.use-case';
@@ -155,6 +157,8 @@ import { ExportDashboardExcelUseCase } from './application/use-cases/export-dash
     VerifyCertificateUseCase,
     CertificatePdfService,
     SubmitReviewUseCase,
+    ListReviewsUseCase,
+    UpdateReviewStatusUseCase,
     GetStudentDetailUseCase,
     DeleteEnrollmentUseCase,
     SuspendEnrollmentUseCase,

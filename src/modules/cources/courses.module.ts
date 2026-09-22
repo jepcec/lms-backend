@@ -38,12 +38,14 @@ import { UploadThumbnailUseCase } from './application/use-cases/upload-thumbnail
 import { AddInstructorUseCase } from './application/use-cases/add-instructor.use-case';
 import { RemoveInstructorUseCase } from './application/use-cases/remove-instructor.use-case';
 import { GetCourseSoftwaresUseCase } from './application/use-cases/get-course-softwares.use-case';
+import { GetCourseReviewsUseCase } from './application/use-cases/get-course-reviews.use-case';
 import { ListCategoriasUseCase } from './application/use-cases/list-categorias.use-case';
 import { GetCategoriaUseCase } from './application/use-cases/get-categoria.use-case';
 import { CreateCategoriaUseCase } from './application/use-cases/create-categoria.use-case';
 import { UpdateCategoriaUseCase } from './application/use-cases/update-categoria.use-case';
 import { DeleteCategoriaUseCase } from './application/use-cases/delete-categoria.use-case';
 import { ReorderCategoriasUseCase } from './application/use-cases/reorder-categorias.use-case';
+import { GetTopCategoriasUseCase } from './application/use-cases/get-top-categorias.use-case';
 import { CertificationsController } from './infrastructure/routes/certifications.controller';
 import { GetCourseCertificationsUseCase } from './application/use-cases/get-course-certifications.use-case';
 import { ExportCertificationExcelUseCase } from './application/use-cases/export-certification-excel.use-case';
@@ -71,12 +73,14 @@ import { EmitStudentCertificateUseCase } from './application/use-cases/emit-stud
     AddInstructorUseCase,
     RemoveInstructorUseCase,
     GetCourseSoftwaresUseCase,
+    GetCourseReviewsUseCase,
     ListCategoriasUseCase,
     GetCategoriaUseCase,
     CreateCategoriaUseCase,
     UpdateCategoriaUseCase,
     DeleteCategoriaUseCase,
     ReorderCategoriasUseCase,
+    GetTopCategoriasUseCase,
     UpdateCourseUseCase,
     DeleteCourseUseCase,
     CreateModuleUseCase,

@@ -30,6 +30,7 @@ import { AddInstructorUseCase } from '../../application/use-cases/add-instructor
 import { RemoveInstructorUseCase } from '../../application/use-cases/remove-instructor.use-case';
 import { CreateInstructorDto } from '../../application/dtos/create-instructor.dto';
 import { GetCourseSoftwaresUseCase } from '../../application/use-cases/get-course-softwares.use-case';
+import { GetCourseReviewsUseCase } from '../../application/use-cases/get-course-reviews.use-case';
 import type { Express } from 'express';
 
 @Controller('courses')
@@ -47,6 +48,7 @@ export class CoursesController {
     private readonly addInstructor: AddInstructorUseCase,
     private readonly removeInstructor: RemoveInstructorUseCase,
     private readonly getCourseSoftwares: GetCourseSoftwaresUseCase,
+    private readonly getCourseReviews: GetCourseReviewsUseCase,
   ) {}
 
   @Get()
@@ -133,5 +135,11 @@ export class CoursesController {
     @Param('instructorId') instructorId: string,
   ) {
     return this.removeInstructor.execute(id, instructorId);
+  }
+
+  @Get(':id/reviews')
+  @Public()
+  async getReviewsHandler(@Param('id') id: string) {
+    return this.getCourseReviews.execute(id);
   }
 }
