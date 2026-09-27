@@ -35,7 +35,7 @@ const imageFileFilter = (
 };
 
 @Controller('certificate-templates')
-@Roles('admin')
+@Roles('admin', 'soporte')
 export class CertificateTemplatesController {
   constructor(
     private readonly listUseCase: ListCertificateTemplatesUseCase,

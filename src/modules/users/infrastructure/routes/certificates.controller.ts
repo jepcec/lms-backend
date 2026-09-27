@@ -38,8 +38,11 @@ export class CertificatesController {
   }
 
   @Get(':id')
-  getCertificate(@Param('id') id: string) {
-    return this.getCertificateUseCase.execute(id);
+  getCertificate(
+    @Param('id') id: string,
+    @CurrentUser('userId') userId: string,
+  ) {
+    return this.getCertificateUseCase.execute(id, userId);
   }
 
   @Get(':id/download')
