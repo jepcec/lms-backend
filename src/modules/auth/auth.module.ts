@@ -4,15 +4,19 @@ import { JwtModule } from '@nestjs/jwt';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { AuthGuard } from '../users/infrastructure/services/auth.guard';
 import { RolesGuard } from './guards/roles.guard';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { requireSessionSecrets } from './session-token';
 
 @Global()
 @Module({
   imports: [
     ConfigModule.forRoot(),
-    JwtModule.register({
-      secret: process.env.JWT_SECRET,
-      signOptions: { expiresIn: '1d' },
+    JwtModule.registerAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => ({
+        secret: requireSessionSecrets(config).access,
+      }),
     }),
     // Rate limiting global por IP. Rutas individuales pueden ajustar esto con
     // @Throttle(...) (límite más estricto) o @SkipThrottle() (sin límite,

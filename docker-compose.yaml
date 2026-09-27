@@ -15,7 +15,7 @@
 # el compose del front falla o queda sin red.
 #
 # Variables: este compose requiere un archivo `.env` en este mismo
-# directorio con al menos: JWT_SECRET, POSTGRES_USER, POSTGRES_PASSWORD,
+# directorio con al menos: JWT_SECRET, JWT_REFRESH_SECRET, POSTGRES_USER, POSTGRES_PASSWORD,
 # POSTGRES_DB. Se declara explicito con `env_file` para fallar
 # ruidosamente si el archivo falta.
 # =============================================================
@@ -64,6 +64,7 @@ services:
       DATABASE_URL: postgresql://${POSTGRES_USER:-lms_user}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-lms_db}
       # Auth / CORS
       JWT_SECRET: ${JWT_SECRET}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
       URL_FRONTEND: ${URL_FRONTEND}
       FRONTEND_URL: ${FRONTEND_URL}
       # Cookies seguras (true solo cuando hay HTTPS)

@@ -50,9 +50,9 @@ import { PaymentsV2Module } from './modules/payments-v2/payments-v2.module';
           res: () => undefined,
         },
         customSuccessMessage: (req, res, responseTime) =>
-          `${req.method} ${req.url} ${res.statusCode} - ${responseTime}ms`,
+          `${req.method} ${req.url?.split('?')[0]} ${res.statusCode} - ${responseTime}ms`,
         customErrorMessage: (req, res, err) =>
-          `${req.method} ${req.url} ${res.statusCode} - ${err.message}`,
+          `${req.method} ${req.url?.split('?')[0]} ${res.statusCode} - ${err.message}`,
         // Sin `transport`: siempre JSON plano a stdout. "pino-pretty" es
         // devDependency (no viaja a la imagen de producción) — usarlo como
         // transport in-process rompía el arranque si NODE_ENV no llegaba en

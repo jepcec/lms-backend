@@ -22,6 +22,8 @@ export class PrismaUserRepository implements IUserRepository {
       email_verified: dbUser.email_verified,
       status: dbUser.status,
       deleted_at: dbUser.deleted_at,
+      session_version: (dbUser as typeof dbUser & { session_version: number })
+        .session_version,
     });
   }
 
@@ -40,10 +42,13 @@ export class PrismaUserRepository implements IUserRepository {
       email_verified: dbUser.email_verified,
       status: dbUser.status,
       deleted_at: dbUser.deleted_at,
+      session_version: (dbUser as typeof dbUser & { session_version: number })
+        .session_version,
     });
   }
 
   async findByVerificationToken(token: string): Promise<UserEntity | null> {
+    if (typeof token !== 'string' || token.length === 0) return null;
     const dbUser = await this.prisma.user.findFirst({
       where: { email_verification_token: token },
     });
@@ -66,6 +71,7 @@ export class PrismaUserRepository implements IUserRepository {
   }
 
   async findByPasswordResetToken(token: string): Promise<UserEntity | null> {
+    if (typeof token !== 'string' || token.length === 0) return null;
     const dbUser = await this.prisma.user.findFirst({
       where: { password_reset_token: token },
     });
@@ -84,6 +90,77 @@ export class PrismaUserRepository implements IUserRepository {
       email_verified: dbUser.email_verified,
       password_reset_token: dbUser.password_reset_token,
       password_reset_expires_at: dbUser.password_reset_expires_at,
+    });
+  }
+
+  async setPasswordResetToken(
+    userId: string,
+    token: string,
+    expiresAt: Date,
+  ): Promise<void> {
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: {
+        password_reset_token: token,
+        password_reset_expires_at: expiresAt,
+      },
+    });
+  }
+
+  async consumePasswordResetToken(
+    userId: string,
+    token: string,
+    passwordHash: string,
+  ): Promise<boolean> {
+    const result = await this.prisma.user.updateMany({
+      where: {
+        id: userId,
+        password_reset_token: token,
+        password_reset_expires_at: { gt: new Date() },
+      },
+      data: {
+        password_hash: passwordHash,
+        password_reset_token: null,
+        password_reset_expires_at: null,
+        session_version: { increment: 1 },
+      } as any,
+    });
+    return result.count === 1;
+  }
+
+  async verifyEmailWithToken(userId: string, token: string): Promise<boolean> {
+    const result = await this.prisma.user.updateMany({
+      where: { id: userId, email_verification_token: token, email_verified: false },
+      data: {
+        email_verified: true,
+        email_verified_at: new Date(),
+        email_verification_token: null,
+      },
+    });
+    return result.count === 1;
+  }
+
+  async changePasswordIfCurrent(
+    userId: string,
+    currentHash: string,
+    newHash: string,
+  ): Promise<boolean> {
+    const result = await this.prisma.user.updateMany({
+      where: { id: userId, password_hash: currentHash },
+      data: {
+        password_hash: newHash,
+        password_reset_token: null,
+        password_reset_expires_at: null,
+        session_version: { increment: 1 },
+      } as any,
+    });
+    return result.count === 1;
+  }
+
+  async revokeSessions(userId: string, sessionVersion: number): Promise<void> {
+    await this.prisma.user.updateMany({
+      where: { id: userId, session_version: sessionVersion } as any,
+      data: { session_version: { increment: 1 } } as any,
     });
   }
   async findAll(params: {
@@ -142,27 +219,10 @@ export class PrismaUserRepository implements IUserRepository {
     return { data, total };
   }
 
-  // diferentes saves para update o crear
+  // Solo se usa para el registro; no debe sobrescribir una cuenta existente.
   async save(user: UserEntity): Promise<void> {
-    await this.prisma.user.upsert({
-      where: { id: user.id },
-      update: {
-        first_name: user.first_name,
-        last_name: user.lastName,
-        email: user.email,
-        phone: user.phone,
-        role: user.role,
-        password_hash: user.passwordHash,
-        country: user.country,
-        profession: user.profession,
-
-        email_verified: user.emailVerified,
-        email_verified_at: user.emailVerifiedAt,
-        email_verification_token: user.emailVerificationToken,
-        password_reset_expires_at: user.passwordResetExpiresAt,
-        password_reset_token: user.passwordResetToken,
-      },
-      create: {
+    await this.prisma.user.create({
+      data: {
         id: user.id,
         first_name: user.first_name,
         last_name: user.lastName,

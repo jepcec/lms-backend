@@ -45,7 +45,15 @@ export class TurnstileService {
         );
       }
 
-      return data.success === true;
+      const frontendUrl = this.configService.get<string>('URL_FRONTEND');
+      let expectedHostname: string;
+      try {
+        expectedHostname = new URL(frontendUrl ?? '').hostname;
+      } catch {
+        this.logger.error('URL_FRONTEND no es una URL válida');
+        return false;
+      }
+      return data.success === true && data.hostname === expectedHostname;
     } catch (error) {
       this.logger.error('❌ Error al verificar token de Turnstile:', error);
       return false;

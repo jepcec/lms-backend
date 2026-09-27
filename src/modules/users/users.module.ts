@@ -2,6 +2,8 @@
 import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { requireSessionSecrets } from '../auth/session-token';
+import { SessionLogoutService } from './infrastructure/services/session-logout.service';
 import { StorageModule } from '../storage/storage.module';
 
 // Repositories & Services Interfaces
@@ -90,8 +92,7 @@ import { ExportDashboardExcelUseCase } from './application/use-cases/export-dash
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (config: ConfigService) => ({
-        secret: config.get<string>('JWT_SECRET'),
-        signOptions: { expiresIn: '1d' },
+        secret: requireSessionSecrets(config).access,
       }),
     }),
     ConfigModule,
@@ -161,6 +162,7 @@ import { ExportDashboardExcelUseCase } from './application/use-cases/export-dash
     ExportMatriculadosCursoExcelUseCase,
     ExportDashboardExcelUseCase,
     CryptoTokenService,
+    SessionLogoutService,
     TurnstileService,
     TurnstileGuard,
     // Interface Mappings

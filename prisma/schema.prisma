@@ -155,6 +155,7 @@ model User {
   email_verified_at          DateTime?
   password_reset_token       String?
   password_reset_expires_at  DateTime?
+  session_version            Int       @default(0)
   failed_login_attempts      Int       @default(0)
   locked_until               DateTime?
   status                     UserStatus @default(active)

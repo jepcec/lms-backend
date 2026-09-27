@@ -24,9 +24,7 @@ export class RequestPasswordResetUseCase {
     const expiredAt = new Date();
     expiredAt.setHours(expiredAt.getHours() + 1);
 
-    user.passwordResetToken = token;
-    user.passwordResetExpiresAt = expiredAt;
-    await this.userRepository.save(user);
+    await this.userRepository.setPasswordResetToken(user.id, token, expiredAt);
     await this.emailService.sendPasswordRecovery(
       user.email,
       token,

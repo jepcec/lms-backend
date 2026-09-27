@@ -25,6 +25,7 @@ export interface UserProps {
   email_verified: boolean | false;
   email_verified_at?: Date | null;
   password_reset_expires_at?: Date | null;
+  session_version?: number;
 
   country?: string | null;
   profession?: string | null;
@@ -87,6 +88,9 @@ export class UserEntity {
 
   get passwordResetExpiresAt() {
     return this.props.password_reset_expires_at ?? null;
+  }
+  get sessionVersion() {
+    return this.props.session_version ?? 0;
   }
   set passwordResetExpiresAt(value: Date | null) {
     this.props.password_reset_expires_at = value;

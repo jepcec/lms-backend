@@ -57,8 +57,6 @@ export class RegisterUserUseCase {
       profession: profession ?? null,
     });
 
-    console.log('TOKEN: ', nuevoUsuario.emailVerificationToken);
-
     await this.userRepository.save(nuevoUsuario);
     await this.emailService.sendEmailVerification(
       nuevoUsuario.email,
