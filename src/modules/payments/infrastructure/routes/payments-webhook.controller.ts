@@ -29,25 +29,4 @@ export class PaymentsWebhookController {
 
     return { received: true }; // Mercado Pago exige responder siempre con un 200 OK
   }
-
-  // 🇺🇸 🚀 WEBHOOK PARA PAYPAL
-  @Post('paypal')
-  @HttpCode(HttpStatus.OK)
-  async handlePaypalWebhook(@Body() body: any) {
-    console.log('📡 [WEBHOOK PAYPAL] Evento recibido:', body.event_type);
-
-    // PayPal envía el evento 'PAYMENT.CAPTURE.COMPLETED' cuando el dinero está asegurado
-    if (body.event_type === 'PAYMENT.CAPTURE.COMPLETED') {
-      const resource = body.resource;
-      const paypalOrderId = resource.supplementary_data?.related_ids?.order_id || resource.id;
-      
-      // Extraemos el ID personalizado o metadatos si los enviaste en la orden
-      console.log(`🎯 [WEBHOOK] Captura completada para la orden PayPal: ${paypalOrderId}`);
-      
-      // Ejecutamos tu handlePaypalCapture de forma asíncrona y real en Postgres
-      await this.processPayment.handlePaypalCapture(paypalOrderId);
-    }
-
-    return { received: true }; // PayPal exige responder con 200/204
-  }
 }

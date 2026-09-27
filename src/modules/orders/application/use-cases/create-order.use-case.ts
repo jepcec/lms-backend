@@ -1,6 +1,8 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../../../../core/database/prisma.service';
 
+const METODOS_VALIDOS = ['mercado_pago', 'culqi', 'paypal'] as const;
+
 export interface CreateOrderDto {
   payment_method: 'stripe' | 'paypal' | 'mercado_pago' | 'culqi';
   dni_ruc?: string;
@@ -11,6 +13,10 @@ export class CreateOrderUseCase {
   constructor(private readonly prisma: PrismaService) {}
 
   async execute(userId: string, dto: CreateOrderDto) {
+    if (!(METODOS_VALIDOS as readonly string[]).includes(dto.payment_method)) {
+      throw new BadRequestException('Método de pago no válido');
+    }
+
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
     if (!user) throw new BadRequestException('Usuario no encontrado');
 
@@ -23,16 +29,29 @@ export class CreateOrderUseCase {
       throw new BadRequestException('El carrito está vacío');
     }
 
-    const currency = 'PEN' as const;
+    // PayPal no liquida en soles: sus órdenes se crean en USD con el precio en
+    // dólares del curso (sin tipo de cambio). Mercado Pago y Culqi, en PEN.
+    const currency = dto.payment_method === 'paypal' ? 'USD' : 'PEN';
 
     let subtotal = 0;
     const itemsData = cartItems.map((item) => {
-      const unitPrice = Number(item.course.price_pen);
-      const discountPrice =
-        item.course.discount_price_pen !== null
-          ? Number(item.course.discount_price_pen)
-          : null;
+      const { course } = item;
+      const unitPrice = Number(
+        currency === 'USD' ? course.price_usd : course.price_pen,
+      );
+      const rawDiscount =
+        currency === 'USD'
+          ? course.discount_price_usd
+          : course.discount_price_pen;
+      const discountPrice = rawDiscount !== null ? Number(rawDiscount) : null;
       const finalPrice = discountPrice ?? unitPrice;
+
+      // Un curso sin precio en USD configurado no se puede cobrar por PayPal.
+      if (currency === 'USD' && !(finalPrice > 0)) {
+        throw new BadRequestException(
+          `El curso "${course.title}" no está disponible en ${currency}`,
+        );
+      }
       subtotal += finalPrice;
 
       return {

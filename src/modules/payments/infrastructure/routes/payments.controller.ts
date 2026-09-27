@@ -2,7 +2,6 @@ import {
   Controller,
   Post,
   Body,
-  Param,
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
@@ -29,12 +28,5 @@ export class PaymentsController {
   async processMpBrick(@Body() dto: ProcessBrickPaymentDto) {
     // CORREGIDO: Cambiado executeMercadoPagoBrick por handleMercadoPagoBrick
     return this.processCallbackUC.handleMercadoPagoBrick(dto);
-  }
-
-  @Post('paypal/capture/:paypalOrderId')
-  @HttpCode(HttpStatus.OK)
-  async capturePaypal(@Param('paypalOrderId') paypalOrderId: string) {
-    // CORREGIDO: Cambiado executePaypalCapture por handlePaypalCapture
-    return this.processCallbackUC.handlePaypalCapture(paypalOrderId);
   }
 }
