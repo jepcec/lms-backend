@@ -18,8 +18,11 @@ export class NotificationsController {
   }
 
   @Patch(':id/read')
-  async markRead(@Param('id') id: string) {
-    return this.markReadUseCase.execute(id);
+  async markRead(
+    @Param('id') id: string,
+    @CurrentUser('userId') userId: string,
+  ) {
+    return this.markReadUseCase.execute(id, userId);
   }
 
   @Patch('read-all')

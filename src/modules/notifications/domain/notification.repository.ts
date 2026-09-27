@@ -6,7 +6,7 @@ export interface INotificationRepository {
     total: number;
     unread_count: number;
   }>;
-  markAsRead(id: string): Promise<NotificationEntity>;
+  markAsRead(id: string, userId: string): Promise<void>;
   markAllAsRead(userId: string): Promise<void>;
   create(data: Partial<NotificationEntity>): Promise<NotificationEntity>;
   createMany(data: Partial<NotificationEntity>[]): Promise<number>;
