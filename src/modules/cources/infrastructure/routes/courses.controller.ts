@@ -29,7 +29,6 @@ import { UploadThumbnailUseCase } from '../../application/use-cases/upload-thumb
 import { AddInstructorUseCase } from '../../application/use-cases/add-instructor.use-case';
 import { RemoveInstructorUseCase } from '../../application/use-cases/remove-instructor.use-case';
 import { CreateInstructorDto } from '../../application/dtos/create-instructor.dto';
-import { GetMatriculadosCursoUseCase } from '../../application/use-cases/get-matriculados-curso.use-case';
 import { GetCourseSoftwaresUseCase } from '../../application/use-cases/get-course-softwares.use-case';
 import type { Express } from 'express';
 
@@ -47,7 +46,6 @@ export class CoursesController {
     private readonly uploadThumbnail: UploadThumbnailUseCase,
     private readonly addInstructor: AddInstructorUseCase,
     private readonly removeInstructor: RemoveInstructorUseCase,
-    private readonly getMatriculadosCurso: GetMatriculadosCursoUseCase,
     private readonly getCourseSoftwares: GetCourseSoftwaresUseCase,
   ) {}
 
@@ -135,14 +133,5 @@ export class CoursesController {
     @Param('instructorId') instructorId: string,
   ) {
     return this.removeInstructor.execute(id, instructorId);
-  }
-
-  @Get(':id/matriculados')
-  @Roles('admin')
-  async getMatriculadosHandler(
-    @Param('id') id: string,
-    @Query() params: { page?: number; limit?: number; search?: string },
-  ) {
-    return this.getMatriculadosCurso.execute(id, params);
   }
 }

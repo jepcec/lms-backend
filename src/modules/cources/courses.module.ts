@@ -37,7 +37,6 @@ import { GetSoftwaresUseCase } from './application/use-cases/get-softwares.use-c
 import { UploadThumbnailUseCase } from './application/use-cases/upload-thumbnail.use-case';
 import { AddInstructorUseCase } from './application/use-cases/add-instructor.use-case';
 import { RemoveInstructorUseCase } from './application/use-cases/remove-instructor.use-case';
-import { GetMatriculadosCursoUseCase } from './application/use-cases/get-matriculados-curso.use-case';
 import { GetCourseSoftwaresUseCase } from './application/use-cases/get-course-softwares.use-case';
 import { ListCategoriasUseCase } from './application/use-cases/list-categorias.use-case';
 import { GetCategoriaUseCase } from './application/use-cases/get-categoria.use-case';
@@ -71,7 +70,6 @@ import { EmitStudentCertificateUseCase } from './application/use-cases/emit-stud
     UploadThumbnailUseCase,
     AddInstructorUseCase,
     RemoveInstructorUseCase,
-    GetMatriculadosCursoUseCase,
     GetCourseSoftwaresUseCase,
     ListCategoriasUseCase,
     GetCategoriaUseCase,

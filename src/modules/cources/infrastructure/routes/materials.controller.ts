@@ -1,5 +1,6 @@
 import { Controller, Get, Post, Delete, Body, Param } from '@nestjs/common';
 import { Roles } from 'src/modules/auth/decorators/roles.decorator';
+import { CurrentUser } from 'src/modules/auth/decorators/current-user.decorator';
 import { CreateMaterialUseCase } from '../../application/use-cases/create-material.use-case';
 import { DeleteMaterialUseCase } from '../../application/use-cases/delete-material.use-case';
 import { GetMaterialsUseCase } from '../../application/use-cases/get-materials.use-case';
@@ -14,8 +15,11 @@ export class MaterialsController {
   ) {}
 
   @Get('sessions/:sessionId/materials')
-  async getBySession(@Param('sessionId') sessionId: string) {
-    return this.getMaterials.executeBySession(sessionId);
+  async getBySession(
+    @Param('sessionId') sessionId: string,
+    @CurrentUser() user: { userId: string; role: string },
+  ) {
+    return this.getMaterials.executeBySession(sessionId, user);
   }
 
   @Post('sessions/:sessionId/materials')
