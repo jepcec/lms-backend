@@ -21,6 +21,7 @@ import { GetPromotionsUseCase } from '../../application/use-cases/get-promotions
 import { ReorderPromotionsUseCase } from '../../application/use-cases/reorder-promotions.use-case';
 import { UpdatePromotionUseCase } from '../../application/use-cases/update-promotion.use-case';
 import { Public } from 'src/modules/auth/decorators/public.decorator';
+import { Roles } from 'src/modules/auth/decorators/roles.decorator';
 
 @Controller('promociones')
 export class PromotionsController {
@@ -39,6 +40,7 @@ export class PromotionsController {
   }
 
   @Post()
+  @Roles('admin', 'marketing')
   @UseInterceptors(imageUploadInterceptor('image'))
   create(
     @Body() dto: CreatePromotionDto,
@@ -51,11 +53,13 @@ export class PromotionsController {
   }
 
   @Patch('reorder')
+  @Roles('admin', 'marketing')
   reorder(@Body() dto: ReorderPromotionsDto) {
     return this.reorderPromotionsUseCase.execute(dto);
   }
 
   @Patch(':id')
+  @Roles('admin', 'marketing')
   @UseInterceptors(imageUploadInterceptor('image'))
   update(
     @Param('id') id: string,
@@ -69,6 +73,7 @@ export class PromotionsController {
   }
 
   @Delete(':id')
+  @Roles('admin', 'marketing')
   remove(@Param('id') id: string) {
     return this.deletePromotionUseCase.execute(id);
   }
