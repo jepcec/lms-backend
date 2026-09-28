@@ -25,6 +25,10 @@ import { Inject } from '@nestjs/common';
 import { Throttle } from '@nestjs/throttler';
 import { TurnstileGuard } from '../guards/turnstile.guard';
 import { SessionLogoutService } from '../services/session-logout.service';
+import {
+  isTrustedBrowserOrigin,
+  getTrustedBrowserOrigins,
+} from 'src/modules/auth/trusted-browser-origins';
 
 // Límite más estricto que el global (100/60s) para las rutas de auth más
 // sensibles a fuerza bruta / spam — defensa en profundidad junto a Turnstile.
@@ -46,15 +50,8 @@ export class AuthController {
 
   private assertTrustedBrowserOrigin(request: Request): void {
     const origin = request.headers.origin;
-    const frontend = process.env.URL_FRONTEND;
     if (origin) {
-      let expectedOrigin: string;
-      try {
-        expectedOrigin = new URL(frontend ?? '').origin;
-      } catch {
-        throw new ForbiddenException('Origen no permitido');
-      }
-      if (origin !== expectedOrigin) {
+      if (!isTrustedBrowserOrigin(origin, getTrustedBrowserOrigins())) {
         throw new ForbiddenException('Origen no permitido');
       }
     } else if (request.headers['sec-fetch-site'] === 'cross-site') {
@@ -176,7 +173,11 @@ export class AuthController {
   @Throttle(AUTH_THROTTLE)
   async resetPassword(
     @Body()
-    body: { password: string; token: string; turnstileToken: string },
+    body: {
+      password: string;
+      token: string;
+      turnstileToken: string;
+    },
   ) {
     if (!body || typeof body.token !== 'string' || !body.token) {
       throw new BadRequestException('Token invalido');
