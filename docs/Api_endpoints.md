@@ -520,6 +520,7 @@ Usado para el buscador de estudiantes en el panel de matrículas.
 | GET | `/student/courses/:courseId/content` | 👤 | Contenido del curso (módulos + sesiones) |
 | GET | `/student/progress/courses/:courseId` | 👤 | Mi progreso en un curso |
 | PUT | `/student/progress/sessions/:sessionId` | 👤 | Actualizar progreso de sesión |
+| GET | `/student/orders/verify/:orderId` | 👤 | Consultar el estado de pago de una orden propia |
 | GET | `/student/certificates` | 👤 | Mis certificados |
 | GET | `/student/certificates/:enrollmentId` | 👤 | Detalle de certificado |
 
@@ -558,6 +559,8 @@ Usado para el buscador de estudiantes en el panel de matrículas.
 }
 ```
 
+**Acceso:** requiere una matrícula vigente. Sin matrícula, suspendida o vencida responde `403`; la consulta no crea ni modifica matrículas.
+
 ---
 
 ### GET `/student/progress/courses/:courseId`
@@ -584,6 +587,8 @@ Usado para el buscador de estudiantes en el panel de matrículas.
 }
 ```
 
+**Acceso:** requiere una matrícula vigente. Sin matrícula, suspendida o vencida responde `403`; la consulta no crea ni modifica matrículas.
+
 ---
 
 ### PUT `/student/progress/sessions/:sessionId`
@@ -599,6 +604,22 @@ Se llama cada 30 segundos mientras el estudiante ve un video.
 ```
 
 > **Regla de negocio:** `completed = true` cuando `watched_seconds >= duration_minutes * 60 * 0.9` (90% del video)
+
+---
+
+### GET `/student/orders/verify/:orderId`
+Consulta exclusivamente la orden indicada y requiere que pertenezca al estudiante autenticado.
+
+**Response `200`:**
+```json
+{
+  "success": true,
+  "orderId": "uuid",
+  "payment_status": "paid"
+}
+```
+
+`success` solo es `true` cuando `payment_status` es `paid`. Los estados posibles son `pending`, `paid`, `failed` y `refunded`. Devuelve `403` si la orden pertenece a otro usuario y `404` si no existe.
 
 ---
 
