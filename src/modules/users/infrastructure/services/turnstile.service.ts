@@ -45,18 +45,44 @@ export class TurnstileService {
         );
       }
 
-      const frontendUrl = this.configService.get<string>('URL_FRONTEND');
-      let expectedHostname: string;
-      try {
-        expectedHostname = new URL(frontendUrl ?? '').hostname;
-      } catch {
-        this.logger.error('URL_FRONTEND no es una URL válida');
+      if (data.success !== true) return false;
+
+      const configuredHostnames = this.configService
+        .get<string>('TURNSTILE_ALLOWED_HOSTNAMES')
+        ?.split(',')
+        .map((hostname) => this.normalizeHostname(hostname))
+        .filter(Boolean);
+      let allowedHostnames = new Set(configuredHostnames ?? []);
+
+      // Compatibilidad: si no se definió una allowlist, usa el hostname canónico.
+      if (allowedHostnames.size === 0) {
+        const frontendUrl = this.configService.get<string>('URL_FRONTEND');
+        try {
+          allowedHostnames = new Set([
+            this.normalizeHostname(new URL(frontendUrl ?? '').hostname),
+          ]);
+        } catch {
+          this.logger.error('URL_FRONTEND no es una URL válida');
+          return false;
+        }
+      }
+
+      const verifiedHostname = this.normalizeHostname(data.hostname ?? '');
+      if (!verifiedHostname || !allowedHostnames.has(verifiedHostname)) {
+        this.logger.warn(
+          `Hostname de Turnstile no autorizado: recibido="${verifiedHostname || '(vacío)'}", permitidos=${[...allowedHostnames].join(',')}`,
+        );
         return false;
       }
-      return data.success === true && data.hostname === expectedHostname;
+
+      return true;
     } catch (error) {
       this.logger.error('❌ Error al verificar token de Turnstile:', error);
       return false;
     }
+  }
+
+  private normalizeHostname(hostname: string): string {
+    return hostname.trim().toLowerCase().replace(/\.$/, '');
   }
 }
