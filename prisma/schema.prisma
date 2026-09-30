@@ -58,6 +58,7 @@ enum MaterialType {
   Excel
   Word
   Otro
+  Video
 }
 
 enum EnrollmentType {

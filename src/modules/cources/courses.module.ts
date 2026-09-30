@@ -51,6 +51,12 @@ import { GetCourseCertificationsUseCase } from './application/use-cases/get-cour
 import { ExportCertificationExcelUseCase } from './application/use-cases/export-certification-excel.use-case';
 import { ImportCertificationGradesUseCase } from './application/use-cases/import-certification-grades.use-case';
 import { EmitStudentCertificateUseCase } from './application/use-cases/emit-student-certificate.use-case';
+import { CoursesBulkController } from './infrastructure/routes/courses-bulk.controller';
+import { ExportCoursesExcelUseCase } from './application/use-cases/export-courses-excel.use-case';
+import { ExportCoursesJsonUseCase } from './application/use-cases/export-courses-json.use-case';
+import { ImportCoursesUseCase } from './application/use-cases/import-courses.use-case';
+import { ImportCoursesExcelUseCase } from './application/use-cases/import-courses-excel.use-case';
+import { ImportCoursesJsonUseCase } from './application/use-cases/import-courses-json.use-case';
 
 @Module({
   imports: [StorageModule, ConfigModule],
@@ -61,6 +67,7 @@ import { EmitStudentCertificateUseCase } from './application/use-cases/emit-stud
     MaterialsController,
     CategoriesController,
     CertificationsController,
+    CoursesBulkController,
   ],
   providers: [
     CreateCourseUseCase,
@@ -99,6 +106,11 @@ import { EmitStudentCertificateUseCase } from './application/use-cases/emit-stud
     ExportCertificationExcelUseCase,
     ImportCertificationGradesUseCase,
     EmitStudentCertificateUseCase,
+    ExportCoursesExcelUseCase,
+    ExportCoursesJsonUseCase,
+    ImportCoursesUseCase,
+    ImportCoursesExcelUseCase,
+    ImportCoursesJsonUseCase,
     { provide: I_COURSE_REPOSITORY, useClass: PrismaCourseRepository },
     { provide: I_MODULE_REPOSITORY, useClass: PrismaModuleRepository },
     { provide: I_SESSION_REPOSITORY, useClass: PrismaSessionRepository },
