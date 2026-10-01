@@ -36,6 +36,9 @@ import { CreateUsuarioDto } from '../../application/dtos/create-usuario.dto';
 import { UpdateUsuarioDto } from '../../application/dtos/update-usuario.dto';
 import { BuscarUsuariosUseCase } from '../../application/use-cases/buscar-usuarios.use-case';
 
+import * as bcrypt from 'bcrypt';
+import { PrismaService } from '../../../../core/database/prisma.service';
+
 @Controller('users')
 export class UsersController {
   constructor(
@@ -50,6 +53,8 @@ export class UsersController {
     private readonly suspendUsuarioUC: SuspendUsuarioUseCase,
     private readonly activateUsuarioUC: ActivateUsuarioUseCase,
     private readonly buscarUsuariosUC: BuscarUsuariosUseCase,
+
+    private readonly prisma: PrismaService,
   ) {}
 
   @Get('profile/:id')
@@ -141,10 +146,47 @@ export class UsersController {
   async activateUsuario(@Param('id') id: string) {
     return this.activateUsuarioUC.execute(id);
   }
+  // 🚀 1. Asignar / Resetear Contraseña (Admin y Soporte)
+  @Roles('admin', 'soporte')
+  @Patch(':id/reset-password')
+  async resetPassword(
+    @Param('id') id: string,
+    @Body('password') password: string,
+  ) {
+    const salt = await bcrypt.genSalt(10);
+    const password_hash = await bcrypt.hash(password, salt);
 
+    await this.prisma.user.update({
+      where: { id },
+      data: {
+        password_hash,
+        failed_login_attempts: 0,
+        locked_until: null,
+      },
+    });
+
+    return { message: 'Contraseña actualizada correctamente' };
+  }
+
+  // 🚀 2. Aprobar / Verificar Correo Manualmente (Admin y Soporte)
+  @Roles('admin', 'soporte')
+  @Patch(':id/verify-email')
+  async verifyEmail(@Param('id') id: string) {
+    await this.prisma.user.update({
+      where: { id },
+      data: {
+        email_verified: true,
+        email_verified_at: new Date(),
+      },
+    });
+
+    return { message: 'Correo verificado y aprobado con éxito' };
+  }
+  
   @Roles('admin')
   @Delete(':id')
   async deleteUsuario(@Param('id') id: string) {
     return this.deleteAccount.execute(id);
   }
+  
 }

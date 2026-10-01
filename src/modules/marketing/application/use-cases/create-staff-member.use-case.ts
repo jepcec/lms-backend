@@ -39,11 +39,15 @@ export class CreateStaffMemberUseCase {
       imagePublicId = result.publicId;
     }
 
+    // 🚀 Pasamos todos los datos y aseguramos que image_url sea string
     return this.staffRepository.create({
-      image_url: imageUrl,
-      image_public_id: imagePublicId,
-      display_order: dto.display_order,
-      status: dto.status,
+      full_name: dto.full_name ?? null,
+      title: dto.title ?? null,
+      description: dto.description ?? null,
+      image_url: imageUrl ?? '', // 👈 Evita el error 'string | undefined'
+      image_public_id: imagePublicId ?? null,
+      display_order: dto.display_order ?? 0,
+      status: dto.status ?? 'active',
     });
   }
 }

@@ -11,15 +11,15 @@ import {
   UploadedFile,
 } from '@nestjs/common';
 import type { Express } from 'express';
-import { imageUploadInterceptor } from 'src/modules/storage/infrastructure/upload/image-upload.interceptor';
+import { imageUploadInterceptor } from '../../../../../src/modules/storage/infrastructure/upload/image-upload.interceptor';
 import { CreateStaffMemberDto } from '../../application/dtos/create-staff-member.dto';
 import { UpdateStaffMemberDto } from '../../application/dtos/update-staff-member.dto';
 import { CreateStaffMemberUseCase } from '../../application/use-cases/create-staff-member.use-case';
 import { GetStaffMembersUseCase } from '../../application/use-cases/get-staff-members.use-case';
 import { UpdateStaffMemberUseCase } from '../../application/use-cases/update-staff-member.use-case';
 import { DeleteStaffMemberUseCase } from '../../application/use-cases/delete-staff-member.use-case';
-import { Public } from 'src/modules/auth/decorators/public.decorator';
-import { Roles } from 'src/modules/auth/decorators/roles.decorator';
+import { Public } from '../../../../../src/modules/auth/decorators/public.decorator';
+import { Roles } from '../../../../../src/modules/auth/decorators/roles.decorator';
 
 @Controller('docentes')
 export class StaffMembersController {

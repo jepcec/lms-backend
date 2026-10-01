@@ -43,10 +43,12 @@ export class UpdateStaffMemberUseCase {
     }
 
     return this.staffRepository.update(id, {
-      image_url: imageUrl,
-      image_public_id: imagePublicId,
-      display_order: dto.display_order,
-      status: dto.status,
-    });
+  ...(dto.full_name !== undefined && { full_name: dto.full_name }),
+  ...(dto.title !== undefined && { title: dto.title }),
+  ...(dto.description !== undefined && { description: dto.description }),
+  ...(dto.status && { status: dto.status }),
+  ...(imageUrl && { image_url: imageUrl }),
+  ...(imagePublicId && { image_public_id: imagePublicId }),
+  });
   }
 }

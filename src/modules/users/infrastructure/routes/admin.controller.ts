@@ -143,4 +143,5 @@ export class AdminController {
   ) {
     return this.getActividadEstudiante.execute(userId, courseId);
   }
+  
 }

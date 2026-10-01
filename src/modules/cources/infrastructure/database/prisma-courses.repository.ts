@@ -1,21 +1,29 @@
 import { Injectable } from '@nestjs/common';
 import type { ICourseRepository } from '../../domain/courses.repository';
-import { PrismaService } from 'src/core/database/prisma.service';
+import { PrismaService } from '../../../../../src/core/database/prisma.service';
 import { CourseEntity } from '../../domain/course.entity';
-import type { Course } from 'src/generated/prisma/client';
+import type { Course } from '../../../../../src/generated/prisma/client';
 
 @Injectable()
 export class PrismaCourseRepository implements ICourseRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   async findById(id: string): Promise<CourseEntity | null> {
-    const course = await this.prisma.course.findUnique({ where: { id } });
+    const course = await this.prisma.course.findFirst({
+      where: { id, deleted_at: null },
+    });
     if (!course) return null;
     return this.mapToEntity(course);
   }
 
+  // 🚀 1. findFirst con deleted_at: null para ignorar cursos eliminados
   async findBySlug(slug: string): Promise<CourseEntity | null> {
-    const course = await this.prisma.course.findUnique({ where: { slug } });
+    const course = await this.prisma.course.findFirst({
+      where: {
+        slug,
+        deleted_at: null,
+      },
+    });
     if (!course) return null;
     return this.mapToEntity(course);
   }
@@ -103,10 +111,19 @@ export class PrismaCourseRepository implements ICourseRepository {
     });
   }
 
+  // 🚀 2. delete: Renombra el slug con timestamp y marca la fecha de borrado
   async delete(id: string): Promise<void> {
+    const course = await this.prisma.course.findUnique({ where: { id } });
+    if (!course) return;
+
+    const releasedSlug = `${course.slug}-deleted-${Date.now()}`;
+
     await this.prisma.course.update({
       where: { id },
-      data: { deleted_at: new Date() },
+      data: {
+        slug: releasedSlug,
+        deleted_at: new Date(),
+      },
     });
   }
 

@@ -1,5 +1,5 @@
 import { Injectable, Inject, ConflictException } from '@nestjs/common';
-import { PrismaService } from 'src/core/database/prisma.service';
+import { PrismaService } from '../../../../../src/core/database/prisma.service';
 import { I_COURSE_REPOSITORY } from '../../domain/courses.repository';
 import type { ICourseRepository } from '../../domain/courses.repository';
 import { CreateCourseDto } from '../dtos/create-course.dto';
@@ -26,7 +26,8 @@ export class CreateCourseUseCase {
     const slug = dto.slug || slugify(dto.title);
 
     const exists = await this.courseRepository.findBySlug(slug);
-    if (exists) {
+    // 🚀 Validar únicamente contra cursos activos que no tengan deleted_at
+    if (exists && !exists.deleted_at) {
       throw new ConflictException('Curso con este slug ya existe');
     }
 
