@@ -2,6 +2,8 @@
 import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { requireSessionSecrets } from '../auth/session-token';
+import { SessionLogoutService } from './infrastructure/services/session-logout.service';
 import { StorageModule } from '../storage/storage.module';
 
 // Repositories & Services Interfaces
@@ -32,6 +34,8 @@ import { CertificatesController } from './infrastructure/routes/certificates.con
 import { PublicCertificatesController } from './infrastructure/routes/public-certificates.controller';
 import { ReviewsController } from './infrastructure/routes/reviews.controller';
 import { SubmitReviewUseCase } from './application/use-cases/submit-review.use-case';
+import { ListReviewsUseCase } from './application/use-cases/list-reviews.use-case';
+import { UpdateReviewStatusUseCase } from './application/use-cases/update-review-status.use-case';
 
 // Use Cases
 import { LoginUserUseCase } from './application/use-cases/login-user.use-case';
@@ -90,8 +94,7 @@ import { ExportDashboardExcelUseCase } from './application/use-cases/export-dash
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (config: ConfigService) => ({
-        secret: config.get<string>('JWT_SECRET'),
-        signOptions: { expiresIn: '1d' },
+        secret: requireSessionSecrets(config).access,
       }),
     }),
     ConfigModule,
@@ -154,6 +157,8 @@ import { ExportDashboardExcelUseCase } from './application/use-cases/export-dash
     VerifyCertificateUseCase,
     CertificatePdfService,
     SubmitReviewUseCase,
+    ListReviewsUseCase,
+    UpdateReviewStatusUseCase,
     GetStudentDetailUseCase,
     DeleteEnrollmentUseCase,
     SuspendEnrollmentUseCase,
@@ -161,6 +166,7 @@ import { ExportDashboardExcelUseCase } from './application/use-cases/export-dash
     ExportMatriculadosCursoExcelUseCase,
     ExportDashboardExcelUseCase,
     CryptoTokenService,
+    SessionLogoutService,
     TurnstileService,
     TurnstileGuard,
     // Interface Mappings

@@ -6,6 +6,7 @@ import cookieParser from 'cookie-parser';
 import compression from 'compression';
 import helmet from 'helmet';
 import { Logger } from 'nestjs-pino';
+import { getTrustedBrowserOrigins } from './modules/auth/trusted-browser-origins';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
@@ -24,7 +25,7 @@ async function bootstrap() {
   // ================= cookies ===============
   app.use(cookieParser());
   app.enableCors({
-    origin: process.env.URL_FRONTEND,
+    origin: getTrustedBrowserOrigins(),
     credentials: true,
   });
   // =========================================

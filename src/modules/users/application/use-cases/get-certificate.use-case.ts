@@ -5,9 +5,9 @@ import { PrismaService } from '../../../../core/database/prisma.service';
 export class GetCertificateUseCase {
   constructor(private readonly prisma: PrismaService) {}
 
-  async execute(id: string) {
+  async execute(id: string, userId: string) {
     const certificate = await this.prisma.certificate.findFirst({
-      where: { id, revoked_at: null },
+      where: { id, revoked_at: null, enrollment: { user_id: userId } },
       include: {
         enrollment: {
           include: {

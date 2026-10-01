@@ -6,6 +6,8 @@ import {
   Delete,
   Body,
   Param,
+  ParseUUIDPipe,
+  Query,
 } from '@nestjs/common';
 import { Public } from '../../../auth/decorators/public.decorator';
 import { Roles } from '../../../auth/decorators/roles.decorator';
@@ -15,6 +17,7 @@ import { CreateCategoriaUseCase } from '../../application/use-cases/create-categ
 import { UpdateCategoriaUseCase } from '../../application/use-cases/update-categoria.use-case';
 import { DeleteCategoriaUseCase } from '../../application/use-cases/delete-categoria.use-case';
 import { ReorderCategoriasUseCase } from '../../application/use-cases/reorder-categorias.use-case';
+import { GetTopCategoriasUseCase } from '../../application/use-cases/get-top-categorias.use-case';
 import { CreateCategoriaDto } from '../../application/dtos/create-categoria.dto';
 import { UpdateCategoriaDto } from '../../application/dtos/update-categoria.dto';
 import { ReorderCategoriasDto } from '../../application/dtos/reorder-categorias.dto';
@@ -28,6 +31,7 @@ export class CategoriesController {
     private readonly updateCategoria: UpdateCategoriaUseCase,
     private readonly deleteCategoria: DeleteCategoriaUseCase,
     private readonly reorderCategorias: ReorderCategoriasUseCase,
+    private readonly getTopCategorias: GetTopCategoriasUseCase,
   ) {}
 
   @Get()
@@ -36,9 +40,16 @@ export class CategoriesController {
     return this.listCategorias.execute();
   }
 
+  // Ruta estática antes de :id para que "top" no se interprete como UUID.
+  @Get('top')
+  @Public()
+  async getTop(@Query('limit') limit?: string) {
+    return this.getTopCategorias.execute(limit ? parseInt(limit, 10) : 3);
+  }
+
   @Get(':id')
   @Public()
-  async getById(@Param('id') id: string) {
+  async getById(@Param('id', ParseUUIDPipe) id: string) {
     return this.getCategoria.execute(id);
   }
 

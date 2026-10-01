@@ -58,5 +58,10 @@ report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 
 /src/generated/prisma
 
+# Agent skills are installed locally and should not be tracked per project.
+.agents/
+.claude/
+skills-lock.json
+
 uploads/*
 !uploads/**/

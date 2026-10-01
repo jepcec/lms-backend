@@ -11,7 +11,8 @@ export class MarkReadUseCase {
     private readonly notificationRepository: INotificationRepository,
   ) {}
 
-  async execute(id: string) {
-    return this.notificationRepository.markAsRead(id);
+  async execute(id: string, userId: string) {
+    await this.notificationRepository.markAsRead(id, userId);
+    return { success: true };
   }
 }

@@ -50,10 +50,12 @@ export class LoginUserUseCase {
     const token = this.tokenService.generate({
       userId: userDb.id,
       role: userDb.role,
+      sessionVersion: userDb.sessionVersion,
     });
     const refreshToken = this.tokenService.generateRefresh({
       userId: userDb.id,
       role: userDb.role,
+      sessionVersion: userDb.sessionVersion,
     });
 
     // return {accessToken: token} // retorno inicial, para test

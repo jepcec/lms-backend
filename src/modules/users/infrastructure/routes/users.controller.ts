@@ -11,6 +11,7 @@ import {
   UseInterceptors,
   UploadedFile,
   ForbiddenException,
+  ValidationPipe,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
@@ -39,6 +40,13 @@ import { BuscarUsuariosUseCase } from '../../application/use-cases/buscar-usuari
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../../../../core/database/prisma.service';
 
+// Roles del staff que pueden consultar el perfil de otros usuarios.
+const STAFF_ROLES = ['admin', 'soporte', 'coordinador'];
+
+// Valida los decoradores de class-validator (ej. @IsIn del rol). No hay
+// ValidationPipe global porque la mayoría de DTOs no tienen decoradores.
+const ADMIN_BODY_PIPE = new ValidationPipe();
+
 @Controller('users')
 export class UsersController {
   constructor(
@@ -58,7 +66,14 @@ export class UsersController {
   ) {}
 
   @Get('profile/:id')
-  async get(@Param('id') id: string) {
+  async get(
+    @Param('id') id: string,
+    @CurrentUser('userId') currentUserId: string,
+    @CurrentUser('role') currentRole: string,
+  ) {
+    if (id !== currentUserId && !STAFF_ROLES.includes(currentRole)) {
+      throw new ForbiddenException('No puedes ver el perfil de otro usuario');
+    }
     return this.getProfile.execute(id);
   }
 
@@ -125,20 +140,27 @@ export class UsersController {
 
   @Roles('admin')
   @Post()
-  async createUsuario(@Body() dto: CreateUsuarioDto) {
+  async createUsuario(@Body(ADMIN_BODY_PIPE) dto: CreateUsuarioDto) {
     return this.createUsuarioUC.execute(dto);
   }
 
   @Roles('admin')
   @Patch(':id')
-  async updateUsuario(@Param('id') id: string, @Body() dto: UpdateUsuarioDto) {
-    return this.updateUsuarioUC.execute(id, dto);
+  async updateUsuario(
+    @Param('id') id: string,
+    @Body(ADMIN_BODY_PIPE) dto: UpdateUsuarioDto,
+    @CurrentUser('userId') currentUserId: string,
+  ) {
+    return this.updateUsuarioUC.execute(id, dto, currentUserId);
   }
 
   @Roles('admin')
   @Patch(':id/suspender')
-  async suspendUsuario(@Param('id') id: string) {
-    return this.suspendUsuarioUC.execute(id);
+  async suspendUsuario(
+    @Param('id') id: string,
+    @CurrentUser('userId') currentUserId: string,
+  ) {
+    return this.suspendUsuarioUC.execute(id, currentUserId);
   }
 
   @Roles('admin')
@@ -185,8 +207,11 @@ export class UsersController {
   
   @Roles('admin')
   @Delete(':id')
-  async deleteUsuario(@Param('id') id: string) {
-    return this.deleteAccount.execute(id);
+  async deleteUsuario(
+    @Param('id') id: string,
+    @CurrentUser('userId') currentUserId: string,
+  ) {
+    return this.deleteAccount.execute(id, currentUserId);
   }
   
 }

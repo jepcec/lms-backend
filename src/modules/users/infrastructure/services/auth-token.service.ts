@@ -3,6 +3,11 @@ import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { IAuthTokenService } from '../../domain/services/auth.service';
 import { ConfigService } from '@nestjs/config';
+import {
+  isSessionTokenPayload,
+  requireSessionSecrets,
+  type SessionPrincipal,
+} from '../../../auth/session-token';
 
 @Injectable()
 export class TokenService implements IAuthTokenService {
@@ -11,22 +16,37 @@ export class TokenService implements IAuthTokenService {
     private readonly configService: ConfigService,
   ) {}
 
-  generate(payload: any): string {
-    return this.jwtService.sign(payload, { expiresIn: '5m' });
+  generate(payload: SessionPrincipal): string {
+    const { access } = requireSessionSecrets(this.configService);
+    return this.jwtService.sign(
+      {
+        userId: payload.userId,
+        role: payload.role,
+        sessionVersion: payload.sessionVersion,
+        tokenType: 'access',
+      },
+      { secret: access, expiresIn: '5m' },
+    );
   }
 
-  generateRefresh(payload: { userId: string; role: string }): string {
-    const refreshSecret = this.configService.get<string>('JWT_REFRESH_SECRET');
-
+  generateRefresh(payload: SessionPrincipal): string {
+    const { refresh } = requireSessionSecrets(this.configService);
     return this.jwtService.sign(
-      { userId: payload.userId, role: payload.role },
-      { secret: refreshSecret, expiresIn: '7d' },
+      {
+        userId: payload.userId,
+        sessionVersion: payload.sessionVersion,
+        tokenType: 'refresh',
+      },
+      { secret: refresh, expiresIn: '7d' },
     );
   }
   verifyRefresh(token: string) {
-    const refreshSecret = this.configService.get<string>('JWT_REFRESH_SECRET');
+    const { refresh } = requireSessionSecrets(this.configService);
     try {
-      return this.jwtService.verify(token, { secret: refreshSecret });
+      const payload = this.jwtService.verify<Record<string, unknown>>(token, {
+        secret: refresh,
+      });
+      return isSessionTokenPayload(payload, 'refresh') ? payload : null;
     } catch (error) {
       return null;
     }

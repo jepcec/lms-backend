@@ -3,16 +3,12 @@ import { PaymentsController } from './infrastructure/routes/payments.controller'
 import { CreatePaymentSessionUseCase } from './application/use-cases/create-payment-session.use-case';
 import { ProcessPaymentCallbackUseCase } from './application/use-cases/process-payment-callback.use-case';
 import { StripeAdapter } from './infrastructure/adapters/stripe.adapter';
-import { PaypalAdapter } from './infrastructure/adapters/paypal.adapter';
 import { MercadoPagoAdapter } from './infrastructure/adapters/mercadopago.adapter';
-import { PaypalController } from './presentation/paypal.controller';
-import { PaypalService } from './infrastructure/paypal.service';
 
 @Module({
   controllers: [PaymentsController],
   providers: [
     StripeAdapter,
-    PaypalAdapter,
     MercadoPagoAdapter,
     CreatePaymentSessionUseCase,
     ProcessPaymentCallbackUseCase,

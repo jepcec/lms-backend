@@ -6,7 +6,6 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../../../../core/database/prisma.service';
 import { StripeAdapter } from '../../infrastructure/adapters/stripe.adapter';
-import { PaypalAdapter } from '../../infrastructure/adapters/paypal.adapter';
 import { MercadoPagoAdapter } from '../../infrastructure/adapters/mercadopago.adapter';
 import { CreatePaymentIntentDto } from '../dtos/create-payment-intent.dto';
 
@@ -17,7 +16,6 @@ export class CreatePaymentSessionUseCase {
   constructor(
     private readonly prisma: PrismaService,
     private readonly stripe: StripeAdapter,
-    private readonly paypal: PaypalAdapter,
     private readonly mercadopago: MercadoPagoAdapter,
   ) {}
 
@@ -57,17 +55,6 @@ export class CreatePaymentSessionUseCase {
           orderIdToUse,
         );
         return { clientSecret: intent.client_secret, gatewayId: intent.id };
-      }
-
-      // 🚀 PAYPAL
-      if (method === 'paypal') {
-        const paypalOrder = await this.paypal.createOrder(
-          orderTotal,
-          orderCurrency,
-          orderNumber,
-          orderIdToUse,
-        );
-        return { paypalOrderId: paypalOrder.id || orderIdToUse };
       }
 
       // 🚀 MERCADO PAGO

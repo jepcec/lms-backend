@@ -38,22 +38,25 @@ export class SlidersController {
   }
 
   @Post()
+  @Roles('admin', 'marketing')
   create(@Body() dto: CreateSliderDto) {
     return this.createSliderUseCase.execute(dto);
   }
 
   @Patch(':id')
+  @Roles('admin', 'marketing')
   update(@Param('id') id: string, @Body() dto: UpdateSliderDto) {
     return this.updateSliderUseCase.execute(id, dto);
   }
 
   @Delete(':id')
+  @Roles('admin', 'marketing')
   remove(@Param('id') id: string) {
     return this.deleteSliderUseCase.execute(id);
   }
 
   @Post(':id/image')
-  @Roles('admin')
+  @Roles('admin', 'marketing')
   @UseInterceptors(imageUploadInterceptor('image'))
   uploadImage(
     @Param('id') id: string,

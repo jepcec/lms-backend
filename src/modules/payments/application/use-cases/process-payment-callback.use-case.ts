@@ -5,7 +5,6 @@ import {
 } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { PrismaService } from '../../../../core/database/prisma.service';
-import { PaypalAdapter } from '../../infrastructure/adapters/paypal.adapter';
 import { MercadoPagoAdapter } from '../../infrastructure/adapters/mercadopago.adapter';
 import { ProcessBrickPaymentDto } from '../dtos/process-brick-payment.dto';
 import { PaymentStatus } from '../../../../generated/prisma/enums';
@@ -17,30 +16,9 @@ export class ProcessPaymentCallbackUseCase {
 
   constructor(
     private readonly prisma: PrismaService,
-    private readonly paypalAdapter: PaypalAdapter,
     private readonly mpAdapter: MercadoPagoAdapter,
     private readonly eventEmitter: EventEmitter2,
   ) {}
-
-  async handlePaypalCapture(paypalOrderId: string) {
-    await this.paypalAdapter.capturePayment(paypalOrderId);
-
-    const order = await this.prisma.order.findFirst({
-      where: {
-        OR: [
-          { gateway_transaction_id: paypalOrderId },
-          { id: paypalOrderId },
-          { order_number: paypalOrderId },
-        ],
-      },
-    });
-
-    if (!order) {
-      throw new BadRequestException('Orden de compra inválida');
-    }
-
-    return this.confirmOrderAndEnroll(order.id, paypalOrderId, 'paypal');
-  }
 
   async handleMercadoPagoBrick(dto: ProcessBrickPaymentDto | any) {
     const orderIdToSearch = dto.orderId || dto.order_id;

@@ -84,8 +84,21 @@ function renderButton(url: string, label: string): string {
   `;
 }
 
+function escapeHtml(value: string): string {
+  return value.replace(/[&<>"']/g, (character) => {
+    const entities: Record<string, string> = {
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#39;',
+    };
+    return entities[character];
+  });
+}
+
 function greeting(firstName?: string): string {
-  return firstName ? `Hola <strong>${firstName}</strong>,` : 'Hola,';
+  return firstName ? `Hola <strong>${escapeHtml(firstName)}</strong>,` : 'Hola,';
 }
 
 export function getVerificationTemplate(

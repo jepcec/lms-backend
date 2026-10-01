@@ -1,6 +1,15 @@
-import { Controller, Get, Query, Param, Res } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Query,
+  Param,
+  Res,
+  NotFoundException,
+} from '@nestjs/common';
 import type { Response } from 'express';
 import { Roles } from '../../../auth/decorators/roles.decorator';
+import { CurrentUser } from '../../../auth/decorators/current-user.decorator';
+import { PrismaService } from '../../../../core/database/prisma.service';
 import { ListUsuariosUseCase } from '../../application/use-cases/list-usuarios.use-case';
 import { ListUsuariosDto } from '../../application/dtos/list-usuarios.dto';
 import { AdminFiltersDto } from '../../application/dtos/admin-filters.dto';
@@ -38,11 +47,32 @@ export class AdminController {
     private readonly getStudentDetail: GetStudentDetailUseCase,
     private readonly exportMatriculadosCursoExcel: ExportMatriculadosCursoExcelUseCase,
     private readonly exportDashboardExcel: ExportDashboardExcelUseCase,
+    private readonly prisma: PrismaService,
   ) {}
+
+  // soporte y coordinador solo gestionan alumnos: no deben ver datos de
+  // cuentas del staff (admins, marketing, etc.). Se responde 404 para no
+  // revelar si el id existe.
+  private async assertEstudianteSiNoEsAdmin(userId: string, role: string) {
+    if (role === 'admin') return;
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { role: true },
+    });
+    if (user?.role !== 'estudiante') {
+      throw new NotFoundException('Estudiante no encontrado');
+    }
+  }
 
   @Roles('admin', 'soporte', 'coordinador')
   @Get('usuarios')
-  async listUsuariosHandler(@Query() params: ListUsuariosDto) {
+  async listUsuariosHandler(
+    @Query() params: ListUsuariosDto,
+    @CurrentUser('role') role: string,
+  ) {
+    // Fuera de admin, el listado queda limitado a alumnos (ver
+    // assertEstudianteSiNoEsAdmin).
+    if (role !== 'admin') params.role = 'estudiante';
     return this.listUsuarios.execute(params);
   }
 
@@ -131,7 +161,11 @@ export class AdminController {
 
   @Roles('admin', 'soporte', 'coordinador')
   @Get('estudiantes/:userId')
-  async studentDetailHandler(@Param('userId') userId: string) {
+  async studentDetailHandler(
+    @Param('userId') userId: string,
+    @CurrentUser('role') role: string,
+  ) {
+    await this.assertEstudianteSiNoEsAdmin(userId, role);
     return this.getStudentDetail.execute(userId);
   }
 
@@ -140,7 +174,9 @@ export class AdminController {
   async actividadEstudianteHandler(
     @Param('userId') userId: string,
     @Param('courseId') courseId: string,
+    @CurrentUser('role') role: string,
   ) {
+    await this.assertEstudianteSiNoEsAdmin(userId, role);
     return this.getActividadEstudiante.execute(userId, courseId);
   }
   

@@ -6,13 +6,15 @@ import {
   Res,
   Get,
   BadRequestException,
+  ForbiddenException,
+  Req,
   UseGuards,
 } from '@nestjs/common';
 import { RegisterUserUseCase } from '../../application/use-cases/register-user.use-case';
 import { RegisterUserDto } from '../../application/dtos/register-user.dto';
 import { LoginUserUseCase } from '../../application/use-cases/login-user.use-case';
 import { LoginUserDto } from '../../application/dtos/login-user.dto';
-import type { Response } from 'express';
+import type { Request, Response } from 'express';
 import { VerifyEmailUseCase } from '../../application/use-cases/verify-email.use-case';
 import { RequestPasswordResetUseCase } from '../../application/use-cases/request-password-reset.use-case';
 import { ResetPasswordUseCase } from '../../application/use-cases/reset-password.use-case';
@@ -22,6 +24,11 @@ import type { IUserRepository } from '../../domain/users.repository';
 import { Inject } from '@nestjs/common';
 import { Throttle } from '@nestjs/throttler';
 import { TurnstileGuard } from '../guards/turnstile.guard';
+import { SessionLogoutService } from '../services/session-logout.service';
+import {
+  isTrustedBrowserOrigin,
+  getTrustedBrowserOrigins,
+} from 'src/modules/auth/trusted-browser-origins';
 
 // Límite más estricto que el global (100/60s) para las rutas de auth más
 // sensibles a fuerza bruta / spam — defensa en profundidad junto a Turnstile.
@@ -36,9 +43,21 @@ export class AuthController {
     private readonly verifyEmailUseCase: VerifyEmailUseCase,
     private readonly requestPasswordReset: RequestPasswordResetUseCase,
     private readonly passwordResetUseCase: ResetPasswordUseCase,
+    private readonly sessionLogoutService: SessionLogoutService,
     @Inject(I_USER_REPOSITORY)
     private readonly userRepository: IUserRepository,
   ) {}
+
+  private assertTrustedBrowserOrigin(request: Request): void {
+    const origin = request.headers.origin;
+    if (origin) {
+      if (!isTrustedBrowserOrigin(origin, getTrustedBrowserOrigins())) {
+        throw new ForbiddenException('Origen no permitido');
+      }
+    } else if (request.headers['sec-fetch-site'] === 'cross-site') {
+      throw new ForbiddenException('Origen no permitido');
+    }
+  }
 
   private setAuthCookies(
     response: Response,
@@ -65,6 +84,16 @@ export class AuthController {
   @UseGuards(TurnstileGuard)
   @Throttle(AUTH_THROTTLE)
   async register(@Body() dto: RegisterUserDto) {
+    if (
+      !dto ||
+      typeof dto.first_name !== 'string' ||
+      typeof dto.last_name !== 'string' ||
+      typeof dto.email !== 'string' ||
+      typeof dto.phone !== 'string' ||
+      typeof dto.password !== 'string'
+    ) {
+      throw new BadRequestException('Datos de registro inválidos');
+    }
     const result = await this.registerUseCase.execute(dto);
     return {
       success: result.success,
@@ -76,8 +105,11 @@ export class AuthController {
   // verifica si un correo ya está registrado (usado en el checkout de invitado)
   @Public()
   @Get('check-email')
+  @Throttle(AUTH_THROTTLE)
   async checkEmail(@Query('email') email: string) {
-    if (!email) throw new BadRequestException('Email requerido');
+    if (typeof email !== 'string' || !email) {
+      throw new BadRequestException('Email requerido');
+    }
     const existente = await this.userRepository.findByEmail(email);
     return { available: !existente };
   }
@@ -87,9 +119,18 @@ export class AuthController {
   @UseGuards(TurnstileGuard)
   @Throttle(AUTH_THROTTLE)
   async login(
+    @Req() request: Request,
     @Body() dto: LoginUserDto,
     @Res({ passthrough: true }) response: Response,
   ) {
+    this.assertTrustedBrowserOrigin(request);
+    if (
+      !dto ||
+      typeof dto.email !== 'string' ||
+      typeof dto.password !== 'string'
+    ) {
+      throw new BadRequestException('Credenciales inválidas');
+    }
     const result = await this.loginUserCase.execute(dto);
     this.setAuthCookies(response, result);
     return {
@@ -102,7 +143,9 @@ export class AuthController {
   @Public()
   @Get('verify-email')
   async verifyEmail(@Query('token') token: string) {
-    if (!token) throw new BadRequestException('Token requerido');
+    if (typeof token !== 'string' || !token) {
+      throw new BadRequestException('Token requerido');
+    }
     await this.verifyEmailUseCase.execute(token);
     return { mensaje: 'Correo verificado' };
   }
@@ -116,6 +159,9 @@ export class AuthController {
     @Body('email') email: string,
     @Body('turnstileToken') turnstileToken: string,
   ) {
+    if (typeof email !== 'string' || !email) {
+      throw new BadRequestException('Email requerido');
+    }
     await this.requestPasswordReset.execute(email);
     return { mensaje: 'Se envio correo para recuperacion' };
   }
@@ -127,22 +173,37 @@ export class AuthController {
   @Throttle(AUTH_THROTTLE)
   async resetPassword(
     @Body()
-    body: { password: string; token: string; turnstileToken: string },
+    body: {
+      password: string;
+      token: string;
+      turnstileToken: string;
+    },
   ) {
+    if (!body || typeof body.token !== 'string' || !body.token) {
+      throw new BadRequestException('Token invalido');
+    }
     await this.passwordResetUseCase.execute(body.password, body.token);
     return { mensaje: 'Contrase;a actualizada correctamente' };
   }
 
   @Post('logout')
-  logout(@Res({ passthrough: true }) response: Response) {
+  async logout(
+    @Req() request: Request,
+    @Res({ passthrough: true }) response: Response,
+  ) {
+    this.assertTrustedBrowserOrigin(request);
     const cookieOptions = {
       httpOnly: true,
       secure: process.env.COOKIE_SECURE === 'true',
       sameSite: 'lax' as const,
       path: '/',
     };
-    response.clearCookie('access_token', cookieOptions);
-    response.clearCookie('refresh_token', cookieOptions);
+    try {
+      await this.sessionLogoutService.revokeFromCookies(request.cookies);
+    } finally {
+      response.clearCookie('access_token', cookieOptions);
+      response.clearCookie('refresh_token', cookieOptions);
+    }
     return { mensaje: 'Sesión cerrada' };
   }
 }

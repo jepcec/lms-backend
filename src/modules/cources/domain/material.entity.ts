@@ -1,4 +1,4 @@
-export type MaterialType = 'PDF' | 'Excel' | 'Word' | 'Otro';
+export type MaterialType = 'PDF' | 'Excel' | 'Word' | 'Otro' | 'Video';
 
 export interface MaterialProps {
   id: string;

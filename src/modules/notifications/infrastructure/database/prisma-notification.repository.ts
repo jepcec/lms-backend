@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../../../../src/core/database/prisma.service';
 import { NotificationEntity } from '../../domain/notification.entity';
 import type { INotificationRepository } from '../../domain/notification.repository';
@@ -27,12 +27,15 @@ export class PrismaNotificationRepository implements INotificationRepository {
     };
   }
 
-  async markAsRead(id: string): Promise<NotificationEntity> {
-    const notification = await this.prisma.notification.update({
-      where: { id },
+  async markAsRead(id: string, userId: string): Promise<void> {
+    // Filtrar por user_id evita marcar notificaciones de otro usuario.
+    const { count } = await this.prisma.notification.updateMany({
+      where: { id, user_id: userId },
       data: { is_read: true },
     });
-    return new NotificationEntity(notification);
+    if (count === 0) {
+      throw new NotFoundException('Notificación no encontrada');
+    }
   }
 
   async markAllAsRead(userId: string): Promise<void> {

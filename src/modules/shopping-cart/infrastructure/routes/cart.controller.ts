@@ -54,8 +54,11 @@ export class CartController {
   }
 
   @Delete('remove/:id') // DELETE /cart/remove/:id
-  async removeItem(@Param('id') id: string) {
-    return this.removeItemUC.execute(id);
+  async removeItem(
+    @Param('id') id: string,
+    @CurrentUser('userId') userId?: string,
+  ) {
+    return this.removeItemUC.execute(id, userId);
   }
 
   @Delete('clear') // DELETE /cart/clear

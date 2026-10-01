@@ -37,19 +37,26 @@ import { GetSoftwaresUseCase } from './application/use-cases/get-softwares.use-c
 import { UploadThumbnailUseCase } from './application/use-cases/upload-thumbnail.use-case';
 import { AddInstructorUseCase } from './application/use-cases/add-instructor.use-case';
 import { RemoveInstructorUseCase } from './application/use-cases/remove-instructor.use-case';
-import { GetMatriculadosCursoUseCase } from './application/use-cases/get-matriculados-curso.use-case';
 import { GetCourseSoftwaresUseCase } from './application/use-cases/get-course-softwares.use-case';
+import { GetCourseReviewsUseCase } from './application/use-cases/get-course-reviews.use-case';
 import { ListCategoriasUseCase } from './application/use-cases/list-categorias.use-case';
 import { GetCategoriaUseCase } from './application/use-cases/get-categoria.use-case';
 import { CreateCategoriaUseCase } from './application/use-cases/create-categoria.use-case';
 import { UpdateCategoriaUseCase } from './application/use-cases/update-categoria.use-case';
 import { DeleteCategoriaUseCase } from './application/use-cases/delete-categoria.use-case';
 import { ReorderCategoriasUseCase } from './application/use-cases/reorder-categorias.use-case';
+import { GetTopCategoriasUseCase } from './application/use-cases/get-top-categorias.use-case';
 import { CertificationsController } from './infrastructure/routes/certifications.controller';
 import { GetCourseCertificationsUseCase } from './application/use-cases/get-course-certifications.use-case';
 import { ExportCertificationExcelUseCase } from './application/use-cases/export-certification-excel.use-case';
 import { ImportCertificationGradesUseCase } from './application/use-cases/import-certification-grades.use-case';
 import { EmitStudentCertificateUseCase } from './application/use-cases/emit-student-certificate.use-case';
+import { CoursesBulkController } from './infrastructure/routes/courses-bulk.controller';
+import { ExportCoursesExcelUseCase } from './application/use-cases/export-courses-excel.use-case';
+import { ExportCoursesJsonUseCase } from './application/use-cases/export-courses-json.use-case';
+import { ImportCoursesUseCase } from './application/use-cases/import-courses.use-case';
+import { ImportCoursesExcelUseCase } from './application/use-cases/import-courses-excel.use-case';
+import { ImportCoursesJsonUseCase } from './application/use-cases/import-courses-json.use-case';
 
 @Module({
   imports: [StorageModule, ConfigModule],
@@ -60,6 +67,7 @@ import { EmitStudentCertificateUseCase } from './application/use-cases/emit-stud
     MaterialsController,
     CategoriesController,
     CertificationsController,
+    CoursesBulkController,
   ],
   providers: [
     CreateCourseUseCase,
@@ -71,14 +79,15 @@ import { EmitStudentCertificateUseCase } from './application/use-cases/emit-stud
     UploadThumbnailUseCase,
     AddInstructorUseCase,
     RemoveInstructorUseCase,
-    GetMatriculadosCursoUseCase,
     GetCourseSoftwaresUseCase,
+    GetCourseReviewsUseCase,
     ListCategoriasUseCase,
     GetCategoriaUseCase,
     CreateCategoriaUseCase,
     UpdateCategoriaUseCase,
     DeleteCategoriaUseCase,
     ReorderCategoriasUseCase,
+    GetTopCategoriasUseCase,
     UpdateCourseUseCase,
     DeleteCourseUseCase,
     CreateModuleUseCase,
@@ -97,6 +106,11 @@ import { EmitStudentCertificateUseCase } from './application/use-cases/emit-stud
     ExportCertificationExcelUseCase,
     ImportCertificationGradesUseCase,
     EmitStudentCertificateUseCase,
+    ExportCoursesExcelUseCase,
+    ExportCoursesJsonUseCase,
+    ImportCoursesUseCase,
+    ImportCoursesExcelUseCase,
+    ImportCoursesJsonUseCase,
     { provide: I_COURSE_REPOSITORY, useClass: PrismaCourseRepository },
     { provide: I_MODULE_REPOSITORY, useClass: PrismaModuleRepository },
     { provide: I_SESSION_REPOSITORY, useClass: PrismaSessionRepository },
