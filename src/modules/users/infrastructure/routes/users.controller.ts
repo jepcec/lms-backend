@@ -1,6 +1,7 @@
 import {
   Controller,
   Get,
+  Header,
   Post,
   Patch,
   Delete,
@@ -64,6 +65,12 @@ export class UsersController {
 
     private readonly prisma: PrismaService,
   ) {}
+
+  @Get('me')
+  @Header('Cache-Control', 'no-store')
+  async getMe(@CurrentUser('userId') userId: string) {
+    return this.getProfile.execute(userId);
+  }
 
   @Get('profile/:id')
   async get(
