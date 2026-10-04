@@ -7,6 +7,7 @@ import {
   I_FILE_STORAGE_SERVICE,
   type IFileStorageService,
 } from '../../../storage/domain/file-storage.interface';
+import { replaceStoredImage } from '../../../storage/domain/replace-stored-image';
 import { UpdateUpcomingLaunchDto } from '../dtos/update-upcoming-launch.dto';
 
 @Injectable()
@@ -22,24 +23,33 @@ export class UpdateUpcomingLaunchUseCase {
     const launch = await this.launchRepository.findById(id);
     if (!launch) throw new NotFoundException('Lanzamiento no encontrado');
 
-    let imageUrl = dto.image_url ?? launch.image_url;
-    let imagePublicId = dto.image_public_id ?? launch.image_public_id;
+    const imageUrl = dto.image_url ?? launch.image_url;
+    const imagePublicId = dto.image_public_id ?? launch.image_public_id;
     const previousPublicId = launch.image_public_id;
 
     if (dto.image) {
-      if (previousPublicId) {
-        await this.fileStorageService.delete(previousPublicId);
-      }
-      const result = await this.fileStorageService.upload({
-        buffer: dto.image.buffer,
-        originalName: dto.image.originalname,
-        mimetype: dto.image.mimetype,
-        folder: 'upcoming-launches',
-      });
-      imageUrl = this.fileStorageService.getUrl(result.publicId, {
-        format: 'webp',
-      });
-      imagePublicId = result.publicId;
+      return replaceStoredImage(
+        this.fileStorageService,
+        {
+          buffer: dto.image.buffer,
+          originalName: dto.image.originalname,
+          mimetype: dto.image.mimetype,
+          folder: 'upcoming-launches',
+        },
+        previousPublicId,
+        (imageUrl, imagePublicId) =>
+          this.launchRepository.update(id, {
+            category_label: dto.category_label,
+            title: dto.title,
+            start_date: dto.start_date ? new Date(dto.start_date) : undefined,
+            image_url: imageUrl,
+            image_public_id: imagePublicId,
+            link_url: dto.link_url,
+            display_order: dto.display_order,
+            status: dto.status,
+          }),
+        { format: 'webp' },
+      );
     }
 
     return this.launchRepository.update(id, {

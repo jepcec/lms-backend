@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  Logger,
   Inject,
   Injectable,
   NotFoundException,
@@ -10,10 +11,9 @@ import {
   type IFileStorageService,
 } from '../../../storage/domain/file-storage.interface';
 import type { UpdateCertificateTemplateDto } from '../dtos/update-certificate-template.dto';
-import {
-  buildCertificateTemplateKey,
-  type CertificateTemplateOwnerType,
-} from './certificate-template-key.util';
+import { type CertificateTemplateOwnerType } from './certificate-template-key.util';
+
+const logger = new Logger('UpdateCertificateTemplateUseCase');
 
 @Injectable()
 export class UpdateCertificateTemplateUseCase {
@@ -37,15 +37,14 @@ export class UpdateCertificateTemplateUseCase {
       throw new NotFoundException(`Plantilla de certificado no encontrada`);
     }
 
-    // El dueño se deriva de las relaciones existentes (una plantilla siempre
-    // tiene un único dueño), para reconstruir la misma ruta determinística
-    // que se usó al crearla y sobrescribir el archivo en vez de duplicarlo.
-    let owner: { type: CertificateTemplateOwnerType; id: string } | null =
-      null;
+    let owner: { type: CertificateTemplateOwnerType; id: string } | null = null;
     if (template.courses[0]) {
       owner = { type: 'course_certificado', id: template.courses[0].id };
     } else if (template.constancia_courses[0]) {
-      owner = { type: 'course_constancia', id: template.constancia_courses[0].id };
+      owner = {
+        type: 'course_constancia',
+        id: template.constancia_courses[0].id,
+      };
     } else if (template.modules[0]) {
       owner = { type: 'module', id: template.modules[0].id };
     }
@@ -69,43 +68,67 @@ export class UpdateCertificateTemplateUseCase {
       updateData.qr_size = parseInt(String(dto.qr_size), 10);
     if (dto.font_sizes) updateData.font_sizes = JSON.parse(dto.font_sizes);
 
-    if (dto.background_image) {
-      const result = await this.fileStorageService.upload({
-        buffer: dto.background_image.buffer,
-        originalName: dto.background_image.originalname,
-        mimetype: dto.background_image.mimetype,
-        key: owner
-          ? buildCertificateTemplateKey(owner.type, owner.id, 'front')
-          : undefined,
-        folder: 'certificate-templates',
-      });
-      updateData.background_image_url = this.fileStorageService.getUrl(
-        result.publicId,
-        { format: 'png' },
-      );
-      updateData.background_image_public_id = result.publicId;
-    }
+    const uploadedIds: string[] = [];
+    const previousIds: string[] = [];
+    try {
+      if (dto.background_image) {
+        const result = await this.fileStorageService.upload({
+          buffer: dto.background_image.buffer,
+          originalName: dto.background_image.originalname,
+          mimetype: dto.background_image.mimetype,
+          folder: 'certificate-templates',
+        });
+        uploadedIds.push(result.publicId);
+        if (template.background_image_public_id)
+          previousIds.push(template.background_image_public_id);
+        updateData.background_image_url = this.fileStorageService.getUrl(
+          result.publicId,
+          { format: 'png' },
+        );
+        updateData.background_image_public_id = result.publicId;
+      }
 
-    if (dto.back_image) {
-      const result = await this.fileStorageService.upload({
-        buffer: dto.back_image.buffer,
-        originalName: dto.back_image.originalname,
-        mimetype: dto.back_image.mimetype,
-        key: owner
-          ? buildCertificateTemplateKey(owner.type, owner.id, 'back')
-          : undefined,
-        folder: 'certificate-templates',
-      });
-      updateData.back_image_url = this.fileStorageService.getUrl(
-        result.publicId,
-        { format: 'png' },
-      );
-      updateData.back_image_public_id = result.publicId;
-    }
+      if (dto.back_image) {
+        const result = await this.fileStorageService.upload({
+          buffer: dto.back_image.buffer,
+          originalName: dto.back_image.originalname,
+          mimetype: dto.back_image.mimetype,
+          folder: 'certificate-templates',
+        });
+        uploadedIds.push(result.publicId);
+        if (template.back_image_public_id)
+          previousIds.push(template.back_image_public_id);
+        updateData.back_image_url = this.fileStorageService.getUrl(
+          result.publicId,
+          { format: 'png' },
+        );
+        updateData.back_image_public_id = result.publicId;
+      }
 
-    return this.prisma.certificateTemplate.update({
-      where: { id },
-      data: updateData,
-    });
+      const saved = await this.prisma.certificateTemplate.update({
+        where: { id },
+        data: updateData,
+      });
+      for (const oldId of previousIds) {
+        try {
+          await this.fileStorageService.delete(oldId);
+        } catch (error) {
+          logger.error(`No se pudo retirar la imagen anterior ${oldId}`, error);
+        }
+      }
+      return saved;
+    } catch (error) {
+      for (const newId of uploadedIds) {
+        try {
+          await this.fileStorageService.delete(newId);
+        } catch (cleanupError) {
+          logger.error(
+            `No se pudo limpiar la nueva imagen ${newId}`,
+            cleanupError,
+          );
+        }
+      }
+      throw error;
+    }
   }
 }

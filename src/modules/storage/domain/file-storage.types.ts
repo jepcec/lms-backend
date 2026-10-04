@@ -4,11 +4,9 @@ export interface UploadFileOptions {
   mimetype: string;
   folder?: string;
   /**
-   * Ruta/nombre exacto a usar (sin sufijo aleatorio). Si se informa, subidas
-   * sucesivas con la misma key sobrescriben el archivo anterior en vez de
-   * generar uno nuevo — usado para assets con dueño único (ej. plantillas
-   * de certificado), donde el path ya identifica de forma determinística
-   * a quién pertenece el archivo.
+   * Prefijo lógico controlado por el servidor. Local y Cloudinary conservan
+   * su comportamiento histórico de sobrescritura; S3 genera una clave nueva
+   * por versión bajo este prefijo.
    */
   key?: string;
 }

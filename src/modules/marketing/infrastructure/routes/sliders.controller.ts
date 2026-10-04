@@ -1,5 +1,6 @@
 import {
   Body,
+  BadRequestException,
   Controller,
   Delete,
   Get,
@@ -62,6 +63,7 @@ export class SlidersController {
     @Param('id') id: string,
     @UploadedFile() file: Express.Multer.File,
   ) {
+    if (!file) throw new BadRequestException('Imagen requerida');
     return this.uploadSliderImageUseCase.execute(id, file);
   }
 }

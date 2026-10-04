@@ -4,6 +4,7 @@ import {
   I_FILE_STORAGE_SERVICE,
   type IFileStorageService,
 } from '../../../storage/domain/file-storage.interface';
+import { replaceStoredImage } from '../../../storage/domain/replace-stored-image';
 
 @Injectable()
 export class UploadSliderImageUseCase {
@@ -17,37 +18,26 @@ export class UploadSliderImageUseCase {
     const slider = await this.prisma.slider.findUnique({
       where: { id: sliderId },
     });
+    if (!slider) throw new NotFoundException('Slider no encontrado');
 
-    if (!slider) {
-      throw new NotFoundException('Slider no encontrado');
-    }
-
-    if (slider.image_public_id) {
-      await this.fileStorageService.delete(slider.image_public_id);
-    }
-
-    const result = await this.fileStorageService.upload({
-      buffer: file.buffer,
-      originalName: file.originalname,
-      mimetype: file.mimetype,
-      folder: 'sliders',
-    });
-
-    const imageUrl = this.fileStorageService.getUrl(result.publicId, {
-      format: 'webp',
-    });
-
-    await this.prisma.slider.update({
-      where: { id: sliderId },
-      data: {
-        image_url: imageUrl,
-        image_public_id: result.publicId,
+    const imageUrl = await replaceStoredImage(
+      this.fileStorageService,
+      {
+        buffer: file.buffer,
+        originalName: file.originalname,
+        mimetype: file.mimetype,
+        folder: 'sliders',
       },
-    });
-
-    return {
-      success: true,
-      image_url: imageUrl,
-    };
+      slider.image_public_id,
+      async (url, publicId) => {
+        await this.prisma.slider.update({
+          where: { id: sliderId },
+          data: { image_url: url, image_public_id: publicId },
+        });
+        return url;
+      },
+      { format: 'webp' },
+    );
+    return { success: true, image_url: imageUrl };
   }
 }

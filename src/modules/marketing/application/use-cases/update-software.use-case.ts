@@ -7,6 +7,7 @@ import {
   I_FILE_STORAGE_SERVICE,
   type IFileStorageService,
 } from '../../../storage/domain/file-storage.interface';
+import { replaceStoredImage } from '../../../storage/domain/replace-stored-image';
 import { UpdateSoftwareDto } from '../dtos/update-software.dto';
 
 @Injectable()
@@ -22,24 +23,30 @@ export class UpdateSoftwareUseCase {
     const software = await this.softwareRepository.findById(id);
     if (!software) throw new NotFoundException('Software no encontrado');
 
-    let imageUrl = dto.image_url ?? software.image_url;
-    let imagePublicId = dto.image_public_id ?? software.image_public_id;
+    const imageUrl = dto.image_url ?? software.image_url;
+    const imagePublicId = dto.image_public_id ?? software.image_public_id;
     const previousPublicId = software.image_public_id;
 
     if (dto.image) {
-      if (previousPublicId) {
-        await this.fileStorageService.delete(previousPublicId);
-      }
-      const result = await this.fileStorageService.upload({
-        buffer: dto.image.buffer,
-        originalName: dto.image.originalname,
-        mimetype: dto.image.mimetype,
-        folder: 'softwares',
-      });
-      imageUrl = this.fileStorageService.getUrl(result.publicId, {
-        format: 'webp',
-      });
-      imagePublicId = result.publicId;
+      return replaceStoredImage(
+        this.fileStorageService,
+        {
+          buffer: dto.image.buffer,
+          originalName: dto.image.originalname,
+          mimetype: dto.image.mimetype,
+          folder: 'softwares',
+        },
+        previousPublicId,
+        (imageUrl, imagePublicId) =>
+          this.softwareRepository.update(id, {
+            name: dto.name,
+            image_url: imageUrl,
+            image_public_id: imagePublicId,
+            display_order: dto.display_order,
+            status: dto.status,
+          }),
+        { format: 'webp' },
+      );
     }
 
     return this.softwareRepository.update(id, {

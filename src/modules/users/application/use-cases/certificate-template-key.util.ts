@@ -16,9 +16,8 @@ const KIND: Record<CertificateTemplateOwnerType, string> = {
 };
 
 /**
- * Ruta determinística para el asset de una plantilla, según su dueño único
- * (curso o módulo). Subir dos veces con la misma key sobrescribe el archivo
- * anterior en vez de generar un huérfano.
+ * Ruta lógica inicial para el asset de una plantilla, según su dueño único
+ * (curso o módulo). El comportamiento físico de la clave depende del proveedor.
  */
 export function buildCertificateTemplateKey(
   ownerType: CertificateTemplateOwnerType,
