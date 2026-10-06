@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../../../src/core/database/prisma.service';
+import { fuzzySearchIds } from '../../../../../src/core/database/fuzzy-search';
 import { CursoParams } from '../dtos/curso-params.dto';
 
 @Injectable()
@@ -13,11 +14,12 @@ export class GetAllCoursesUseCase {
 
     const where: Record<string, unknown> = { deleted_at: null };
 
-    // Búsqueda por texto
+    // Búsqueda por texto: tolerante (sin tildes, palabra por palabra, errores de
+    // tipeo) en título y tagline; en la descripción, coincidencia literal como antes
     if (params.search) {
+      const ids = await fuzzySearchIds(this.prisma, 'courses', ['title', 'tagline'], params.search);
       where.OR = [
-        { title: { contains: params.search, mode: 'insensitive' } },
-        { tagline: { contains: params.search, mode: 'insensitive' } },
+        { id: { in: ids } },
         { description: { contains: params.search, mode: 'insensitive' } },
       ];
     }

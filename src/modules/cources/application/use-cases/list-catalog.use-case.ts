@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../../../src/core/database/prisma.service';
+import { fuzzySearchIds } from '../../../../../src/core/database/fuzzy-search';
 import { CursoParams } from '../dtos/curso-params.dto';
 
 @Injectable()
@@ -17,14 +18,9 @@ export class ListCatalogUseCase {
     };
 
     if (params.search) {
-      // unaccent() para que "jose", "José" y "JOSÉ" encuentren lo mismo (mode: 'insensitive'
-      // de Prisma ya cubre mayúsculas/minúsculas, pero no tildes/diacríticos).
-      const matches = await this.prisma.$queryRaw<{ id: string }[]>`
-        SELECT id FROM courses
-        WHERE unaccent(title) ILIKE unaccent(${'%' + params.search + '%'})
-           OR unaccent(tagline) ILIKE unaccent(${'%' + params.search + '%'})
-      `;
-      where.id = { in: matches.map((c) => c.id) };
+      // Búsqueda tolerante: "jose", "José" y "JOSÉ" encuentran lo mismo, palabra por
+      // palabra y aceptando errores de tipeo (ver core/database/fuzzy-search.ts)
+      where.id = { in: await fuzzySearchIds(this.prisma, 'courses', ['title', 'tagline'], params.search) };
     }
 
     if (params.categoria_id) {

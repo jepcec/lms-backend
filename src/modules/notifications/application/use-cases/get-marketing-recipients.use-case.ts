@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/core/database/prisma.service';
+import { userSearchWhere } from 'src/core/database/fuzzy-search';
 import type { NotificationRecipient } from '../dtos/marketing-notification.dto';
 
 @Injectable()
@@ -26,13 +27,8 @@ export class GetMarketingRecipientsUseCase {
     const where: Record<string, unknown> = { course_id: courseId };
 
     if (search) {
-      where.student = {
-        OR: [
-          { first_name: { contains: search, mode: 'insensitive' } },
-          { last_name: { contains: search, mode: 'insensitive' } },
-          { email: { contains: search, mode: 'insensitive' } },
-        ],
-      };
+      // Tolerante: sin tildes, palabra por palabra y con errores de tipeo
+      where.student = { OR: (await userSearchWhere(this.prisma, search)).OR };
     }
 
     const enrollments = await this.prisma.enrollment.findMany({
@@ -62,11 +58,7 @@ export class GetMarketingRecipientsUseCase {
     };
 
     if (search) {
-      where.OR = [
-        { first_name: { contains: search, mode: 'insensitive' } },
-        { last_name: { contains: search, mode: 'insensitive' } },
-        { email: { contains: search, mode: 'insensitive' } },
-      ];
+      where.OR = (await userSearchWhere(this.prisma, search)).OR;
     }
 
     const users = await this.prisma.user.findMany({

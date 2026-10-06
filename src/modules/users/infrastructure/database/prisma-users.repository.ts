@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { IUserRepository } from '../../domain/users.repository';
 import { PrismaService } from 'src/core/database/prisma.service';
+import { userSearchWhere } from 'src/core/database/fuzzy-search';
 import { UserEntity } from '../../domain/user.entity';
 
 @Injectable()
@@ -176,11 +177,8 @@ export class PrismaUserRepository implements IUserRepository {
     const where: any = { deleted_at: null };
 
     if (search) {
-      where.OR = [
-        { first_name: { contains: search, mode: 'insensitive' } },
-        { last_name: { contains: search, mode: 'insensitive' } },
-        { email: { contains: search, mode: 'insensitive' } },
-      ];
+      // Tolerante: sin tildes, palabra por palabra y con errores de tipeo
+      where.OR = (await userSearchWhere(this.prisma, search)).OR;
     }
 
     if (role) where.role = role;
