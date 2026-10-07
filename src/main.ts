@@ -13,6 +13,12 @@ async function bootstrap() {
     bufferLogs: true,
   });
   app.useLogger(app.get(Logger));
+  // En producción, /api llega desde el proxy inmediato de Next.js en lms-net.
+  // Confiar en un solo salto permite que req.ip use la IP que Next reenvía en
+  // X-Forwarded-For, sin confiar en toda la cadena enviada por el cliente.
+  if (process.env.NODE_ENV === 'production') {
+    app.set('trust proxy', 1);
+  }
   app.setGlobalPrefix('api');
 
   // Servir archivos estáticos del storage local (solo dev — en prod se usa Cloudinary)
