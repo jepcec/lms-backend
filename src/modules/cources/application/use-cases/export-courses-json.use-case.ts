@@ -1,13 +1,15 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../../core/database/prisma.service';
+import type { CursoParams } from '../dtos/curso-params.dto';
+import { buildCourseFilterWhere, buildCourseOrderBy } from '../utils/course-filters';
 
 @Injectable()
 export class ExportCoursesJsonUseCase {
   constructor(private readonly prisma: PrismaService) {}
 
-  async execute() {
+  async execute(params: CursoParams = {}) {
     const courses = await this.prisma.course.findMany({
-      where: { deleted_at: null },
+      where: await buildCourseFilterWhere(this.prisma, params),
       include: {
         category: { select: { slug: true } },
         instructors: {
@@ -31,7 +33,9 @@ export class ExportCoursesJsonUseCase {
               select: {
                 title: true,
                 description: true,
+                video_provider: true,
                 youtube_url: true,
+                drive_url: true,
                 duration_minutes: true,
                 display_order: true,
                 materials: {
@@ -42,7 +46,7 @@ export class ExportCoursesJsonUseCase {
           },
         },
       },
-      orderBy: { created_at: 'asc' },
+      orderBy: buildCourseOrderBy(params.sort),
     });
 
     return courses.map((course) => ({

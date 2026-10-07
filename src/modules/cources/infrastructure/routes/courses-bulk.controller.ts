@@ -3,6 +3,7 @@ import {
   Get,
   Post,
   Body,
+  Query,
   Res,
   UseInterceptors,
   UploadedFile,
@@ -16,6 +17,7 @@ import { ExportCoursesExcelUseCase } from '../../application/use-cases/export-co
 import { ExportCoursesJsonUseCase } from '../../application/use-cases/export-courses-json.use-case';
 import { ImportCoursesExcelUseCase } from '../../application/use-cases/import-courses-excel.use-case';
 import { ImportCoursesJsonUseCase } from '../../application/use-cases/import-courses-json.use-case';
+import { CursoParams } from '../../application/dtos/curso-params.dto';
 
 @Controller('courses/bulk')
 @Roles('admin', 'soporte')
@@ -27,10 +29,13 @@ export class CoursesBulkController {
     private readonly importJson: ImportCoursesJsonUseCase,
   ) {}
 
+  // Ambas exportaciones reciben los mismos filtros que el listado del panel
+  // (search, status, categoria_id, ...) y exportan todos los cursos que los
+  // cumplen, sin paginar.
   @Get('export/excel')
-  async exportToExcel(@Res() res: any) {
+  async exportToExcel(@Query() params: CursoParams, @Res() res: any) {
     const response = res as Response;
-    const buffer = await this.exportExcel.execute();
+    const buffer = await this.exportExcel.execute(params);
     response.setHeader(
       'Content-Type',
       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
@@ -43,8 +48,8 @@ export class CoursesBulkController {
   }
 
   @Get('export/json')
-  async exportToJson() {
-    return this.exportJson.execute();
+  async exportToJson(@Query() params: CursoParams) {
+    return this.exportJson.execute(params);
   }
 
   @Post('import/excel')

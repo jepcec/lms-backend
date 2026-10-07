@@ -41,7 +41,9 @@ export class ImportCoursesJsonUseCase {
           (s: any) => ({
             title: s?.title ?? '',
             description: s?.description,
-            youtube_url: s?.youtube_url ?? '',
+            video_provider: s?.video_provider ?? undefined,
+            youtube_url: s?.youtube_url ?? undefined,
+            drive_url: s?.drive_url ?? undefined,
             duration_minutes: Number(s?.duration_minutes),
             display_order: s?.display_order,
             materials: (Array.isArray(s?.materials) ? s.materials : []).map(

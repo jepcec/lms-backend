@@ -75,9 +75,11 @@ export class ImportCoursesExcelUseCase {
       list.push({
         title: cellText(row, 3),
         description: cellText(row, 4) || undefined,
-        youtube_url: cellText(row, 5),
+        youtube_url: cellText(row, 5) || undefined,
         duration_minutes: cellNumber(row, 6),
         display_order: cellText(row, 7) ? cellNumber(row, 7) : undefined,
+        video_provider: cellText(row, 8) || undefined,
+        drive_url: cellText(row, 9) || undefined,
         materials: materialesBySesionId.get(sesionId) ?? [],
       });
       sesionesByModuloId.set(moduloId, list);

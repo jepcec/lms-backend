@@ -1,14 +1,15 @@
 import { Injectable } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { PrismaService } from '../../../../core/database/prisma.service';
-import { PaymentStatus } from '../../../../generated/prisma/enums';
 import { EnrollmentCreatedEvent } from '../../../notifications/domain/events/enrollment-created.event';
+import { confirmPaidOrder } from '../services/course-access';
 
 /**
- * Punto único para confirmar el pago de una orden y matricular al estudiante.
- * Lo reusan todas las pasarelas (Mercado Pago, Culqi, ...) tanto en el flujo
- * síncrono (al aprobarse el pago) como en sus webhooks — es idempotente:
- * si la orden ya está marcada como pagada, no vuelve a matricular.
+ * Punto único para confirmar el pago de una orden y dar acceso a sus cursos.
+ * Lo reusan todas las pasarelas (Mercado Pago, Culqi, PayPal) tanto en el
+ * flujo síncrono como en sus webhooks. Es idempotente por orden (ver
+ * confirmPaidOrder): un mismo pago nunca matricula ni renueva dos veces.
+ * Si el estudiante ya tenía el curso, el pago es una renovación.
  */
 @Injectable()
 export class ConfirmOrderAndEnrollUseCase {
@@ -18,86 +19,18 @@ export class ConfirmOrderAndEnrollUseCase {
   ) {}
 
   async execute(orderId: string, gatewayId: string, method: string) {
-    const result = await this.prisma.$transaction(async (tx) => {
-      const order = await tx.order.update({
-        where: { id: orderId },
-        data: {
-          payment_status: PaymentStatus.paid,
-          gateway_transaction_id: gatewayId,
-          payment_method: method as any,
-        },
-        include: {
-          order_items: {
-            include: { course: { select: { access_duration_months: true } } },
-          },
-        },
-      });
+    const { order, grants } = await this.prisma.$transaction((tx) =>
+      confirmPaidOrder(tx, { orderId, gatewayId, method }),
+    );
 
-      const enrolled: { course_id: string; title: string; slug: string }[] = [];
-
-      for (const item of order.order_items) {
-        const existingEnrollment = await tx.enrollment.findUnique({
-          where: {
-            user_id_course_id: {
-              user_id: order.user_id,
-              course_id: item.course_id,
-            },
-          },
-        });
-
-        if (!existingEnrollment) {
-          const accessExpiresAt = new Date();
-          accessExpiresAt.setMonth(
-            accessExpiresAt.getMonth() + item.course.access_duration_months,
-          );
-
-          const enrollment = await tx.enrollment.create({
-            data: {
-              user_id: order.user_id,
-              course_id: item.course_id,
-              order_id: order.id,
-              enrollment_type: 'online',
-              progress_percent: 0,
-              access_expires_at: accessExpiresAt,
-            },
-            include: { course: { select: { title: true, slug: true } } },
-          });
-
-          await tx.course.update({
-            where: { id: item.course_id },
-            data: { enrolled_count: { increment: 1 } },
-          });
-
-          enrolled.push({
-            course_id: item.course_id,
-            title: enrollment.course.title,
-            slug: enrollment.course.slug,
-          });
-        }
-      }
-
-      await tx.cartItem.deleteMany({ where: { user_id: order.user_id } });
-
-      return {
-        success: true,
-        order_number: order.order_number,
-        user_id: order.user_id,
-        enrolled,
-      };
-    });
-
-    for (const enrollment of result.enrolled) {
+    for (const grant of grants) {
+      if (grant.kind !== 'created') continue;
       this.eventEmitter.emit(
         EnrollmentCreatedEvent.EVENT,
-        new EnrollmentCreatedEvent(
-          result.user_id,
-          enrollment.course_id,
-          enrollment.title,
-          enrollment.slug,
-        ),
+        new EnrollmentCreatedEvent(order.user_id, grant.course_id, grant.title, grant.slug),
       );
     }
 
-    return { success: result.success, order_number: result.order_number };
+    return { success: true, order_number: order.order_number };
   }
 }

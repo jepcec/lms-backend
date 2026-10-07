@@ -9,6 +9,7 @@ import { MercadoPagoAdapter } from '../../infrastructure/adapters/mercadopago.ad
 import { ProcessBrickPaymentDto } from '../dtos/process-brick-payment.dto';
 import { PaymentStatus } from '../../../../generated/prisma/enums';
 import { EnrollmentCreatedEvent } from '../../../notifications/domain/events/enrollment-created.event';
+import { confirmPaidOrder } from '../../../orders/application/services/course-access';
 
 @Injectable()
 export class ProcessPaymentCallbackUseCase {
@@ -103,86 +104,20 @@ export class ProcessPaymentCallbackUseCase {
     gatewayId: string,
     method: string,
   ) {
-    const result = await this.prisma.$transaction(async (tx) => {
-      const order = await tx.order.update({
-        where: { id: orderId },
-        data: {
-          payment_status: PaymentStatus.paid,
-          gateway_transaction_id: gatewayId,
-          payment_method: method as any,
-        },
-        include: {
-          order_items: {
-            include: { course: { select: { access_duration_months: true } } },
-          },
-        },
-      });
+    // Misma lógica que ConfirmOrderAndEnrollUseCase (orders): idempotente por
+    // orden y con renovación si el estudiante ya tenía el curso.
+    const { order, grants } = await this.prisma.$transaction((tx) =>
+      confirmPaidOrder(tx, { orderId, gatewayId, method }),
+    );
 
-      const enrolled: { course_id: string; title: string; slug: string }[] = [];
-
-      for (const item of order.order_items) {
-        const existingEnrollment = await tx.enrollment.findUnique({
-          where: {
-            user_id_course_id: {
-              user_id: order.user_id,
-              course_id: item.course_id,
-            },
-          },
-        });
-
-        if (!existingEnrollment) {
-          const accessExpiresAt = new Date();
-          accessExpiresAt.setMonth(
-            accessExpiresAt.getMonth() + item.course.access_duration_months,
-          );
-
-          const enrollment = await tx.enrollment.create({
-            data: {
-              user_id: order.user_id,
-              course_id: item.course_id,
-              order_id: order.id,
-              enrollment_type: 'online',
-              progress_percent: 0,
-              access_expires_at: accessExpiresAt,
-            },
-            include: { course: { select: { title: true, slug: true } } },
-          });
-
-          await tx.course.update({
-            where: { id: item.course_id },
-            data: { enrolled_count: { increment: 1 } },
-          });
-
-          enrolled.push({
-            course_id: item.course_id,
-            title: enrollment.course.title,
-            slug: enrollment.course.slug,
-          });
-        }
-      }
-
-      await tx.cartItem.deleteMany({ where: { user_id: order.user_id } });
-
-      return {
-        success: true,
-        order_number: order.order_number,
-        user_id: order.user_id,
-        enrolled,
-      };
-    });
-
-    for (const enrollment of result.enrolled) {
+    for (const grant of grants) {
+      if (grant.kind !== 'created') continue;
       this.eventEmitter.emit(
         EnrollmentCreatedEvent.EVENT,
-        new EnrollmentCreatedEvent(
-          result.user_id,
-          enrollment.course_id,
-          enrollment.title,
-          enrollment.slug,
-        ),
+        new EnrollmentCreatedEvent(order.user_id, grant.course_id, grant.title, grant.slug),
       );
     }
 
-    return { success: result.success, order_number: result.order_number };
+    return { success: true, order_number: order.order_number };
   }
 }

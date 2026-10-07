@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { IModuleRepository } from '../../domain/modules.repository';
 import { PrismaService } from 'src/core/database/prisma.service';
 import { ModuleEntity } from '../../domain/module.entity';
+import { recalculateCourseDuration } from './course-duration';
 
 @Injectable()
 export class PrismaModuleRepository implements IModuleRepository {
@@ -61,6 +62,11 @@ export class PrismaModuleRepository implements IModuleRepository {
   }
 
   async delete(id: string): Promise<void> {
-    await this.prisma.module.delete({ where: { id } });
+    // Borrar el módulo borra sus sesiones en cascada: las horas del curso cambian.
+    const deleted = await this.prisma.module.delete({
+      where: { id },
+      select: { course_id: true },
+    });
+    await recalculateCourseDuration(this.prisma, deleted.course_id);
   }
 }

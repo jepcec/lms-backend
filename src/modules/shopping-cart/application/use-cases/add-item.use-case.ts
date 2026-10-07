@@ -19,13 +19,17 @@ export class AddItemUseCase {
       );
     }
 
-    // 1. Validación: ¿Ya está matriculado? (Solo si hay user_id)
+    // 1. Si ya está matriculado, comprar el curso es una renovación (suma los
+    //    meses de acceso al pagar). Solo no tiene sentido si su acceso no vence.
     if (user_id) {
-      const isEnrolled = await this.prisma.enrollment.findUnique({
+      const enrollment = await this.prisma.enrollment.findUnique({
         where: { user_id_course_id: { user_id, course_id } },
+        select: { access_expires_at: true },
       });
-      if (isEnrolled)
-        throw new BadRequestException('Ya estás matriculado en este curso.');
+      if (enrollment && !enrollment.access_expires_at)
+        throw new BadRequestException(
+          'Ya tienes acceso sin fecha de vencimiento a este curso.',
+        );
     }
 
     // 2. Validación: ¿Ya está en el carrito?

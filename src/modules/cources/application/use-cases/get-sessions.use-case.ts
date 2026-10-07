@@ -23,9 +23,11 @@ export class GetSessionsUseCase {
       id: s.id,
       title: s.title,
       description: s.description,
+      video_provider: s.video_provider,
       ...(includeVideo && {
         youtube_url: s.youtube_url,
         youtube_video_id: s.youtube_video_id,
+        drive_url: s.drive_url,
       }),
       duration_minutes: s.duration_minutes,
       display_order: s.display_order,
@@ -40,9 +42,11 @@ export class GetSessionsUseCase {
       id: session.id,
       title: session.title,
       description: session.description,
+      video_provider: session.video_provider,
       ...(includeVideo && {
         youtube_url: session.youtube_url,
         youtube_video_id: session.youtube_video_id,
+        drive_url: session.drive_url,
       }),
       duration_minutes: session.duration_minutes,
       display_order: session.display_order,

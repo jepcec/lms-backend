@@ -53,6 +53,11 @@ enum CourseStatus {
   archived
 }
 
+enum VideoProvider {
+  youtube
+  drive
+}
+
 enum MaterialType {
   PDF
   Excel
@@ -292,8 +297,12 @@ model Session {
   module_id        String    @db.Uuid
   title            String
   description      String?
-  youtube_url      String
-  youtube_video_id String
+  // Fuente del video principal. youtube → youtube_url/youtube_video_id;
+  // drive → drive_url (archivo compartido como "Cualquier persona con el enlace").
+  video_provider   VideoProvider @default(youtube)
+  youtube_url      String?
+  youtube_video_id String?
+  drive_url        String?
   duration_minutes Int
   display_order    Int
   created_at       DateTime  @default(now())

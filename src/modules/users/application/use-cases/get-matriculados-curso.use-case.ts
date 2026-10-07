@@ -76,6 +76,7 @@ export class GetMatriculadosCursoUseCase {
         progress_percent: enrollment.progress_percent.toNumber(),
         last_accessed_at: enrollment.last_accessed_at?.toISOString(),
         suspended_at: enrollment.suspended_at?.toISOString() ?? null,
+        access_expires_at: enrollment.access_expires_at?.toISOString() ?? null,
         status: enrollment.suspended_at
           ? 'suspendido'
           : enrollment.completed_at

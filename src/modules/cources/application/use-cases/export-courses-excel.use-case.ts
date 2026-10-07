@@ -1,6 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../../core/database/prisma.service';
 import * as ExcelJS from 'exceljs';
+import type { CursoParams } from '../dtos/curso-params.dto';
+import { buildCourseFilterWhere, buildCourseOrderBy } from '../utils/course-filters';
 
 const LIST_SEP = ' | ';
 
@@ -8,9 +10,9 @@ const LIST_SEP = ' | ';
 export class ExportCoursesExcelUseCase {
   constructor(private readonly prisma: PrismaService) {}
 
-  async execute(): Promise<Buffer> {
+  async execute(params: CursoParams = {}): Promise<Buffer> {
     const courses = await this.prisma.course.findMany({
-      where: { deleted_at: null },
+      where: await buildCourseFilterWhere(this.prisma, params),
       include: {
         category: { select: { slug: true } },
         instructors: { orderBy: { display_order: 'asc' } },
@@ -24,7 +26,7 @@ export class ExportCoursesExcelUseCase {
           },
         },
       },
-      orderBy: { created_at: 'asc' },
+      orderBy: buildCourseOrderBy(params.sort),
     });
 
     const workbook = new ExcelJS.Workbook();
@@ -84,6 +86,10 @@ export class ExportCoursesExcelUseCase {
         'youtube_url',
         'duration_minutes',
         'display_order',
+        // Al final para que los archivos anteriores (sin estas columnas) sigan
+        // importándose como sesiones de YouTube.
+        'video_provider',
+        'drive_url',
       ]),
     );
     styleHeader(
@@ -152,9 +158,11 @@ export class ExportCoursesExcelUseCase {
             moduloId,
             ses.title,
             ses.description ?? '',
-            ses.youtube_url,
+            ses.youtube_url ?? '',
             ses.duration_minutes,
             ses.display_order,
+            ses.video_provider,
+            ses.drive_url ?? '',
           ]);
 
           for (const mat of ses.materials) {

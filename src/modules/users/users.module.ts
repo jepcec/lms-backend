@@ -63,6 +63,7 @@ import { GetTopEstudiantesUseCase } from './application/use-cases/get-top-estudi
 import { GetMatriculadosCursoUseCase } from './application/use-cases/get-matriculados-curso.use-case';
 import { SuspendEnrollmentUseCase } from './application/use-cases/suspend-enrollment.use-case';
 import { ReactivateEnrollmentUseCase } from './application/use-cases/reactivate-enrollment.use-case';
+import { ExtendEnrollmentAccessUseCase } from './application/use-cases/extend-enrollment-access.use-case';
 import { GetActividadEstudianteUseCase } from './application/use-cases/get-actividad-estudiante.use-case';
 import { GetUsuarioUseCase } from './application/use-cases/get-usuario.use-case';
 import { CreateUsuarioUseCase } from './application/use-cases/create-usuario.use-case';
@@ -163,6 +164,7 @@ import { ExportDashboardExcelUseCase } from './application/use-cases/export-dash
     DeleteEnrollmentUseCase,
     SuspendEnrollmentUseCase,
     ReactivateEnrollmentUseCase,
+    ExtendEnrollmentAccessUseCase,
     ExportMatriculadosCursoExcelUseCase,
     ExportDashboardExcelUseCase,
     CryptoTokenService,

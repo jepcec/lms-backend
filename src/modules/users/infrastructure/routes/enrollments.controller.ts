@@ -17,6 +17,7 @@ import { CreateMatriculasDto } from '../../application/dtos/create-matriculas.dt
 import { DeleteEnrollmentUseCase } from '../../application/use-cases/delete-enrollment.use-case';
 import { SuspendEnrollmentUseCase } from '../../application/use-cases/suspend-enrollment.use-case';
 import { ReactivateEnrollmentUseCase } from '../../application/use-cases/reactivate-enrollment.use-case';
+import { ExtendEnrollmentAccessUseCase } from '../../application/use-cases/extend-enrollment-access.use-case';
 
 @Controller('enrollments')
 @Roles('admin', 'soporte', 'coordinador')
@@ -27,6 +28,7 @@ export class EnrollmentsController {
     private readonly deleteEnrollment: DeleteEnrollmentUseCase,
     private readonly suspendEnrollment: SuspendEnrollmentUseCase,
     private readonly reactivateEnrollment: ReactivateEnrollmentUseCase,
+    private readonly extendEnrollmentAccess: ExtendEnrollmentAccessUseCase,
   ) {}
 
   @Get()
@@ -58,5 +60,19 @@ export class EnrollmentsController {
     @CurrentUser('userId') userId: string,
   ) {
     return this.reactivateEnrollment.execute(id, userId);
+  }
+
+  // Body opcional { months }: por defecto los meses de vigencia del curso.
+  @Patch(':id/extender-acceso')
+  async extendAccess(
+    @Param('id') id: string,
+    @Body('months') months: number | undefined,
+    @CurrentUser('userId') userId: string,
+  ) {
+    return this.extendEnrollmentAccess.execute(
+      id,
+      userId,
+      months === undefined || months === null ? undefined : Number(months),
+    );
   }
 }

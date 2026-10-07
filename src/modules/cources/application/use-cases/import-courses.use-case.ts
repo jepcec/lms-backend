@@ -4,10 +4,13 @@ import { CreateCourseUseCase } from './create-course.use-case';
 import { CreateModuleUseCase } from './create-module.use-case';
 import { CreateSessionUseCase } from './create-session.use-case';
 import { CreateMaterialUseCase } from './create-material.use-case';
+import type { VideoProvider } from '../../domain/session.entity';
+import { parseGoogleDriveLink } from '../../infrastructure/services/google-drive-link';
 
 const LEVELS = ['principiante', 'intermedio', 'avanzado'];
 const STATUSES = ['draft', 'published', 'archived'];
 const MATERIAL_TYPES = ['PDF', 'Excel', 'Word', 'Otro', 'Video'];
+const VIDEO_PROVIDERS = ['youtube', 'drive'];
 
 export interface ImportMaterialInput {
   name: string;
@@ -18,7 +21,10 @@ export interface ImportMaterialInput {
 export interface ImportSessionInput {
   title: string;
   description?: string;
-  youtube_url: string;
+  /** 'youtube' (por defecto) | 'drive'. */
+  video_provider?: string;
+  youtube_url?: string;
+  drive_url?: string;
   duration_minutes: number;
   display_order?: number;
   materials: ImportMaterialInput[];
@@ -193,8 +199,20 @@ export class ImportCoursesUseCase {
         if (!ses.title?.trim()) {
           errors.push(`Módulo "${mod.title}": una sesión no tiene title`);
         }
-        if (!ses.youtube_url?.trim()) {
+        const provider = ses.video_provider?.trim() || 'youtube';
+        if (!VIDEO_PROVIDERS.includes(provider)) {
+          errors.push(
+            `Sesión "${sesLabel}": video_provider '${provider}' inválido (usa: ${VIDEO_PROVIDERS.join(', ')})`,
+          );
+        } else if (provider === 'youtube' && !ses.youtube_url?.trim()) {
           errors.push(`Sesión "${sesLabel}": youtube_url es obligatorio`);
+        } else if (provider === 'drive') {
+          const link = ses.drive_url ? parseGoogleDriveLink(ses.drive_url) : null;
+          if (!link || link.kind !== 'file') {
+            errors.push(
+              `Sesión "${sesLabel}": drive_url debe ser el enlace de un archivo de Drive (no carpeta ni documento)`,
+            );
+          }
         }
         if (
           !Number.isFinite(ses.duration_minutes) ||
@@ -266,7 +284,9 @@ export class ImportCoursesUseCase {
           module_id: moduleResult.module.id,
           title: ses.title,
           description: ses.description,
+          video_provider: (ses.video_provider?.trim() || 'youtube') as VideoProvider,
           youtube_url: ses.youtube_url,
+          drive_url: ses.drive_url,
           duration_minutes: ses.duration_minutes,
           display_order: ses.display_order,
         });
