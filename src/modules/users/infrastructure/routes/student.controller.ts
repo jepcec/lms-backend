@@ -4,7 +4,6 @@ import {
   Put,
   Param,
   Body,
-  UseGuards,
   ParseUUIDPipe,
 } from '@nestjs/common';
 import { Roles } from '../../../auth/decorators/roles.decorator';
@@ -13,6 +12,9 @@ import { GetMyEnrollmentsUseCase } from '../../application/use-cases/get-my-enro
 import { GetCourseContentUseCase } from '../../application/use-cases/get-course-content.use-case';
 import { GetCourseProgressUseCase } from '../../application/use-cases/get-course-progress.use-case';
 import { UpdateSessionProgressUseCase } from '../../application/use-cases/update-session-progress.use-case';
+import { GetMyCertificatesUseCase } from '../../application/use-cases/get-my-certificates.use-case';
+import { GetStudentCertificateUseCase } from '../../application/use-cases/get-student-certificate.use-case';
+import { GetStudentModuleCertificateUseCase } from '../../application/use-cases/get-student-module-certificate.use-case';
 
 @Controller('student')
 @Roles('estudiante')
@@ -22,6 +24,9 @@ export class StudentController {
     private readonly getCourseContent: GetCourseContentUseCase,
     private readonly getCourseProgress: GetCourseProgressUseCase,
     private readonly updateSessionProgress: UpdateSessionProgressUseCase,
+    private readonly getMyCertificates: GetMyCertificatesUseCase,
+    private readonly getStudentCertificate: GetStudentCertificateUseCase,
+    private readonly getStudentModuleCertificate: GetStudentModuleCertificateUseCase,
   ) {}
 
   @Get('enrollments')
@@ -34,7 +39,7 @@ export class StudentController {
     @CurrentUser('userId') userId: string,
     @Param('courseId', ParseUUIDPipe) courseId: string,
   ) {
-    return await this.getCourseContent.execute(userId, courseId);
+    return this.getCourseContent.execute(userId, courseId);
   }
 
   @Get('progress/courses/:courseId')
@@ -42,7 +47,28 @@ export class StudentController {
     @CurrentUser('userId') userId: string,
     @Param('courseId', ParseUUIDPipe) courseId: string,
   ) {
-    return await this.getCourseProgress.execute(userId, courseId);
+    return this.getCourseProgress.execute(userId, courseId);
+  }
+
+  @Get('certificates')
+  getMyCertificatesHandler(@CurrentUser('userId') userId: string) {
+    return this.getMyCertificates.execute(userId);
+  }
+
+  @Get('certificates/module/:id')
+  getStudentModuleCertificateHandler(
+    @CurrentUser('userId') userId: string,
+    @Param('id', ParseUUIDPipe) id: string,
+  ) {
+    return this.getStudentModuleCertificate.execute(id, userId);
+  }
+
+  @Get('certificates/:enrollmentId')
+  getStudentCertificateHandler(
+    @CurrentUser('userId') userId: string,
+    @Param('enrollmentId', ParseUUIDPipe) enrollmentId: string,
+  ) {
+    return this.getStudentCertificate.execute(enrollmentId, userId);
   }
 
   @Put('progress/sessions/:sessionId')
@@ -50,11 +76,13 @@ export class StudentController {
     @CurrentUser('userId') userId: string,
     @Param('sessionId', ParseUUIDPipe) sessionId: string,
     @Body('watched_seconds') watchedSeconds: number,
+    @Body('force_complete') forceComplete: boolean,
   ) {
     return this.updateSessionProgress.execute(
       userId,
       sessionId,
-      watchedSeconds,
+      watchedSeconds ?? 0,
+      forceComplete ?? false,
     );
   }
 }

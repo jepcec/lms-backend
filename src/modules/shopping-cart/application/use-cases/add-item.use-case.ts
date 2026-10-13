@@ -10,24 +10,32 @@ export class AddItemUseCase {
   async execute(dto: AddItemDto) {
     const { course_id, user_id, session_token } = dto;
 
-    // 1. Validación: ¿Ya está matriculado? (Solo si hay user_id)
+    // Sin user_id (sesión identificada) ni session_token (invitado) no hay
+    // dueño posible para el item: antes esto creaba un cart_item huérfano
+    // que nunca podía llegar a una orden real.
+    if (!user_id && !session_token) {
+      throw new BadRequestException(
+        'No se pudo identificar tu sesión. Recarga la página e intenta de nuevo.',
+      );
+    }
+
+    // 1. Si ya está matriculado, comprar el curso es una renovación (suma los
+    //    meses de acceso al pagar). Solo no tiene sentido si su acceso no vence.
     if (user_id) {
-      const isEnrolled = await this.prisma.enrollment.findUnique({
+      const enrollment = await this.prisma.enrollment.findUnique({
         where: { user_id_course_id: { user_id, course_id } },
+        select: { access_expires_at: true },
       });
-      if (isEnrolled)
-        throw new BadRequestException('Ya estás matriculado en este curso.');
+      if (enrollment && !enrollment.access_expires_at)
+        throw new BadRequestException(
+          'Ya tienes acceso sin fecha de vencimiento a este curso.',
+        );
     }
 
     // 2. Validación: ¿Ya está en el carrito?
+    const ownerFilter = user_id ? { user_id } : { session_token };
     const alreadyInCart = await this.prisma.cartItem.findFirst({
-      where: {
-        course_id,
-        OR: [
-          { user_id: user_id ?? undefined },
-          { session_token: session_token ?? undefined },
-        ],
-      },
+      where: { course_id, ...ownerFilter },
     });
     if (alreadyInCart)
       throw new BadRequestException('El curso ya está en tu carrito.');

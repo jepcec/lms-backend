@@ -10,8 +10,7 @@ import {
   UseInterceptors,
   UploadedFile,
 } from '@nestjs/common';
-import { FileInterceptor } from '@nestjs/platform-express';
-import { memoryStorage } from 'multer';
+import { imageUploadInterceptor } from 'src/modules/storage/infrastructure/upload/image-upload.interceptor';
 import { Public } from '../../../auth/decorators/public.decorator';
 import { Roles } from '../../../auth/decorators/roles.decorator';
 import { CurrentUser } from '../../../auth/decorators/current-user.decorator';
@@ -30,8 +29,8 @@ import { UploadThumbnailUseCase } from '../../application/use-cases/upload-thumb
 import { AddInstructorUseCase } from '../../application/use-cases/add-instructor.use-case';
 import { RemoveInstructorUseCase } from '../../application/use-cases/remove-instructor.use-case';
 import { CreateInstructorDto } from '../../application/dtos/create-instructor.dto';
-import { GetMatriculadosCursoUseCase } from '../../application/use-cases/get-matriculados-curso.use-case';
 import { GetCourseSoftwaresUseCase } from '../../application/use-cases/get-course-softwares.use-case';
+import { GetCourseReviewsUseCase } from '../../application/use-cases/get-course-reviews.use-case';
 import type { Express } from 'express';
 
 @Controller('courses')
@@ -48,8 +47,8 @@ export class CoursesController {
     private readonly uploadThumbnail: UploadThumbnailUseCase,
     private readonly addInstructor: AddInstructorUseCase,
     private readonly removeInstructor: RemoveInstructorUseCase,
-    private readonly getMatriculadosCurso: GetMatriculadosCursoUseCase,
     private readonly getCourseSoftwares: GetCourseSoftwaresUseCase,
+    private readonly getCourseReviews: GetCourseReviewsUseCase,
   ) {}
 
   @Get()
@@ -90,7 +89,7 @@ export class CoursesController {
   }
 
   @Post()
-  @Roles('admin')
+  @Roles('admin', 'soporte')
   async create(
     @Body() dto: CreateCourseDto,
     @CurrentUser('userId') userId: string,
@@ -99,33 +98,20 @@ export class CoursesController {
   }
 
   @Patch(':id')
-  @Roles('admin')
+  @Roles('admin', 'soporte')
   async update(@Param('id') id: string, @Body() dto: UpdateCourseDto) {
     return this.updateCourse.execute(id, dto);
   }
 
   @Delete(':id')
-  @Roles('admin')
+  @Roles('admin', 'soporte')
   async delete(@Param('id') id: string) {
     return this.deleteCourse.execute(id);
   }
 
   @Post(':id/thumbnail')
-  @Roles('admin')
-  @UseInterceptors(
-    FileInterceptor('thumbnail', {
-      storage: memoryStorage(),
-      fileFilter: (_req, file, callback) => {
-        if (!file.mimetype.match(/\/(jpg|jpeg|png|webp)$/)) {
-          return callback(
-            new Error('Only image files are allowed (jpg, jpeg, png, webp)'), false
-          );
-        }
-        callback(null, true);
-      },
-      limits: { fileSize: 5 * 1024 * 1024 },
-    }),
-  )
+  @Roles('admin', 'soporte')
+  @UseInterceptors(imageUploadInterceptor('thumbnail'))
   async uploadThumbnailHandler(
     @Param('id') id: string,
     @UploadedFile() file: Express.Multer.File,
@@ -134,7 +120,7 @@ export class CoursesController {
   }
 
   @Post(':id/instructors')
-  @Roles('admin')
+  @Roles('admin', 'soporte')
   async addInstructorHandler(
     @Param('id') id: string,
     @Body() dto: CreateInstructorDto,
@@ -143,7 +129,7 @@ export class CoursesController {
   }
 
   @Delete(':id/instructors/:instructorId')
-  @Roles('admin')
+  @Roles('admin', 'soporte')
   async removeInstructorHandler(
     @Param('id') id: string,
     @Param('instructorId') instructorId: string,
@@ -151,12 +137,9 @@ export class CoursesController {
     return this.removeInstructor.execute(id, instructorId);
   }
 
-  @Get(':id/matriculados')
-  @Roles('admin')
-  async getMatriculadosHandler(
-    @Param('id') id: string,
-    @Query() params: { page?: number; limit?: number; search?: string },
-  ) {
-    return this.getMatriculadosCurso.execute(id, params);
+  @Get(':id/reviews')
+  @Public()
+  async getReviewsHandler(@Param('id') id: string) {
+    return this.getCourseReviews.execute(id);
   }
 }

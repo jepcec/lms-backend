@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
 import { I_COURSE_REPOSITORY } from './domain/courses.repository';
 import { I_MODULE_REPOSITORY } from './domain/modules.repository';
 import { I_SESSION_REPOSITORY } from './domain/sessions.repository';
@@ -12,7 +13,6 @@ import { ModulesController } from './infrastructure/routes/modules.controller';
 import { SessionsController } from './infrastructure/routes/sessions.controller';
 import { MaterialsController } from './infrastructure/routes/materials.controller';
 import { CategoriesController } from './infrastructure/routes/categories.controller';
-import { PrismaService } from 'src/core/database/prisma.service';
 import { StorageModule } from '../storage/storage.module';
 import { CreateCourseUseCase } from './application/use-cases/create-course.use-case';
 import { GetCourseUseCase } from './application/use-cases/get-course.use-case';
@@ -26,6 +26,9 @@ import { DeleteModuleUseCase } from './application/use-cases/delete-module.use-c
 import { GetModulesUseCase } from './application/use-cases/get-modules.use-case';
 import { CreateSessionUseCase } from './application/use-cases/create-session.use-case';
 import { UpdateSessionUseCase } from './application/use-cases/update-session.use-case';
+import { YoutubeDurationService } from './infrastructure/services/youtube-duration.service';
+import { DriveLinkInspectorService } from './infrastructure/services/drive-link-inspector.service';
+import { DriveVideoDurationService } from './infrastructure/services/drive-video-duration.service';
 import { DeleteSessionUseCase } from './application/use-cases/delete-session.use-case';
 import { GetSessionsUseCase } from './application/use-cases/get-sessions.use-case';
 import { CreateMaterialUseCase } from './application/use-cases/create-material.use-case';
@@ -36,25 +39,39 @@ import { GetSoftwaresUseCase } from './application/use-cases/get-softwares.use-c
 import { UploadThumbnailUseCase } from './application/use-cases/upload-thumbnail.use-case';
 import { AddInstructorUseCase } from './application/use-cases/add-instructor.use-case';
 import { RemoveInstructorUseCase } from './application/use-cases/remove-instructor.use-case';
-import { GetMatriculadosCursoUseCase } from './application/use-cases/get-matriculados-curso.use-case';
 import { GetCourseSoftwaresUseCase } from './application/use-cases/get-course-softwares.use-case';
+import { GetCourseReviewsUseCase } from './application/use-cases/get-course-reviews.use-case';
 import { ListCategoriasUseCase } from './application/use-cases/list-categorias.use-case';
 import { GetCategoriaUseCase } from './application/use-cases/get-categoria.use-case';
 import { CreateCategoriaUseCase } from './application/use-cases/create-categoria.use-case';
 import { UpdateCategoriaUseCase } from './application/use-cases/update-categoria.use-case';
 import { DeleteCategoriaUseCase } from './application/use-cases/delete-categoria.use-case';
 import { ReorderCategoriasUseCase } from './application/use-cases/reorder-categorias.use-case';
+import { GetTopCategoriasUseCase } from './application/use-cases/get-top-categorias.use-case';
+import { CertificationsController } from './infrastructure/routes/certifications.controller';
+import { GetCourseCertificationsUseCase } from './application/use-cases/get-course-certifications.use-case';
+import { ExportCertificationExcelUseCase } from './application/use-cases/export-certification-excel.use-case';
+import { ImportCertificationGradesUseCase } from './application/use-cases/import-certification-grades.use-case';
+import { EmitStudentCertificateUseCase } from './application/use-cases/emit-student-certificate.use-case';
+import { CoursesBulkController } from './infrastructure/routes/courses-bulk.controller';
+import { ExportCoursesExcelUseCase } from './application/use-cases/export-courses-excel.use-case';
+import { ExportCoursesJsonUseCase } from './application/use-cases/export-courses-json.use-case';
+import { ImportCoursesUseCase } from './application/use-cases/import-courses.use-case';
+import { ImportCoursesExcelUseCase } from './application/use-cases/import-courses-excel.use-case';
+import { ImportCoursesJsonUseCase } from './application/use-cases/import-courses-json.use-case';
+
 @Module({
-  imports: [StorageModule],
+  imports: [StorageModule, ConfigModule],
   controllers: [
     CoursesController,
     ModulesController,
     SessionsController,
     MaterialsController,
     CategoriesController,
+    CertificationsController,
+    CoursesBulkController,
   ],
   providers: [
-    PrismaService,
     CreateCourseUseCase,
     GetCourseUseCase,
     GetAllCoursesUseCase,
@@ -64,14 +81,15 @@ import { ReorderCategoriasUseCase } from './application/use-cases/reorder-catego
     UploadThumbnailUseCase,
     AddInstructorUseCase,
     RemoveInstructorUseCase,
-    GetMatriculadosCursoUseCase,
     GetCourseSoftwaresUseCase,
+    GetCourseReviewsUseCase,
     ListCategoriasUseCase,
     GetCategoriaUseCase,
     CreateCategoriaUseCase,
     UpdateCategoriaUseCase,
     DeleteCategoriaUseCase,
     ReorderCategoriasUseCase,
+    GetTopCategoriasUseCase,
     UpdateCourseUseCase,
     DeleteCourseUseCase,
     CreateModuleUseCase,
@@ -80,11 +98,23 @@ import { ReorderCategoriasUseCase } from './application/use-cases/reorder-catego
     GetModulesUseCase,
     CreateSessionUseCase,
     UpdateSessionUseCase,
+    YoutubeDurationService,
+    DriveLinkInspectorService,
+    DriveVideoDurationService,
     DeleteSessionUseCase,
     GetSessionsUseCase,
     CreateMaterialUseCase,
     DeleteMaterialUseCase,
     GetMaterialsUseCase,
+    GetCourseCertificationsUseCase,
+    ExportCertificationExcelUseCase,
+    ImportCertificationGradesUseCase,
+    EmitStudentCertificateUseCase,
+    ExportCoursesExcelUseCase,
+    ExportCoursesJsonUseCase,
+    ImportCoursesUseCase,
+    ImportCoursesExcelUseCase,
+    ImportCoursesJsonUseCase,
     { provide: I_COURSE_REPOSITORY, useClass: PrismaCourseRepository },
     { provide: I_MODULE_REPOSITORY, useClass: PrismaModuleRepository },
     { provide: I_SESSION_REPOSITORY, useClass: PrismaSessionRepository },

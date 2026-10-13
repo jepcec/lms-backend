@@ -93,11 +93,11 @@ async function main() {
 
   // ── Courses ──────────────────────────────────────────────────
   const rawCourses = [
-    { title: 'React desde Cero', slug: 'react-desde-cero', tagline: 'Aprende React paso a paso', level: 'principiante' as const, price: 49.99, currency: 'USD' as const, access_duration: 'lifetime' as const, published: true, catIdx: 0 },
-    { title: 'Node.js Avanzado', slug: 'nodejs-avanzado', tagline: 'Domina Node.js en producción', level: 'avanzado' as const, price: 79.99, currency: 'USD' as const, access_duration: 'lifetime' as const, published: false, catIdx: 0 },
-    { title: 'Python para Data Science', slug: 'python-data-science', tagline: 'Introducción al análisis de datos', level: 'principiante' as const, price: 59.99, currency: 'USD' as const, access_duration: 'one_year' as const, published: true, catIdx: 1 },
-    { title: 'Figma para UX/UI', slug: 'figma-ux-ui', tagline: 'Diseña interfaces modernas', level: 'intermedio' as const, price: 39.99, currency: 'PEN' as const, access_duration: 'lifetime' as const, published: false, catIdx: 2 },
-    { title: 'SEO Avanzado', slug: 'seo-avanzado', tagline: 'Posiciona tu sitio web', level: 'intermedio' as const, price: 44.99, currency: 'USD' as const, access_duration: 'one_year' as const, published: true, catIdx: 3 },
+    { title: 'React desde Cero', slug: 'react-desde-cero', tagline: 'Aprende React paso a paso', level: 'principiante' as const, price_pen: 187.46, price_usd: 49.99, access_duration_months: 999, published: true, catIdx: 0 },
+    { title: 'Node.js Avanzado', slug: 'nodejs-avanzado', tagline: 'Domina Node.js en producción', level: 'avanzado' as const, price_pen: 299.96, price_usd: 79.99, access_duration_months: 999, published: false, catIdx: 0 },
+    { title: 'Python para Data Science', slug: 'python-data-science', tagline: 'Introducción al análisis de datos', level: 'principiante' as const, price_pen: 224.96, price_usd: 59.99, access_duration_months: 12, published: true, catIdx: 1 },
+    { title: 'Figma para UX/UI', slug: 'figma-ux-ui', tagline: 'Diseña interfaces modernas', level: 'intermedio' as const, price_pen: 149.96, price_usd: 39.99, access_duration_months: 999, published: false, catIdx: 2 },
+    { title: 'SEO Avanzado', slug: 'seo-avanzado', tagline: 'Posiciona tu sitio web', level: 'intermedio' as const, price_pen: 168.71, price_usd: 44.99, access_duration_months: 12, published: true, catIdx: 3 },
   ]
   const courses: Awaited<ReturnType<typeof prisma.course.create>>[] = []
   for (const rc of rawCourses) {
@@ -111,9 +111,9 @@ async function main() {
         thumbnail_url: faker.image.urlPicsumPhotos(),
         level: rc.level,
         software_tools: faker.helpers.arrayElements(['Git', 'Docker', 'VS Code', 'Postman', 'Figma', 'Webpack', 'Jest'], 3),
-        price: rc.price,
-        currency: rc.currency,
-        access_duration: rc.access_duration,
+        price_pen: rc.price_pen,
+        price_usd: rc.price_usd,
+        access_duration_months: rc.access_duration_months,
         prerequisites: ['Conocimientos básicos de programación', 'Manejo de terminal'],
         outcomes: ['Crear proyectos reales', 'Certificación oficial'],
         status: rc.published ? 'published' : 'draft',
@@ -190,12 +190,9 @@ async function main() {
       name: 'Plantilla Estándar',
       background_image_url: faker.image.urlPicsumPhotos(),
       student_name_position: { x: 100, y: 200 },
-      course_name_position: { x: 100, y: 300 },
-      dates_position: { x: 100, y: 400 },
-      verification_code_position: { x: 100, y: 500 },
       qr_position: { x: 400, y: 400 },
       font_family: 'Arial',
-      font_sizes: { student_name: 24, course_name: 20, dates: 14, verification_code: 12 },
+      font_sizes: { student_name: 24 },
       is_active: true,
     },
   })
@@ -209,9 +206,9 @@ async function main() {
       data: {
         user_id: student.id,
         order_number: `ORD-${String(i + 1).padStart(5, '0')}`,
-        subtotal: course.price,
-        total: course.price,
-        currency: course.currency === 'USD' ? 'USD' : 'PEN',
+        subtotal: course.price_pen,
+        total: course.price_pen,
+        currency: 'PEN',
         payment_method: faker.helpers.arrayElement(['stripe', 'niubiz'] as const),
         payment_status: 'paid',
         gateway_transaction_id: faker.string.alphanumeric(24),
@@ -227,8 +224,8 @@ async function main() {
       data: {
         order_id: order.id,
         course_id: course.id,
-        unit_price: course.price,
-        final_price: course.price,
+        unit_price: course.price_pen,
+        final_price: course.price_pen,
       },
     })
   }
@@ -298,6 +295,87 @@ async function main() {
   }
   console.log(`⭐ ${8} reseñas y ${5} certificados creados`)
 
+  // ── Notifications ────────────────────────────────────────────
+  let notificationCount = 0
+
+  for (let i = 0; i < 10; i++) {
+    const enrollment = enrollments[i]
+    const course = courses[i % courses.length]
+    const student = students[i]
+
+    await prisma.notification.create({
+      data: {
+        user_id: student.id,
+        type: 'matriculacion',
+        title: 'Matrícula confirmada',
+        body: `Te has matriculado exitosamente en "${course.title}"`,
+        redirect_url: `/cursos/${course.slug}`,
+        created_at: faker.date.past({ years: 30/365 }),
+      },
+    })
+    notificationCount++
+
+    if (i < 5) {
+      await prisma.notification.create({
+        data: {
+          user_id: student.id,
+          type: 'certificado',
+          title: 'Certificado disponible',
+          body: `Has obtenido tu certificado en "${course.title}". ¡Felicidades!`,
+          redirect_url: `/certificados/${enrollment.id}`,
+          created_at: faker.date.past({ years: 15/365 }),
+        },
+      })
+      notificationCount++
+    }
+
+    const progress = Number(enrollment.progress_percent)
+    if (progress > 70) {
+      await prisma.notification.create({
+        data: {
+          user_id: student.id,
+          type: 'completado',
+          title: '¡Casi terminas!',
+          body: `Has completado más del 70% del curso "${course.title}". ¡Sigue así!`,
+          redirect_url: `/cursos/${course.slug}/aprender`,
+          created_at: faker.date.past({ years: 7/365 }),
+        },
+      })
+      notificationCount++
+    }
+
+    if (progress < 30) {
+      await prisma.notification.create({
+        data: {
+          user_id: student.id,
+          type: 'recordatorio',
+          title: 'No te detengas',
+          body: `Hace días que no accedes a "${course.title}". ¡Retoma tu aprendizaje!`,
+          redirect_url: `/cursos/${course.slug}/aprender`,
+          created_at: faker.date.past({ years: 3/365 }),
+        },
+      })
+      notificationCount++
+    }
+  }
+
+  for (const course of courses) {
+    for (let i = 0; i < 3; i++) {
+      await prisma.notification.create({
+        data: {
+          user_id: students[i].id,
+          type: 'nuevo_curso',
+          title: 'Nuevo curso disponible',
+          body: `Explora "${course.title}" - ${course.tagline}`,
+          redirect_url: `/cursos/${course.slug}`,
+          created_at: faker.date.past({ years: 10/365 }),
+        },
+      })
+      notificationCount++
+    }
+  }
+  console.log(`🔔 ${notificationCount} notificaciones creadas`)
+
   // ── Slider ────────────────────────────────────────────────────
   const slider = await prisma.slider.create({
     data: {
@@ -333,21 +411,6 @@ async function main() {
     },
   })
   console.log(`🏷️ 1 promoción creada`)
-
-  // ── Notification ─────────────────────────────────────────────
-  for (let i = 0; i < 5; i++) {
-    await prisma.notification.create({
-      data: {
-        user_id: students[i].id,
-        type: faker.helpers.arrayElement(['nuevo_curso', 'completado', 'recordatorio', 'matriculacion', 'certificado'] as const),
-        title: faker.lorem.words(3),
-        body: faker.lorem.sentence(),
-        is_read: faker.datatype.boolean(),
-        redirect_url: faker.internet.url(),
-      },
-    })
-  }
-  console.log(`🔔 ${5} notificaciones creadas`)
 
   // ── AuditLog ─────────────────────────────────────────────────
   for (let i = 0; i < 5; i++) {

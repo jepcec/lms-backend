@@ -11,7 +11,7 @@ export class GetPromotionsUseCase {
     private readonly promotionRepository: IPromotionRepository,
   ) {}
 
-  async execute() {
-    return this.promotionRepository.findAll();
+  async execute(onlyVigentes?: boolean) {
+    return this.promotionRepository.findAll(onlyVigentes);
   }
 }

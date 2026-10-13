@@ -4,5 +4,6 @@ export class UpdateProfileDto {
   last_name?: string;
   phone?: string;
   country?: string;
+  profession?: string;
   profile_photo_url?: string; // Solo declaramos el tipo para TypeScript
 }

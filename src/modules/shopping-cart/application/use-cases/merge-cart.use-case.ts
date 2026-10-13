@@ -44,6 +44,8 @@ export class MergeCartUseCase {
       }
     }
 
+    if (operations.length === 0) return [];
+
     // 3. Ejecución atómica de la fusión de carritos
     return await this.prisma.$transaction(operations);
   }

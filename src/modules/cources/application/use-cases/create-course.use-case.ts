@@ -1,5 +1,5 @@
 import { Injectable, Inject, ConflictException } from '@nestjs/common';
-import { PrismaService } from 'src/core/database/prisma.service';
+import { PrismaService } from '../../../../../src/core/database/prisma.service';
 import { I_COURSE_REPOSITORY } from '../../domain/courses.repository';
 import type { ICourseRepository } from '../../domain/courses.repository';
 import { CreateCourseDto } from '../dtos/create-course.dto';
@@ -26,7 +26,8 @@ export class CreateCourseUseCase {
     const slug = dto.slug || slugify(dto.title);
 
     const exists = await this.courseRepository.findBySlug(slug);
-    if (exists) {
+    // 🚀 Validar únicamente contra cursos activos que no tengan deleted_at
+    if (exists && !exists.deleted_at) {
       throw new ConflictException('Curso con este slug ya existe');
     }
 
@@ -40,10 +41,11 @@ export class CreateCourseUseCase {
       thumbnail_url: dto.thumbnail_url ?? '',
       level: dto.level,
       software_tools: dto.software_tools,
-      price: dto.price,
-      discount_price: dto.discount_price ?? null,
-      currency: dto.currency,
-      access_duration: dto.access_duration,
+      price_pen: dto.price_pen,
+      discount_price_pen: dto.discount_price_pen ?? null,
+      price_usd: dto.price_usd,
+      discount_price_usd: dto.discount_price_usd ?? null,
+      access_duration_months: dto.access_duration_months,
       prerequisites: dto.prerequisites,
       outcomes: dto.outcomes,
       status: dto.status,
@@ -52,6 +54,10 @@ export class CreateCourseUseCase {
       review_count: 0,
       enrolled_count: 0,
       total_duration_minutes: 0,
+      academic_hours: dto.academic_hours ?? 0,
+      certification_mode: 'auto',
+      certificate_template_id: null,
+      constancia_template_id: null,
       created_by: createdBy,
       created_at: new Date(),
       updated_at: new Date(),

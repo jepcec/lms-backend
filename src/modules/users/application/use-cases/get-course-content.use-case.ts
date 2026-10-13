@@ -18,6 +18,14 @@ export class GetCourseContentUseCase {
       throw new ForbiddenException('No estás matriculado en este curso');
     }
 
+    if (enrollment.suspended_at) {
+      throw new ForbiddenException('Tu acceso a este curso ha sido suspendido');
+    }
+
+    if (enrollment.access_expires_at && enrollment.access_expires_at < new Date()) {
+      throw new ForbiddenException('Tu acceso a este curso ha vencido');
+    }
+
     const course = await this.prisma.course.findUnique({
       where: { id: courseId },
       include: {
@@ -54,8 +62,10 @@ export class GetCourseContentUseCase {
           module_id: ses.module_id,
           title: ses.title,
           description: ses.description,
+          video_provider: ses.video_provider,
           youtube_url: ses.youtube_url,
           youtube_video_id: ses.youtube_video_id,
+          drive_url: ses.drive_url,
           duration_minutes: ses.duration_minutes,
           display_order: ses.display_order,
           created_at: ses.created_at.toISOString(),

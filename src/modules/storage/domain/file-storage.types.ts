@@ -3,6 +3,12 @@ export interface UploadFileOptions {
   originalName: string;
   mimetype: string;
   folder?: string;
+  /**
+   * Prefijo lógico controlado por el servidor. Local y Cloudinary conservan
+   * su comportamiento histórico de sobrescritura; S3 genera una clave nueva
+   * por versión bajo este prefijo.
+   */
+  key?: string;
 }
 
 export interface UploadFileResult {

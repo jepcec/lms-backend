@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../../core/database/prisma.service';
+import { userSearchWhere } from '../../../../core/database/fuzzy-search';
 import { MatriculasParams } from '../dtos/matriculas-params.dto';
 
 @Injectable()
@@ -14,13 +15,8 @@ export class ListMatriculasUseCase {
     const where: Record<string, unknown> = {};
 
     if (params.search) {
-      where.student = {
-        OR: [
-          { first_name: { contains: params.search, mode: 'insensitive' } },
-          { last_name: { contains: params.search, mode: 'insensitive' } },
-          { email: { contains: params.search, mode: 'insensitive' } },
-        ],
-      };
+      // Tolerante: sin tildes, palabra por palabra y con errores de tipeo
+      where.student = { OR: (await userSearchWhere(this.prisma, params.search)).OR };
     }
 
     if (params.curso_id) {
@@ -83,6 +79,8 @@ export class ListMatriculasUseCase {
         course: enrollment.course,
         order_id: enrollment.order_id,
         enrolled_at: enrollment.enrolled_at.toISOString(),
+        access_expires_at: enrollment.access_expires_at?.toISOString() ?? null,
+        suspended_at: enrollment.suspended_at?.toISOString() ?? null,
         enrollment_type: enrollment.enrollment_type,
         offline_payment_method: enrollment.offline_payment_method,
         offline_amount: enrollment.offline_amount

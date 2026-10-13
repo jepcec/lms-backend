@@ -1,21 +1,29 @@
 import { Injectable } from '@nestjs/common';
 import type { ICourseRepository } from '../../domain/courses.repository';
-import { PrismaService } from 'src/core/database/prisma.service';
+import { PrismaService } from '../../../../../src/core/database/prisma.service';
 import { CourseEntity } from '../../domain/course.entity';
-import type { Course } from 'src/generated/prisma/client';
+import type { Course } from '../../../../../src/generated/prisma/client';
 
 @Injectable()
 export class PrismaCourseRepository implements ICourseRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   async findById(id: string): Promise<CourseEntity | null> {
-    const course = await this.prisma.course.findUnique({ where: { id } });
+    const course = await this.prisma.course.findFirst({
+      where: { id, deleted_at: null },
+    });
     if (!course) return null;
     return this.mapToEntity(course);
   }
 
+  // 🚀 1. findFirst con deleted_at: null para ignorar cursos eliminados
   async findBySlug(slug: string): Promise<CourseEntity | null> {
-    const course = await this.prisma.course.findUnique({ where: { slug } });
+    const course = await this.prisma.course.findFirst({
+      where: {
+        slug,
+        deleted_at: null,
+      },
+    });
     if (!course) return null;
     return this.mapToEntity(course);
   }
@@ -50,10 +58,11 @@ export class PrismaCourseRepository implements ICourseRepository {
         thumbnail_public_id: course.thumbnail_public_id,
         level: course.level,
         software_tools: course.software_tools,
-        price: course.price,
-        discount_price: course.discount_price,
-        currency: course.currency,
-        access_duration: course.access_duration,
+        price_pen: course.price_pen,
+        discount_price_pen: course.discount_price_pen,
+        price_usd: course.price_usd,
+        discount_price_usd: course.discount_price_usd,
+        access_duration_months: course.access_duration_months,
         prerequisites: course.prerequisites,
         outcomes: course.outcomes,
         status: course.status,
@@ -62,6 +71,10 @@ export class PrismaCourseRepository implements ICourseRepository {
         review_count: course.review_count,
         enrolled_count: course.enrolled_count,
         total_duration_minutes: course.total_duration_minutes,
+        academic_hours: course.academic_hours,
+        certification_mode: course.certification_mode,
+        certificate_template_id: course.certificate_template_id,
+        constancia_template_id: course.constancia_template_id,
         deleted_at: course.deleted_at,
       },
       create: {
@@ -75,10 +88,11 @@ export class PrismaCourseRepository implements ICourseRepository {
         thumbnail_public_id: course.thumbnail_public_id,
         level: course.level,
         software_tools: course.software_tools,
-        price: course.price,
-        discount_price: course.discount_price,
-        currency: course.currency,
-        access_duration: course.access_duration,
+        price_pen: course.price_pen,
+        discount_price_pen: course.discount_price_pen,
+        price_usd: course.price_usd,
+        discount_price_usd: course.discount_price_usd,
+        access_duration_months: course.access_duration_months,
         prerequisites: course.prerequisites,
         outcomes: course.outcomes,
         status: course.status,
@@ -87,16 +101,29 @@ export class PrismaCourseRepository implements ICourseRepository {
         review_count: course.review_count,
         enrolled_count: course.enrolled_count,
         total_duration_minutes: course.total_duration_minutes,
+        academic_hours: course.academic_hours,
+        certification_mode: course.certification_mode,
+        certificate_template_id: course.certificate_template_id,
+        constancia_template_id: course.constancia_template_id,
         created_by: course.created_by,
         deleted_at: course.deleted_at,
       },
     });
   }
 
+  // 🚀 2. delete: Renombra el slug con timestamp y marca la fecha de borrado
   async delete(id: string): Promise<void> {
+    const course = await this.prisma.course.findUnique({ where: { id } });
+    if (!course) return;
+
+    const releasedSlug = `${course.slug}-deleted-${Date.now()}`;
+
     await this.prisma.course.update({
       where: { id },
-      data: { deleted_at: new Date() },
+      data: {
+        slug: releasedSlug,
+        deleted_at: new Date(),
+      },
     });
   }
 
@@ -108,16 +135,19 @@ export class PrismaCourseRepository implements ICourseRepository {
       slug: course.slug,
       tagline: course.tagline,
       description: course.description,
-thumbnail_url: course.thumbnail_url,
-        thumbnail_public_id: course.thumbnail_public_id,
-        level: course.level,
-        software_tools: course.software_tools,
-      price: Number(course.price),
-      discount_price: course.discount_price
-        ? Number(course.discount_price)
+      thumbnail_url: course.thumbnail_url,
+      thumbnail_public_id: course.thumbnail_public_id,
+      level: course.level,
+      software_tools: course.software_tools,
+      price_pen: Number(course.price_pen),
+      discount_price_pen: course.discount_price_pen
+        ? Number(course.discount_price_pen)
         : null,
-      currency: course.currency,
-      access_duration: course.access_duration,
+      price_usd: Number(course.price_usd),
+      discount_price_usd: course.discount_price_usd
+        ? Number(course.discount_price_usd)
+        : null,
+      access_duration_months: course.access_duration_months,
       prerequisites: course.prerequisites,
       outcomes: course.outcomes,
       status: course.status,
@@ -126,6 +156,10 @@ thumbnail_url: course.thumbnail_url,
       review_count: course.review_count,
       enrolled_count: course.enrolled_count,
       total_duration_minutes: course.total_duration_minutes,
+      academic_hours: course.academic_hours,
+      certification_mode: course.certification_mode,
+      certificate_template_id: course.certificate_template_id,
+      constancia_template_id: course.constancia_template_id,
       created_by: course.created_by,
       created_at: course.created_at,
       updated_at: course.updated_at,

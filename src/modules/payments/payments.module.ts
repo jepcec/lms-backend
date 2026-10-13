@@ -1,10 +1,17 @@
 import { Module } from '@nestjs/common';
-import { PaypalController } from './presentation/paypal.controller';
-import { PaypalService } from './infrastructure/paypal.service';
-import { PrismaService } from '../../core/database/prisma.service';
+import { PaymentsController } from './infrastructure/routes/payments.controller';
+import { CreatePaymentSessionUseCase } from './application/use-cases/create-payment-session.use-case';
+import { ProcessPaymentCallbackUseCase } from './application/use-cases/process-payment-callback.use-case';
+import { StripeAdapter } from './infrastructure/adapters/stripe.adapter';
+import { MercadoPagoAdapter } from './infrastructure/adapters/mercadopago.adapter';
 
 @Module({
-  controllers: [PaypalController],
-  providers: [PaypalService, PrismaService],
+  controllers: [PaymentsController],
+  providers: [
+    StripeAdapter,
+    MercadoPagoAdapter,
+    CreatePaymentSessionUseCase,
+    ProcessPaymentCallbackUseCase,
+  ],
 })
 export class PaymentsModule {}

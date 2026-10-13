@@ -4,6 +4,7 @@ import {
   I_FILE_STORAGE_SERVICE,
   type IFileStorageService,
 } from '../../../storage/domain/file-storage.interface';
+import { replaceStoredImage } from '../../../storage/domain/replace-stored-image';
 
 @Injectable()
 export class UploadThumbnailUseCase {
@@ -17,37 +18,26 @@ export class UploadThumbnailUseCase {
     const course = await this.prisma.course.findUnique({
       where: { id: courseId },
     });
+    if (!course) throw new NotFoundException('Curso no encontrado');
 
-    if (!course) {
-      throw new NotFoundException('Curso no encontrado');
-    }
-
-    if (course.thumbnail_public_id) {
-      await this.fileStorageService.delete(course.thumbnail_public_id);
-    }
-
-    const result = await this.fileStorageService.upload({
-      buffer: file.buffer,
-      originalName: file.originalname,
-      mimetype: file.mimetype,
-      folder: 'courses',
-    });
-
-    const thumbnailUrl = this.fileStorageService.getUrl(result.publicId, {
-      format: 'webp',
-    });
-
-    await this.prisma.course.update({
-      where: { id: courseId },
-      data: {
-        thumbnail_url: thumbnailUrl,
-        thumbnail_public_id: result.publicId,
+    const thumbnailUrl = await replaceStoredImage(
+      this.fileStorageService,
+      {
+        buffer: file.buffer,
+        originalName: file.originalname,
+        mimetype: file.mimetype,
+        folder: 'courses',
       },
-    });
-
-    return {
-      success: true,
-      thumbnail_url: thumbnailUrl,
-    };
+      course.thumbnail_public_id,
+      async (url, publicId) => {
+        await this.prisma.course.update({
+          where: { id: courseId },
+          data: { thumbnail_url: url, thumbnail_public_id: publicId },
+        });
+        return url;
+      },
+      { format: 'webp' },
+    );
+    return { success: true, thumbnail_url: thumbnailUrl };
   }
 }

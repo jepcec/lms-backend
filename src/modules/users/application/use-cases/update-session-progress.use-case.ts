@@ -9,7 +9,12 @@ import { PrismaService } from '../../../../core/database/prisma.service';
 export class UpdateSessionProgressUseCase {
   constructor(private readonly prisma: PrismaService) {}
 
-  async execute(userId: string, sessionId: string, watchedSeconds: number) {
+  async execute(
+    userId: string,
+    sessionId: string,
+    watchedSeconds: number,
+    forceComplete = false,
+  ) {
     const session = await this.prisma.session.findUnique({
       where: { id: sessionId },
       include: {
@@ -43,8 +48,17 @@ export class UpdateSessionProgressUseCase {
       throw new ForbiddenException('No estás matriculado en este curso');
     }
 
+    if (enrollment.suspended_at) {
+      throw new ForbiddenException('Tu acceso a este curso ha sido suspendido');
+    }
+
+    if (enrollment.access_expires_at && enrollment.access_expires_at < new Date()) {
+      throw new ForbiddenException('Tu acceso a este curso ha vencido');
+    }
+
     const totalDurationSeconds = session.duration_minutes * 60;
-    const completed = watchedSeconds >= totalDurationSeconds * 0.9;
+    const completed =
+      forceComplete || watchedSeconds >= totalDurationSeconds * 0.9;
 
     await this.prisma.lessonProgress.upsert({
       where: {
@@ -72,16 +86,19 @@ export class UpdateSessionProgressUseCase {
     );
     const totalSessions = allSessions.length;
 
+    const validSessionIds = allSessions.map((s) => s.id);
     const completedProgress = await this.prisma.lessonProgress.count({
       where: {
         enrollment_id: enrollment.id,
         completed: true,
+        session_id: { in: validSessionIds },
       },
     });
 
-    const progressPercent = Math.round(
-      (completedProgress / totalSessions) * 100,
-    );
+    const progressPercent =
+      totalSessions === 0
+        ? 0
+        : Math.min(Math.round((completedProgress / totalSessions) * 100), 100);
 
     const updateData: Record<string, unknown> = {
       progress_percent: progressPercent,

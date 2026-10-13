@@ -1,7 +1,7 @@
 import { PromotionEntity } from './promotion.entity';
 
 export interface IPromotionRepository {
-  findAll(): Promise<PromotionEntity[]>;
+  findAll(onlyVigentes?: boolean): Promise<PromotionEntity[]>;
   findById(id: string): Promise<PromotionEntity | null>;
   create(promotion: Partial<PromotionEntity>): Promise<PromotionEntity>;
   update(

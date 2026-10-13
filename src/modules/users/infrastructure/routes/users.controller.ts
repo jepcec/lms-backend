@@ -1,6 +1,7 @@
 import {
   Controller,
   Get,
+  Header,
   Post,
   Patch,
   Delete,
@@ -10,6 +11,8 @@ import {
   UseGuards,
   UseInterceptors,
   UploadedFile,
+  ForbiddenException,
+  ValidationPipe,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
@@ -17,11 +20,14 @@ import { extname } from 'path';
 import { GetProfileUseCase } from '../../application/use-cases/get-profile.use-case';
 import { UpdateProfileUseCase } from '../../application/use-cases/update-profile.use-case';
 import { UpdateProfileDto } from '../../application/dtos/update-profile.dto';
+import { ChangePasswordUseCase } from '../../application/use-cases/change-password.use-case';
+import { ChangePasswordDto } from '../../application/dtos/change-password.dto';
 import { DeleteAccountUseCase } from '../../application/use-cases/delete-user.use-case';
 import { Roles } from '../../../auth/decorators/roles.decorator';
 import { Multer } from 'multer';
 import type { Express } from 'express';
 import { Public } from '../../../auth/decorators/public.decorator';
+import { CurrentUser } from '../../../auth/decorators/current-user.decorator';
 
 import { GetUsuarioUseCase } from '../../application/use-cases/get-usuario.use-case';
 import { CreateUsuarioUseCase } from '../../application/use-cases/create-usuario.use-case';
@@ -32,11 +38,22 @@ import { CreateUsuarioDto } from '../../application/dtos/create-usuario.dto';
 import { UpdateUsuarioDto } from '../../application/dtos/update-usuario.dto';
 import { BuscarUsuariosUseCase } from '../../application/use-cases/buscar-usuarios.use-case';
 
+import * as bcrypt from 'bcrypt';
+import { PrismaService } from '../../../../core/database/prisma.service';
+
+// Roles del staff que pueden consultar el perfil de otros usuarios.
+const STAFF_ROLES = ['admin', 'soporte', 'coordinador'];
+
+// Valida los decoradores de class-validator (ej. @IsIn del rol). No hay
+// ValidationPipe global porque la mayoría de DTOs no tienen decoradores.
+const ADMIN_BODY_PIPE = new ValidationPipe();
+
 @Controller('users')
 export class UsersController {
   constructor(
     private readonly getProfile: GetProfileUseCase,
     private readonly updateProfile: UpdateProfileUseCase,
+    private readonly changePasswordUC: ChangePasswordUseCase,
     private readonly deleteAccount: DeleteAccountUseCase,
 
     private readonly getUsuarioUC: GetUsuarioUseCase,
@@ -45,15 +62,29 @@ export class UsersController {
     private readonly suspendUsuarioUC: SuspendUsuarioUseCase,
     private readonly activateUsuarioUC: ActivateUsuarioUseCase,
     private readonly buscarUsuariosUC: BuscarUsuariosUseCase,
+
+    private readonly prisma: PrismaService,
   ) {}
 
+  @Get('me')
+  @Header('Cache-Control', 'no-store')
+  async getMe(@CurrentUser('userId') userId: string) {
+    return this.getProfile.execute(userId);
+  }
+
   @Get('profile/:id')
-  async get(@Param('id') id: string) {
+  async get(
+    @Param('id') id: string,
+    @CurrentUser('userId') currentUserId: string,
+    @CurrentUser('role') currentRole: string,
+  ) {
+    if (id !== currentUserId && !STAFF_ROLES.includes(currentRole)) {
+      throw new ForbiddenException('No puedes ver el perfil de otro usuario');
+    }
     return this.getProfile.execute(id);
   }
 
   @Patch('profile/:id')
-  @Public()
   @UseInterceptors(
     FileInterceptor('photo', {
       // 'photo' coincide con el frontend
@@ -70,8 +101,16 @@ export class UsersController {
   async update(
     @Param('id') id: string,
     @Body() dto: UpdateProfileDto,
+    @CurrentUser('userId') currentUserId: string,
+    @CurrentUser('role') currentRole: string,
     @UploadedFile() file?: Express.Multer.File,
   ) {
+    if (id !== currentUserId && currentRole !== 'admin') {
+      throw new ForbiddenException(
+        'No puedes editar el perfil de otro usuario',
+      );
+    }
+
     // Si el archivo se subió con éxito, guardamos su ruta en el DTO
     if (file) {
       dto.profile_photo_url = `/uploads/profiles/${file.filename}`;
@@ -79,6 +118,19 @@ export class UsersController {
 
     // Le pasamos el DTO ya modificado al caso de uso
     return this.updateProfile.execute(id, dto);
+  }
+
+  @Patch('me/password')
+  async changePassword(
+    @CurrentUser('userId') userId: string,
+    @Body() dto: ChangePasswordDto,
+  ) {
+    await this.changePasswordUC.execute(
+      userId,
+      dto.current_password,
+      dto.new_password,
+    );
+    return { message: 'Contraseña actualizada correctamente' };
   }
 
   @Roles('admin')
@@ -95,20 +147,27 @@ export class UsersController {
 
   @Roles('admin')
   @Post()
-  async createUsuario(@Body() dto: CreateUsuarioDto) {
+  async createUsuario(@Body(ADMIN_BODY_PIPE) dto: CreateUsuarioDto) {
     return this.createUsuarioUC.execute(dto);
   }
 
   @Roles('admin')
   @Patch(':id')
-  async updateUsuario(@Param('id') id: string, @Body() dto: UpdateUsuarioDto) {
-    return this.updateUsuarioUC.execute(id, dto);
+  async updateUsuario(
+    @Param('id') id: string,
+    @Body(ADMIN_BODY_PIPE) dto: UpdateUsuarioDto,
+    @CurrentUser('userId') currentUserId: string,
+  ) {
+    return this.updateUsuarioUC.execute(id, dto, currentUserId);
   }
 
   @Roles('admin')
   @Patch(':id/suspender')
-  async suspendUsuario(@Param('id') id: string) {
-    return this.suspendUsuarioUC.execute(id);
+  async suspendUsuario(
+    @Param('id') id: string,
+    @CurrentUser('userId') currentUserId: string,
+  ) {
+    return this.suspendUsuarioUC.execute(id, currentUserId);
   }
 
   @Roles('admin')
@@ -116,10 +175,50 @@ export class UsersController {
   async activateUsuario(@Param('id') id: string) {
     return this.activateUsuarioUC.execute(id);
   }
+  // 🚀 1. Asignar / Resetear Contraseña (Admin y Soporte)
+  @Roles('admin', 'soporte')
+  @Patch(':id/reset-password')
+  async resetPassword(
+    @Param('id') id: string,
+    @Body('password') password: string,
+  ) {
+    const salt = await bcrypt.genSalt(10);
+    const password_hash = await bcrypt.hash(password, salt);
 
+    await this.prisma.user.update({
+      where: { id },
+      data: {
+        password_hash,
+        failed_login_attempts: 0,
+        locked_until: null,
+      },
+    });
+
+    return { message: 'Contraseña actualizada correctamente' };
+  }
+
+  // 🚀 2. Aprobar / Verificar Correo Manualmente (Admin y Soporte)
+  @Roles('admin', 'soporte')
+  @Patch(':id/verify-email')
+  async verifyEmail(@Param('id') id: string) {
+    await this.prisma.user.update({
+      where: { id },
+      data: {
+        email_verified: true,
+        email_verified_at: new Date(),
+      },
+    });
+
+    return { message: 'Correo verificado y aprobado con éxito' };
+  }
+  
   @Roles('admin')
   @Delete(':id')
-  async deleteUsuario(@Param('id') id: string) {
-    return this.deleteAccount.execute(id);
+  async deleteUsuario(
+    @Param('id') id: string,
+    @CurrentUser('userId') currentUserId: string,
+  ) {
+    return this.deleteAccount.execute(id, currentUserId);
   }
+  
 }

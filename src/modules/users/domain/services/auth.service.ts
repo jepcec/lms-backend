@@ -5,10 +5,12 @@ export interface IPasswordService {
   compare(password: string, hash: string): Promise<boolean>;
 }
 
+import type { SessionPrincipal } from '../../../auth/session-token';
+
 export interface IAuthTokenService {
   // tokens en login
-  generate(payload: { userId: string; role: string }): string;
-  generateRefresh(payload: { userId: string; role: string }): string;
+  generate(payload: SessionPrincipal): string;
+  generateRefresh(payload: SessionPrincipal): string;
   verifyRefresh(token: string): any;
 
   // tokens de verificaion y password

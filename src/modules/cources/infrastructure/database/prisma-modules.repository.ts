@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { IModuleRepository } from '../../domain/modules.repository';
 import { PrismaService } from 'src/core/database/prisma.service';
 import { ModuleEntity } from '../../domain/module.entity';
+import { recalculateCourseDuration } from './course-duration';
 
 @Injectable()
 export class PrismaModuleRepository implements IModuleRepository {
@@ -16,6 +17,7 @@ export class PrismaModuleRepository implements IModuleRepository {
       title: module.title,
       description: module.description,
       display_order: module.display_order,
+      certificate_template_id: module.certificate_template_id,
       created_at: module.created_at,
     });
   }
@@ -33,6 +35,7 @@ export class PrismaModuleRepository implements IModuleRepository {
           title: m.title,
           description: m.description,
           display_order: m.display_order,
+          certificate_template_id: m.certificate_template_id,
           created_at: m.created_at,
         }),
     );
@@ -45,6 +48,7 @@ export class PrismaModuleRepository implements IModuleRepository {
         title: module.title,
         description: module.description,
         display_order: module.display_order,
+        certificate_template_id: module.certificate_template_id,
       },
       create: {
         id: module.id,
@@ -52,11 +56,17 @@ export class PrismaModuleRepository implements IModuleRepository {
         title: module.title,
         description: module.description,
         display_order: module.display_order,
+        certificate_template_id: module.certificate_template_id,
       },
     });
   }
 
   async delete(id: string): Promise<void> {
-    await this.prisma.module.delete({ where: { id } });
+    // Borrar el módulo borra sus sesiones en cascada: las horas del curso cambian.
+    const deleted = await this.prisma.module.delete({
+      where: { id },
+      select: { course_id: true },
+    });
+    await recalculateCourseDuration(this.prisma, deleted.course_id);
   }
 }

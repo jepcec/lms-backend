@@ -41,6 +41,8 @@ describe('LoginUserUseCase', () => {
       role: 'estudiante',
       first_name: 'Test',
       lastName: 'User',
+      emailVerified: true,
+      sessionVersion: 0,
     };
     mockUserRepository.findByEmail.mockResolvedValue(mockUser);
     mockPasswordService.compare.mockResolvedValue(true);
@@ -55,7 +57,7 @@ describe('LoginUserUseCase', () => {
     // Assert
     expect(resultado).toHaveProperty('accessToken', 'jwt_token_fake');
     expect(resultado).toHaveProperty('refresh_token', 'refresh_token_fake');
-    expect(resultado).toHaveProperty('expires_in', 900);
+    expect(resultado).toHaveProperty('expires_in', 300);
     expect(resultado.user).toMatchObject({
       id: '1',
       email: 'test@test.com',
@@ -68,10 +70,26 @@ describe('LoginUserUseCase', () => {
     expect(mockTokenService.generate).toHaveBeenCalledWith({
       userId: '1',
       role: 'estudiante',
+      sessionVersion: 0,
     });
     expect(mockTokenService.generateRefresh).toHaveBeenCalledWith({
       userId: '1',
+      role: 'estudiante',
+      sessionVersion: 0,
     });
+  });
+
+  it('debería lanzar UnauthorizedException si el correo no está verificado', async () => {
+    const mockUser = { id: '1', passwordHash: 'hashed', emailVerified: false };
+    mockUserRepository.findByEmail.mockResolvedValue(mockUser);
+    mockPasswordService.compare.mockResolvedValue(true);
+
+    const input = { email: 'test@test.com', password: 'password123' };
+
+    await expect(useCase.execute(input)).rejects.toThrow(
+      'Debes verificar tu correo electrónico',
+    );
+    expect(mockTokenService.generate).not.toHaveBeenCalled();
   });
 
   it('debería lanzar UnauthorizedException si la contraseña es incorrecta', async () => {

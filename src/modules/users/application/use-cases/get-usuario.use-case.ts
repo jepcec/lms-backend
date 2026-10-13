@@ -6,8 +6,8 @@ export class GetUsuarioUseCase {
   constructor(private readonly prisma: PrismaService) {}
 
   async execute(id: string) {
-    const user = await this.prisma.user.findUnique({
-      where: { id },
+    const user = await this.prisma.user.findFirst({
+      where: { id, deleted_at: null },
     });
 
     if (!user) {

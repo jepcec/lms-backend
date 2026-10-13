@@ -3,6 +3,17 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { RegisterUserUseCase } from './register-user.use-case';
 import { I_USER_REPOSITORY } from '../../domain/users.repository';
 import { I_PASSWORD_SERVICE } from '../../domain/services/auth.service';
+import { I_EMAIL_SERVICE } from '../../domain/services/email.service';
+import { CryptoTokenService } from '../../infrastructure/services/crypto-token.service';
+
+// El registro envía un correo de verificación: servicio de email y token de mentira
+const mockEmailService = {
+  sendEmailVerification: jest.fn().mockResolvedValue(undefined),
+};
+
+const mockCryptoService = {
+  generateRamdomToken: jest.fn().mockReturnValue('token_verificacion_fake'),
+};
 
 const mockUserRepository = {
   findByEmail: jest.fn(),
@@ -23,6 +34,8 @@ describe('RegisterUserUseCase', () => {
         RegisterUserUseCase,
         { provide: I_USER_REPOSITORY, useValue: mockUserRepository },
         { provide: I_PASSWORD_SERVICE, useValue: mockPasswordService },
+        { provide: I_EMAIL_SERVICE, useValue: mockEmailService },
+        { provide: CryptoTokenService, useValue: mockCryptoService },
       ],
     }).compile();
 
@@ -58,6 +71,12 @@ describe('RegisterUserUseCase', () => {
     expect(mockPasswordService.hash).toHaveBeenCalledWith('plain_password');
     // Verificamos que se guardó la entidad
     expect(mockUserRepository.save).toHaveBeenCalled();
+    // Verificamos que se envió el correo de verificación con el token generado
+    expect(mockEmailService.sendEmailVerification).toHaveBeenCalledWith(
+      'jhon@test.com',
+      'token_verificacion_fake',
+      'Jhon Doe',
+    );
   });
 
   it('debería lanzar error si el usuario ya existe', async () => {
@@ -74,6 +93,6 @@ describe('RegisterUserUseCase', () => {
 
     console.log('INPUT:', dto);
 
-    await expect(useCase.execute(dto)).rejects.toThrow('El usuario ya existe');
+    await expect(useCase.execute(dto)).rejects.toThrow('Correo ya registrado');
   });
 });

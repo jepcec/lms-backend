@@ -3,14 +3,19 @@ import {
   NotFoundException,
   BadRequestException,
 } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { PrismaService } from '../../../../core/database/prisma.service';
 import { CreateMatriculasDto } from '../dtos/create-matriculas.dto';
+import { EnrollmentCreatedEvent } from '../../../notifications/domain/events/enrollment-created.event';
 
 @Injectable()
 export class CreateMatriculasUseCase {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly eventEmitter: EventEmitter2,
+  ) {}
 
-  async execute(dto: CreateMatriculasDto) {
+  async execute(dto: CreateMatriculasDto, actorUserId: string) {
     const user = await this.prisma.user.findUnique({
       where: { id: dto.user_id },
     });
@@ -24,7 +29,7 @@ export class CreateMatriculasUseCase {
         id: { in: dto.course_ids },
         deleted_at: null,
       },
-      select: { id: true },
+      select: { id: true, access_duration_months: true },
     });
 
     if (validCourses.length === 0) {
@@ -32,6 +37,9 @@ export class CreateMatriculasUseCase {
     }
 
     const validCourseIds = validCourses.map((c) => c.id);
+    const courseMonthsMap = new Map(
+      validCourses.map((c) => [c.id, c.access_duration_months]),
+    );
 
     const existingEnrollments = await this.prisma.enrollment.findMany({
       where: {
@@ -53,8 +61,12 @@ export class CreateMatriculasUseCase {
     }
 
     const created = await this.prisma.$transaction(
-      toCreate.map((courseId) =>
-        this.prisma.enrollment.create({
+      toCreate.map((courseId) => {
+        const months = dto.access_months ?? courseMonthsMap.get(courseId)!;
+        const accessExpiresAt = new Date();
+        accessExpiresAt.setMonth(accessExpiresAt.getMonth() + months);
+
+        return this.prisma.enrollment.create({
           data: {
             user_id: dto.user_id,
             course_id: courseId,
@@ -62,6 +74,7 @@ export class CreateMatriculasUseCase {
             offline_payment_method: dto.offline_payment_method,
             offline_amount: dto.offline_amount,
             internal_notes: dto.internal_notes,
+            access_expires_at: accessExpiresAt,
           },
           include: {
             student: {
@@ -92,9 +105,58 @@ export class CreateMatriculasUseCase {
               },
             },
           },
+        });
+      }),
+    );
+
+    // Actualizar enrolled_count en cada curso matriculado
+    await Promise.all(
+      toCreate.map((courseId) =>
+        this.prisma.course.update({
+          where: { id: courseId },
+          data: { enrolled_count: { increment: 1 } },
         }),
       ),
     );
+
+    await Promise.all(
+      created.map((enrollment) =>
+        this.prisma.auditLog.create({
+          data: {
+            user_id: actorUserId,
+            entity_type: 'Enrollment',
+            entity_id: enrollment.id,
+            action: 'create',
+            changes: {
+              before: null,
+              after: {
+                user_id: enrollment.user_id,
+                student: `${enrollment.student.first_name} ${enrollment.student.last_name}`,
+                course_id: enrollment.course_id,
+                course: enrollment.course.title,
+                enrollment_type: enrollment.enrollment_type,
+                offline_payment_method: enrollment.offline_payment_method,
+                offline_amount: enrollment.offline_amount
+                  ? Number(enrollment.offline_amount)
+                  : null,
+              },
+            },
+          },
+        }),
+      ),
+    );
+
+    for (const enrollment of created) {
+      this.eventEmitter.emit(
+        EnrollmentCreatedEvent.EVENT,
+        new EnrollmentCreatedEvent(
+          enrollment.user_id,
+          enrollment.course_id,
+          enrollment.course.title,
+          enrollment.course.slug,
+        ),
+      );
+    }
 
     const skipped = dto.course_ids.length - toCreate.length;
 
@@ -106,6 +168,7 @@ export class CreateMatriculasUseCase {
         course_id: enrollment.course_id,
         course: enrollment.course,
         enrolled_at: enrollment.enrolled_at.toISOString(),
+        access_expires_at: enrollment.access_expires_at?.toISOString() ?? null,
         enrollment_type: enrollment.enrollment_type,
         offline_payment_method: enrollment.offline_payment_method,
         offline_amount: enrollment.offline_amount

@@ -18,7 +18,7 @@ export class CreatePromotionUseCase {
     private readonly fileStorageService: IFileStorageService,
   ) {}
 
-async execute(dto: CreatePromotionDto) {
+  async execute(dto: CreatePromotionDto) {
     let imageUrl = dto.image_url;
     let imagePublicId = dto.image_public_id;
 
@@ -45,6 +45,6 @@ async execute(dto: CreatePromotionDto) {
       status: dto.status,
       starts_at: dto.starts_at ? new Date(dto.starts_at) : undefined,
       ends_at: dto.ends_at ? new Date(dto.ends_at) : undefined,
-    } as any);
+    });
   }
 }

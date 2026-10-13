@@ -1,0 +1,73 @@
+# --- Dependencias y build (se reinstalan dentro del contenedor) ---
+node_modules
+dist
+build
+coverage
+.nyc_output
+
+# --- Entorno (secretos, no deben ir al contexto) ---
+.env
+.env.local
+.env.*.local
+.env.production
+.env.prod
+.env.staging
+.env.development
+
+# --- Artefactos generados que se regeneran en build ---
+src/generated
+
+# --- Uploads (es un volumen en runtime, no se copia al build) ---
+uploads/*
+!uploads/.gitkeep
+
+# --- Prisma artifacts ---
+prisma/.tmp
+prisma/*.db
+prisma/*.db-journal
+
+# --- Control de versiones ---
+.git
+.gitignore
+.gitattributes
+
+# --- IDEs y editores ---
+.vscode
+.idea
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# --- Logs ---
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+logs
+
+# --- Tests (no se necesitan en imagen de runtime) ---
+test
+**/*.spec.ts
+**/*.e2e-spec.ts
+**/__tests__
+jest.config.*
+playwright-report
+test-results
+
+# --- CI / Docker meta ---
+docker-compose*.yml
+Dockerfile
+.dockerignore
+.github
+.gitlab-ci.yml
+
+# --- Documentación miscelánea (no afecta runtime) ---
+*.md
+!README.md
+LICENSE
+.eslintrc*
+.prettierrc
+.editorconfig

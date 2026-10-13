@@ -1,7 +1,6 @@
 export type CourseLevel = 'principiante' | 'intermedio' | 'avanzado';
-export type CourseCurrency = 'USD' | 'PEN';
-export type CourseAccessDuration = 'one_year' | 'lifetime';
 export type CourseStatus = 'draft' | 'published' | 'archived';
+export type CertificationMode = 'auto' | 'manual';
 
 export interface CourseProps {
   id: string;
@@ -14,10 +13,11 @@ export interface CourseProps {
   thumbnail_public_id?: string | null;
   level: CourseLevel;
   software_tools: string[];
-  price: number;
-  discount_price?: number | null;
-  currency: CourseCurrency;
-  access_duration: CourseAccessDuration;
+  price_pen: number;
+  discount_price_pen?: number | null;
+  price_usd: number;
+  discount_price_usd?: number | null;
+  access_duration_months: number;
   prerequisites: string[];
   outcomes: string[];
   status: CourseStatus;
@@ -26,6 +26,10 @@ export interface CourseProps {
   review_count: number;
   enrolled_count: number;
   total_duration_minutes: number;
+  academic_hours: number;
+  certification_mode: CertificationMode;
+  certificate_template_id?: string | null;
+  constancia_template_id?: string | null;
   created_by: string;
   created_at: Date;
   updated_at: Date;
@@ -69,17 +73,20 @@ export class CourseEntity {
   get software_tools() {
     return this.props.software_tools;
   }
-  get price() {
-    return this.props.price;
+  get price_pen() {
+    return this.props.price_pen;
   }
-  get discount_price() {
-    return this.props.discount_price ?? null;
+  get discount_price_pen() {
+    return this.props.discount_price_pen ?? null;
   }
-  get currency() {
-    return this.props.currency;
+  get price_usd() {
+    return this.props.price_usd;
   }
-  get access_duration() {
-    return this.props.access_duration;
+  get discount_price_usd() {
+    return this.props.discount_price_usd ?? null;
+  }
+  get access_duration_months() {
+    return this.props.access_duration_months;
   }
   get prerequisites() {
     return this.props.prerequisites;
@@ -105,6 +112,18 @@ export class CourseEntity {
   get total_duration_minutes() {
     return this.props.total_duration_minutes;
   }
+  get academic_hours() {
+    return this.props.academic_hours;
+  }
+  get certification_mode() {
+    return this.props.certification_mode;
+  }
+  get certificate_template_id() {
+    return this.props.certificate_template_id ?? null;
+  }
+  get constancia_template_id() {
+    return this.props.constancia_template_id ?? null;
+  }
   get created_by() {
     return this.props.created_by;
   }
@@ -118,14 +137,27 @@ export class CourseEntity {
     return this.props.deleted_at ?? null;
   }
 
-  get hasDiscount() {
+  get hasDiscountPen() {
     return (
-      this.props.discount_price !== null &&
-      this.props.discount_price !== undefined
+      this.props.discount_price_pen !== null &&
+      this.props.discount_price_pen !== undefined
     );
   }
-  get finalPrice() {
-    return this.hasDiscount ? this.props.discount_price! : this.props.price;
+  get finalPricePen() {
+    return this.hasDiscountPen
+      ? this.props.discount_price_pen!
+      : this.props.price_pen;
+  }
+  get hasDiscountUsd() {
+    return (
+      this.props.discount_price_usd !== null &&
+      this.props.discount_price_usd !== undefined
+    );
+  }
+  get finalPriceUsd() {
+    return this.hasDiscountUsd
+      ? this.props.discount_price_usd!
+      : this.props.price_usd;
   }
 
   toJSON() {
@@ -140,10 +172,13 @@ export class CourseEntity {
       thumbnail_public_id: this.thumbnail_public_id,
       level: this.level,
       software_tools: this.software_tools,
-      price: this.price,
-      discount_price: this.discount_price,
-      currency: this.currency,
-      access_duration: this.access_duration,
+      price_pen: this.price_pen,
+      discount_price_pen: this.discount_price_pen,
+      final_price_pen: this.finalPricePen,
+      price_usd: this.price_usd,
+      discount_price_usd: this.discount_price_usd,
+      final_price_usd: this.finalPriceUsd,
+      access_duration_months: this.access_duration_months,
       prerequisites: this.prerequisites,
       outcomes: this.outcomes,
       status: this.status,
@@ -152,6 +187,10 @@ export class CourseEntity {
       review_count: this.review_count,
       enrolled_count: this.enrolled_count,
       total_duration_minutes: this.total_duration_minutes,
+      academic_hours: this.academic_hours,
+      certification_mode: this.certification_mode,
+      certificate_template_id: this.certificate_template_id,
+      constancia_template_id: this.constancia_template_id,
       created_by: this.created_by,
       created_at: this.created_at,
       updated_at: this.updated_at,

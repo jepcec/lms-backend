@@ -1,47 +1,69 @@
 import {
-	Body,
-	Controller,
-	Delete,
-	Get,
-	Param,
-	Patch,
-	Post,
+  Body,
+  BadRequestException,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+  UseInterceptors,
+  UploadedFile,
 } from '@nestjs/common';
+import type { Express } from 'express';
+import { imageUploadInterceptor } from 'src/modules/storage/infrastructure/upload/image-upload.interceptor';
 import { CreateSliderDto } from '../../application/dtos/create-slider.dto';
 import { UpdateSliderDto } from '../../application/dtos/update-slider.dto';
 import { CreateSliderUseCase } from '../../application/use-cases/create-slider.use-case';
 import { DeleteSliderUseCase } from '../../application/use-cases/delete-slider.use-case';
 import { GetSlidersUseCase } from '../../application/use-cases/get-sliders.use-case';
 import { UpdateSliderUseCase } from '../../application/use-cases/update-slider.use-case';
+import { UploadSliderImageUseCase } from '../../application/use-cases/upload-slider-image.use-case';
 import { Public } from 'src/modules/auth/decorators/public.decorator';
+import { Roles } from 'src/modules/auth/decorators/roles.decorator';
 
 @Controller('sliders')
 export class SlidersController {
-	constructor(
-		private readonly createSliderUseCase: CreateSliderUseCase,
-		private readonly getSlidersUseCase: GetSlidersUseCase,
-		private readonly updateSliderUseCase: UpdateSliderUseCase,
-		private readonly deleteSliderUseCase: DeleteSliderUseCase,
-	) {}
-	
-	@Public()
-	@Get()
-	findAll() {
-		return this.getSlidersUseCase.execute();
-	}
+  constructor(
+    private readonly createSliderUseCase: CreateSliderUseCase,
+    private readonly getSlidersUseCase: GetSlidersUseCase,
+    private readonly updateSliderUseCase: UpdateSliderUseCase,
+    private readonly deleteSliderUseCase: DeleteSliderUseCase,
+    private readonly uploadSliderImageUseCase: UploadSliderImageUseCase,
+  ) {}
 
-	@Post()
-	create(@Body() dto: CreateSliderDto) {
-		return this.createSliderUseCase.execute(dto);
-	}
+  @Public()
+  @Get()
+  findAll() {
+    return this.getSlidersUseCase.execute();
+  }
 
-	@Patch(':id')
-	update(@Param('id') id: string, @Body() dto: UpdateSliderDto) {
-		return this.updateSliderUseCase.execute(id, dto);
-	}
+  @Post()
+  @Roles('admin', 'marketing')
+  create(@Body() dto: CreateSliderDto) {
+    return this.createSliderUseCase.execute(dto);
+  }
 
-	@Delete(':id')
-	remove(@Param('id') id: string) {
-		return this.deleteSliderUseCase.execute(id);
-	}
+  @Patch(':id')
+  @Roles('admin', 'marketing')
+  update(@Param('id') id: string, @Body() dto: UpdateSliderDto) {
+    return this.updateSliderUseCase.execute(id, dto);
+  }
+
+  @Delete(':id')
+  @Roles('admin', 'marketing')
+  remove(@Param('id') id: string) {
+    return this.deleteSliderUseCase.execute(id);
+  }
+
+  @Post(':id/image')
+  @Roles('admin', 'marketing')
+  @UseInterceptors(imageUploadInterceptor('image'))
+  uploadImage(
+    @Param('id') id: string,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    if (!file) throw new BadRequestException('Imagen requerida');
+    return this.uploadSliderImageUseCase.execute(id, file);
+  }
 }

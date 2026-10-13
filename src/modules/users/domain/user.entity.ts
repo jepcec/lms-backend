@@ -5,7 +5,12 @@
 // USERMAPER
 // ============================================================================
 
-export type UserRole = 'estudiante' | 'soporte' | 'marketing' | 'admin';
+export type UserRole =
+  | 'estudiante'
+  | 'soporte'
+  | 'marketing'
+  | 'admin'
+  | 'coordinador';
 export interface UserProps {
   id: string;
   first_name: string;
@@ -20,10 +25,13 @@ export interface UserProps {
   email_verified: boolean | false;
   email_verified_at?: Date | null;
   password_reset_expires_at?: Date | null;
+  session_version?: number;
 
   country?: string | null;
+  profession?: string | null;
   profile_photo_url?: string | null;
   status?: string;
+  deleted_at?: Date | null;
   created_by?: string | null;
   created_at?: Date;
   updated_at?: Date;
@@ -81,6 +89,9 @@ export class UserEntity {
   get passwordResetExpiresAt() {
     return this.props.password_reset_expires_at ?? null;
   }
+  get sessionVersion() {
+    return this.props.session_version ?? 0;
+  }
   set passwordResetExpiresAt(value: Date | null) {
     this.props.password_reset_expires_at = value;
   }
@@ -102,11 +113,26 @@ export class UserEntity {
   get country() {
     return this.props.country ?? null;
   }
+  get profession() {
+    return this.props.profession ?? null;
+  }
   get profilePhotoUrl() {
     return this.props.profile_photo_url ?? null;
   }
   get status() {
     return this.props.status ?? 'active';
+  }
+  get deletedAt() {
+    return this.props.deleted_at ?? null;
+  }
+  get isSuspended() {
+    return this.props.status === 'suspended';
+  }
+  get isDeleted() {
+    return this.props.status === 'deleted' || this.props.deleted_at !== null;
+  }
+  get isActive() {
+    return this.props.status === 'active' && this.props.deleted_at === null;
   }
   get createdBy() {
     return this.props.created_by ?? null;

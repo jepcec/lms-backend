@@ -12,7 +12,6 @@ export class VerifyEmailUseCase {
 
   async execute(token: string): Promise<void> {
     const user = await this.userRepository.findByVerificationToken(token);
-    console.log(user);
 
     if (!user) {
       throw new BadRequestException(
@@ -25,9 +24,9 @@ export class VerifyEmailUseCase {
       throw new BadRequestException('El correo ya ha sido verificado');
     }
 
-    user.emailVerified = true;
-    user.emailVerifiedAt = new Date();
-    user.emailVerificationToken = null;
-    await this.userRepository.save(user);
+    const verified = await this.userRepository.verifyEmailWithToken(user.id, token);
+    if (!verified) {
+      throw new BadRequestException('Token de verificacion invalido o expirado');
+    }
   }
 }

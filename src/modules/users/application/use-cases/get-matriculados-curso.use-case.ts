@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../../../core/database/prisma.service';
+import { userSearchWhere } from '../../../../core/database/fuzzy-search';
 import { MatriculadosQueryDto } from '../dtos/matriculados-query.dto';
 
 @Injectable()
@@ -23,21 +24,21 @@ export class GetMatriculadosCursoUseCase {
     const where: Record<string, unknown> = { course_id: cursoId };
 
     if (params.search) {
-      where.student = {
-        OR: [
-          { first_name: { contains: params.search, mode: 'insensitive' } },
-          { last_name: { contains: params.search, mode: 'insensitive' } },
-          { email: { contains: params.search, mode: 'insensitive' } },
-        ],
-      };
+      // Tolerante: sin tildes, palabra por palabra y con errores de tipeo
+      where.student = { OR: (await userSearchWhere(this.prisma, params.search)).OR };
     }
 
-    if (params.status === 'activo') {
+    if (params.status === 'suspendido') {
+      where.suspended_at = { not: null };
+    } else if (params.status === 'activo') {
       where.completed_at = null;
+      where.suspended_at = null;
     } else if (params.status === 'completado') {
       where.completed_at = { not: null };
+      where.suspended_at = null;
     } else if (params.status === 'inactivo') {
       where.progress_percent = 0;
+      where.suspended_at = null;
     }
 
     if (params.enrollment_type) {
@@ -74,11 +75,15 @@ export class GetMatriculadosCursoUseCase {
         enrolled_at: enrollment.enrolled_at.toISOString(),
         progress_percent: enrollment.progress_percent.toNumber(),
         last_accessed_at: enrollment.last_accessed_at?.toISOString(),
-        status: enrollment.completed_at
-          ? 'completado'
-          : enrollment.progress_percent.toNumber() === 0
-            ? 'inactivo'
-            : 'activo',
+        suspended_at: enrollment.suspended_at?.toISOString() ?? null,
+        access_expires_at: enrollment.access_expires_at?.toISOString() ?? null,
+        status: enrollment.suspended_at
+          ? 'suspendido'
+          : enrollment.completed_at
+            ? 'completado'
+            : enrollment.progress_percent.toNumber() === 0
+              ? 'inactivo'
+              : 'activo',
         enrollment_type: enrollment.enrollment_type,
         offline_payment_method: enrollment.offline_payment_method ?? undefined,
       })),

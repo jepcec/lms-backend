@@ -22,6 +22,7 @@ enum UserRole {
   soporte
   marketing
   admin
+  coordinador
 }
 
 enum UserStatus {
@@ -36,19 +37,14 @@ enum CourseLevel {
   avanzado
 }
 
-enum CourseCurrency {
-  USD
-  PEN
-}
-
 enum CertificateType {
-  Certificado    // Certificado (Nota >= 13)
-  Constancia // Constancia (Nota < 13)
+  Certificado    // Certificado (Nota >= 14)
+  Constancia     // Constancia (Nota < 14)
 }
 
-enum CourseAccessDuration {
-  one_year  // Mapea "1_year" (nombre reservado)
-  lifetime
+enum CertificationMode {
+  auto    // 100% progreso + reseña → certificado automático
+  manual  // Admin carga notas por módulo y emite manualmente
 }
 
 enum CourseStatus {
@@ -57,11 +53,17 @@ enum CourseStatus {
   archived
 }
 
+enum VideoProvider {
+  youtube
+  drive
+}
+
 enum MaterialType {
   PDF
   Excel
   Word
   Otro
+  Video
 }
 
 enum EnrollmentType {
@@ -85,6 +87,8 @@ enum PaymentMethod {
   stripe
   niubiz
   paypal
+  mercado_pago
+  culqi
 }
 
 enum PaymentStatus {
@@ -101,6 +105,8 @@ enum ReviewStatus {
 
 enum NotificationType {
   nuevo_curso
+  descuento
+  anuncio
   completado
   recordatorio
   matriculacion
@@ -110,6 +116,7 @@ enum NotificationType {
 enum SliderType {
   courses
   banner
+  catalog
 }
 
 enum SliderPosition {
@@ -145,6 +152,7 @@ model User {
   email                      String    @unique
   phone                      String
   country                    String?
+  profession                 String?
   password_hash              String
   role                       UserRole
   profile_photo_url          String?
@@ -153,6 +161,7 @@ model User {
   email_verified_at          DateTime?
   password_reset_token       String?
   password_reset_expires_at  DateTime?
+  session_version            Int       @default(0)
   failed_login_attempts      Int       @default(0)
   locked_until               DateTime?
   status                     UserStatus @default(active)
@@ -208,10 +217,11 @@ model Course {
   thumbnail_public_id    String?
   level                  CourseLevel
   software_tools         String[]
-  price                  Decimal              @db.Decimal(10, 2)
-  discount_price         Decimal?             @db.Decimal(10, 2)
-  currency               CourseCurrency
-  access_duration        CourseAccessDuration
+  price_pen              Decimal              @db.Decimal(10, 2)
+  discount_price_pen     Decimal?             @db.Decimal(10, 2)
+  price_usd              Decimal              @db.Decimal(10, 2)
+  discount_price_usd     Decimal?             @db.Decimal(10, 2)
+  access_duration_months Int
   prerequisites          String[]
   outcomes               String[]
   status                 CourseStatus         @default(draft)
@@ -220,7 +230,11 @@ model Course {
   review_count           Int                  @default(0)
   enrolled_count         Int                  @default(0)
   total_duration_minutes Int                  @default(0)
-  created_by             String               @db.Uuid
+  academic_hours         Int                  @default(0)
+  certification_mode        CertificationMode    @default(auto)
+  certificate_template_id   String?             @db.Uuid
+  constancia_template_id    String?             @db.Uuid
+  created_by                String               @db.Uuid
   created_at             DateTime             @default(now())
   updated_at             DateTime             @updatedAt
   deleted_at             DateTime?
@@ -228,6 +242,8 @@ model Course {
   // Relaciones
   category               Category             @relation(fields: [category_id], references: [id])
   creator                User                 @relation("CourseCreatedBy", fields: [created_by], references: [id])
+  certificate_template   CertificateTemplate? @relation("CourseCertificateTemplate", fields: [certificate_template_id], references: [id])
+  constancia_template    CertificateTemplate? @relation("CourseConstanciaTemplate", fields: [constancia_template_id], references: [id])
   instructors            Instructor[]
   modules                Module[]
   enrollments            Enrollment[]
@@ -259,15 +275,19 @@ model Instructor {
 // =============================================================
 
 model Module {
-  id            String    @id @default(uuid()) @db.Uuid
-  course_id     String    @db.Uuid
-  title         String
-  description   String?
-  display_order Int
-  created_at    DateTime  @default(now())
+  id                      String    @id @default(uuid()) @db.Uuid
+  course_id               String    @db.Uuid
+  title                   String
+  description             String?
+  display_order           Int
+  certificate_template_id String?   @db.Uuid
+  created_at              DateTime  @default(now())
 
-  course        Course    @relation(fields: [course_id], references: [id], onDelete: Cascade)
-  sessions      Session[]
+  course               Course                  @relation(fields: [course_id], references: [id], onDelete: Cascade)
+  certificate_template CertificateTemplate?    @relation("ModuleCertificateTemplate", fields: [certificate_template_id], references: [id])
+  sessions             Session[]
+  module_grades        EnrollmentModuleGrade[]
+  module_certificates  ModuleCertificate[]
 
   @@map("modules")
 }
@@ -277,8 +297,12 @@ model Session {
   module_id        String    @db.Uuid
   title            String
   description      String?
-  youtube_url      String
-  youtube_video_id String
+  // Fuente del video principal. youtube → youtube_url/youtube_video_id;
+  // drive → drive_url (archivo compartido como "Cualquier persona con el enlace").
+  video_provider   VideoProvider @default(youtube)
+  youtube_url      String?
+  youtube_video_id String?
+  drive_url        String?
   duration_minutes Int
   display_order    Int
   created_at       DateTime  @default(now())
@@ -369,6 +393,7 @@ model Enrollment {
   course_id              String                @db.Uuid
   order_id               String?               @db.Uuid
   enrolled_at            DateTime              @default(now())
+  access_expires_at      DateTime?
   enrollment_type        EnrollmentType
   offline_payment_method OfflinePaymentMethod?
   offline_amount         Decimal?              @db.Decimal(10, 2)
@@ -377,16 +402,19 @@ model Enrollment {
   progress_percent       Decimal               @default(0) @db.Decimal(5, 2)
   completed_at           DateTime?
   last_accessed_at       DateTime?
-  final_score      Decimal?  @db.Decimal(4, 2) // Para registrar notas como 13.50
-
+  final_score            Decimal?              @db.Decimal(4, 2)
+  average_grade          Decimal?              @db.Decimal(4, 2)
+  suspended_at           DateTime?
 
   student                User                  @relation("StudentEnrollments", fields: [user_id], references: [id])
   course                 Course                @relation(fields: [course_id], references: [id])
   order                  Order?                @relation(fields: [order_id], references: [id])
   enrolled_by_user       User?                 @relation("EnrolledBy", fields: [enrolled_by], references: [id])
   lesson_progress        LessonProgress[]
+  module_grades          EnrollmentModuleGrade[]
   review                 Review?
   certificate            Certificate?
+  module_certificates    ModuleCertificate[]
 
   @@unique([user_id, course_id])
   @@map("enrollments")
@@ -402,10 +430,25 @@ model LessonProgress {
   last_watched_at DateTime  @updatedAt
 
   enrollment      Enrollment @relation(fields: [enrollment_id], references: [id], onDelete: Cascade)
-  session         Session    @relation(fields: [session_id], references: [id])
+  session         Session    @relation(fields: [session_id], references: [id], onDelete: Cascade)
 
   @@unique([enrollment_id, session_id])
   @@map("lesson_progress")
+}
+
+model EnrollmentModuleGrade {
+  id            String     @id @default(uuid()) @db.Uuid
+  enrollment_id String     @db.Uuid
+  module_id     String     @db.Uuid
+  grade         Decimal    @db.Decimal(4, 2)
+  created_at    DateTime   @default(now())
+  updated_at    DateTime   @updatedAt
+
+  enrollment    Enrollment @relation(fields: [enrollment_id], references: [id], onDelete: Cascade)
+  module        Module     @relation(fields: [module_id], references: [id], onDelete: Cascade)
+
+  @@unique([enrollment_id, module_id])
+  @@map("enrollment_module_grades")
 }
 
 // =============================================================
@@ -431,20 +474,25 @@ model Review {
 }
 
 model CertificateTemplate {
-  id                          String   @id @default(uuid()) @db.Uuid
-  name                        String
-  background_image_url        String
-  student_name_position       Json     // { x: number, y: number }
-  course_name_position        Json
-  dates_position              Json
-  verification_code_position  Json
-  qr_position                 Json
-  font_family                 String
-  font_sizes                  Json     // { campo: size }
-  is_active                   Boolean  @default(false)
-  created_at                  DateTime @default(now())
+  id                    String   @id @default(uuid()) @db.Uuid
+  name                  String
+  background_image_url  String
+  background_image_public_id String?  // id real en el storage (para poder borrar el archivo)
+  back_image_url        String?  // imagen de contraportada
+  back_image_public_id  String?  // id real en el storage (para poder borrar el archivo)
+  student_name_position Json     // { x: number, y: number }
+  qr_position           Json     // { x: number, y: number }
+  qr_size               Int      @default(300) // unidades del espacio virtual 3508×2480
+  font_family           String
+  font_sizes            Json     // { campo: size } — en unidades del espacio virtual
+  is_active             Boolean  @default(false)
+  created_at            DateTime @default(now())
 
-  certificates                Certificate[]
+  certificates          Certificate[]
+  module_certificates   ModuleCertificate[]
+  courses               Course[]      @relation("CourseCertificateTemplate")
+  constancia_courses    Course[]      @relation("CourseConstanciaTemplate")
+  modules               Module[]      @relation("ModuleCertificateTemplate")
 
   @@map("certificate_templates")
 }
@@ -453,12 +501,17 @@ model Certificate {
   id                String              @id @default(uuid()) @db.Uuid
   enrollment_id     String              @unique @db.Uuid
   template_id       String              @db.Uuid
-  type              CertificateType // Nuevo campo para distinguir el documento
-  verification_code String              @unique @db.Uuid @default(uuid())
-  pdf_url           String
+  type              CertificateType
+  verification_code String?             @unique
+  pdf_url           String?
   issued_at         DateTime            @default(now())
+  // Revocación lógica: al "quitar" una certificación no se borra la fila (eso
+  // perdería el verification_code y rompería el QR de un PDF ya entregado).
+  // Se marca revoked_at y se trata como inexistente en toda lectura pública o
+  // del estudiante; al reasignar la misma certificación se limpia este campo
+  // y se reutiliza el mismo verification_code.
+  revoked_at        DateTime?
 
-  // Un certificado puede tener o no review_id según si se quiere rastrear cuál reseña lo disparó
   review_id         String?             @unique @db.Uuid
 
   enrollment        Enrollment          @relation(fields: [enrollment_id], references: [id])
@@ -466,6 +519,25 @@ model Certificate {
   review            Review?             @relation(fields: [review_id], references: [id])
 
   @@map("certificates")
+}
+
+model ModuleCertificate {
+  id                String              @id @default(uuid()) @db.Uuid
+  enrollment_id     String              @db.Uuid
+  module_id         String              @db.Uuid
+  template_id       String              @db.Uuid
+  verification_code String              @unique
+  pdf_url           String?
+  issued_at         DateTime            @default(now())
+  // Mismo mecanismo de revocación lógica que Certificate.revoked_at.
+  revoked_at        DateTime?
+
+  enrollment        Enrollment          @relation(fields: [enrollment_id], references: [id], onDelete: Cascade)
+  module            Module              @relation(fields: [module_id], references: [id], onDelete: Cascade)
+  template          CertificateTemplate @relation(fields: [template_id], references: [id])
+
+  @@unique([enrollment_id, module_id])
+  @@map("module_certificates")
 }
 
 
@@ -483,6 +555,7 @@ model Notification {
   body         String
   is_read      Boolean          @default(false)
   redirect_url String?
+  image_url    String?
   created_at   DateTime         @default(now())
 
   user         User             @relation(fields: [user_id], references: [id])
@@ -505,23 +578,104 @@ model AuditLog {
 }
 
 // =============================================================
-// MARKETING — Slider, SliderCourse y Promotion
+// MARKETING — EventType, Slider, SliderCourse y Promotion
 // =============================================================
+
+model EventType {
+  id            String    @id @default(uuid()) @db.Uuid
+  name          String    @unique
+  display_order Int       @default(0)
+  created_at    DateTime  @default(now())
+
+  sliders       Slider[]
+
+  @@map("event_types")
+}
 
 model Slider {
   id               String         @id @default(uuid()) @db.Uuid
   title            String
+  subtitle         String?
   type             SliderType
-  image_url        String?        // Solo para tipo banner
+  event_type_id    String?        @db.Uuid
+  image_url        String?
+  image_public_id  String?
   destination_url  String?
+  contact_url      String?
   position_on_page SliderPosition
   display_order    Int
   status           ContentStatus  @default(active)
+  show_content     Boolean        @default(true)
   created_at       DateTime       @default(now())
 
+  event_type       EventType?     @relation(fields: [event_type_id], references: [id], onDelete: SetNull)
   slider_courses   SliderCourse[]
 
   @@map("sliders")
+}
+
+model UpcomingLaunch {
+  id               String        @id @default(uuid()) @db.Uuid
+  category_label   String
+  title            String
+  start_date       DateTime
+  image_url        String?
+  image_public_id  String?
+  link_url         String?
+  display_order    Int
+  status           ContentStatus @default(active)
+  created_at       DateTime      @default(now())
+
+  @@map("upcoming_launches")
+}
+
+model Software {
+  id              String        @id @default(uuid()) @db.Uuid
+  name            String
+  image_url       String
+  image_public_id String?
+  display_order   Int
+  status          ContentStatus @default(active)
+  created_at      DateTime      @default(now())
+
+  @@map("softwares")
+}
+
+model ScrollPopup {
+  id               String        @id @default(uuid()) @db.Uuid
+  image_url        String
+  image_public_id  String?
+  destination_url  String?
+  display_order    Int
+  status           ContentStatus @default(active)
+  created_at       DateTime      @default(now())
+
+  @@map("scroll_popups")
+}
+
+model Alliance {
+  id              String        @id @default(uuid()) @db.Uuid
+  image_url       String
+  image_public_id String?
+  display_order   Int
+  status          ContentStatus @default(active)
+  created_at      DateTime      @default(now())
+
+  @@map("alliances")
+}
+
+model StaffMember {
+  id              String        @id @default(uuid()) @db.Uuid
+  full_name       String?       // 🚀 Nombre del docente
+  title           String?       // 🚀 Profesión o cargo
+  description     String?       // 🚀 Biografía breve
+  image_url       String
+  image_public_id String?
+  display_order   Int           @default(0)
+  status          ContentStatus @default(active)
+  created_at      DateTime      @default(now())
+
+  @@map("staff_members")
 }
 
 // Tabla intermedia N:M Slider ↔ Course
