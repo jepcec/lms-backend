@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../../../src/core/database/prisma.service';
 import { CursoParams } from '../dtos/curso-params.dto';
 import { buildCourseFilterWhere, buildCourseOrderBy } from '../utils/course-filters';
+import { fuzzySearchIds } from '../../../../core/database/fuzzy-search';
 
 @Injectable()
 export class GetAllCoursesUseCase {
@@ -15,19 +16,35 @@ export class GetAllCoursesUseCase {
     const where = await buildCourseFilterWhere(this.prisma, params);
     const orderBy = buildCourseOrderBy(params.sort);
 
-    const [data, total] = await Promise.all([
-      this.prisma.course.findMany({
+    let data: Awaited<ReturnType<typeof this.findPage>>;
+    let total: number;
+
+    if (params.search && !params.sort) {
+      // Con búsqueda y sin orden elegido: los más exactos primero (exacto > empieza
+      // igual > contiene > parecido), como en Matrículas. Se ordenan los ids de todo
+      // lo que coincide y se pagina sobre ese orden.
+      const rank = await fuzzySearchIds(this.prisma, 'courses', ['title', 'tagline'], params.search);
+      const position = new Map(rank.map((id, i) => [id, i]));
+      const matches = await this.prisma.course.findMany({
         where,
-        skip,
-        take: limit,
-        include: {
-          category: true,
-          instructors: { orderBy: { display_order: 'asc' } },
-        },
-        orderBy,
-      }),
-      this.prisma.course.count({ where }),
-    ]);
+        select: { id: true, created_at: true },
+      });
+      matches.sort(
+        (a, b) =>
+          (position.get(a.id) ?? Infinity) - (position.get(b.id) ?? Infinity) ||
+          b.created_at.getTime() - a.created_at.getTime(),
+      );
+      const pageIds = matches.slice(skip, skip + limit).map((m) => m.id);
+      const rows = await this.findPage({ id: { in: pageIds } });
+      const pagePosition = new Map(pageIds.map((id, i) => [id, i]));
+      data = rows.sort((a, b) => (pagePosition.get(a.id) ?? 0) - (pagePosition.get(b.id) ?? 0));
+      total = matches.length;
+    } else {
+      [data, total] = await Promise.all([
+        this.findPage(where, { skip, take: limit, orderBy }),
+        this.prisma.course.count({ where }),
+      ]);
+    }
 
     return {
       data: data.map((course) => ({
@@ -69,5 +86,19 @@ export class GetAllCoursesUseCase {
       limit,
       total_pages: Math.ceil(total / limit),
     };
+  }
+
+  private findPage(
+    where: Record<string, unknown>,
+    page: { skip?: number; take?: number; orderBy?: ReturnType<typeof buildCourseOrderBy> } = {},
+  ) {
+    return this.prisma.course.findMany({
+      where,
+      include: {
+        category: true,
+        instructors: { orderBy: { display_order: 'asc' } },
+      },
+      ...page,
+    });
   }
 }
