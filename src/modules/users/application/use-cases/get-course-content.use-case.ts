@@ -26,6 +26,18 @@ export class GetCourseContentUseCase {
       throw new ForbiddenException('Tu acceso a este curso ha vencido');
     }
 
+    return this.loadContent(courseId);
+  }
+
+  /**
+   * Vista previa para el staff que edita cursos (admin/soporte): el mismo
+   * contenido que ve el estudiante, sin exigir matrícula. No registra avance.
+   */
+  async executePreview(courseId: string) {
+    return this.loadContent(courseId);
+  }
+
+  private async loadContent(courseId: string) {
     const course = await this.prisma.course.findUnique({
       where: { id: courseId },
       include: {

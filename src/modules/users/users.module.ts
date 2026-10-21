@@ -27,6 +27,7 @@ import { TurnstileGuard } from './infrastructure/guards/turnstile.guard';
 import { UsersController } from './infrastructure/routes/users.controller';
 import { AuthController } from './infrastructure/routes/auth.controller';
 import { StudentController } from './infrastructure/routes/student.controller';
+import { CoursePreviewController } from './infrastructure/routes/course-preview.controller';
 import { AdminController } from './infrastructure/routes/admin.controller';
 import { EnrollmentsController } from './infrastructure/routes/enrollments.controller';
 import { CertificateTemplatesController } from './infrastructure/routes/certificate-templates.controller';
@@ -105,6 +106,7 @@ import { ExportDashboardExcelUseCase } from './application/use-cases/export-dash
     UsersController,
     AuthController,
     StudentController,
+    CoursePreviewController,
     AdminController,
     EnrollmentsController,
     CertificateTemplatesController,
